@@ -1,20 +1,21 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
+//#include "tinyECS/registry.hpp"
+#include "tinyECS/components.hpp"
 
 // stlib
 #include <cassert>
 #include <sstream>
 #include <iostream>
 
-#include "physics_system.hpp"
-
 // create the world
-WorldSystem::WorldSystem() :
+WorldSystem::WorldSystem(entt::registry& reg) :
 	points(0),
 	max_towers(MAX_TOWERS_START),
 	next_invader_spawn(0),
-	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS)
+	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
+	registry(reg)
 {
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -31,7 +32,8 @@ WorldSystem::~WorldSystem() {
 	Mix_CloseAudio();
 
 	// Destroy all created components
-	registry.clear_all_components();
+	registry.clear();
+	// registry.clear_all_components();
 
 	// Close the window
 	glfwDestroyWindow(window);
@@ -128,10 +130,7 @@ bool WorldSystem::start_and_load_sounds() {
 	return true;
 }
 
-void WorldSystem::init(RenderSystem* renderer_arg) {
-
-	this->renderer = renderer_arg;
-
+void WorldSystem::init() {
 	// start playing background music indefinitely
 	std::cout << "Starting music..." << std::endl;
 	Mix_PlayMusic(background_music, -1);
@@ -148,21 +147,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	title_ss << "Points: " << points;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
+
 	// Remove debug info from the last step
-	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+	auto debugs = registry.view<DebugComponent>();
+	registry.destroy(debugs.begin(), debugs.end());
+	// while (registry.debugComponents.entities.size() > 0)
+	//     registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
-	auto& motions_registry = registry.motions;
+	// auto& motions_registry = registry.motions;
 
-	// Remove entities that leave the screen on the left side
-	// Iterate backwards to be able to remove without unterfering with the next object to visit
-	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
+	// // Remove entities that leave the screen on the left side
+	// // Iterate backwards to be able to remove without unterfering with the next object to visit
+	// // (the containers exchange the last element with the current)
+	// for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
+	//     Motion& motion = motions_registry.components[i];
+	// 	if (motion.position.x + abs(motion.scale.x) < 0.f) {
+	// 		if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+	// 			registry.remove_all_components_of(motions_registry.entities[i]);
+	// 	}
+	// }
+
+	auto motions = registry.view<Motion>(entt::exclude<Player>);
+	for (auto entity: motions) {
+		auto& motion = registry.get<Motion>(entity);
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-				registry.remove_all_components_of(motions_registry.entities[i]);
+			registry.destroy(entity);
 		}
 	}
 
@@ -176,38 +186,38 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		next_invader_spawn = (INVADER_SPAWN_RATE_MS / 2) + uniform_dist(rng) * (INVADER_SPAWN_RATE_MS / 2);
 
 		// create invader with random initial position
-		createInvader(renderer, vec2(50.f + uniform_dist(rng) * (WINDOW_WIDTH_PX - 100.f), 100.f));
+		createInvader(registry, vec2(50.f + uniform_dist(rng) * (WINDOW_WIDTH_PX - 100.f), 100.f));
 	}
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: game over fade out
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// // TODO A1: game over fade out
+	// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// assert(registry.screenStates.components.size() <= 1);
+    // ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
-	for (Entity entity : registry.deathTimers.entities) {
+    // float min_counter_ms = 3000.f;
+	// for (Entity entity : registry.deathTimers.entities) {
 
-		// progress timer
-		DeathTimer& counter = registry.deathTimers.get(entity);
-		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
-		}
+	// 	// progress timer
+	// 	DeathTimer& counter = registry.deathTimers.get(entity);
+	// 	counter.counter_ms -= elapsed_ms_since_last_update;
+	// 	if(counter.counter_ms < min_counter_ms){
+	// 	    min_counter_ms = counter.counter_ms;
+	// 	}
 
-		/* for A1, let the user press "R" to restart instead
-		// restart the game once the death timer expires
-		if (counter.counter_ms < 0) {
-			registry.deathTimers.remove(entity);
-			screen.darken_screen_factor = 0;
-            restart_game();
-			return true;
-		}
-		*/
-	}
+	// 	/* for A1, let the user press "R" to restart instead
+	// 	// restart the game once the death timer expires
+	// 	if (counter.counter_ms < 0) {
+	// 		registry.deathTimers.remove(entity);
+	// 		screen.darken_screen_factor = 0;
+    //         restart_game();
+	// 		return true;
+	// 	}
+	// 	*/
+	// }
 
-	// reduce window brightness if any of the present chickens is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	// // reduce window brightness if any of the present chickens is dying
+	// screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	return true;
 }
@@ -218,7 +228,7 @@ void WorldSystem::restart_game() {
 	std::cout << "Restarting..." << std::endl;
 
 	// Debugging for memory/component leaks
-	registry.list_all_components();
+	// registry.list_all_components();
 
 	// Reset the game speed
 	current_speed = 1.f;
@@ -230,11 +240,13 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+	// while (registry.motions.entities.size() > 0)
+	//     registry.remove_all_components_of(registry.motions.entities.back());
+	auto motions = registry.view<Motion>();
+	registry.destroy(motions.begin(), motions.end());
 
 	// debugging for memory/component leaks
-	registry.list_all_components();
+	// registry.list_all_components();
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A1: create grid lines
@@ -247,43 +259,19 @@ void WorldSystem::restart_game() {
 		int cell_width = GRID_CELL_WIDTH_PX;
 		for (int col = 0; col < 14 + 1; col++) {
 			// width of 2 to make the grid easier to see
-			grid_lines.push_back(createGridLine(vec2(col * cell_width, 0), vec2(grid_line_width, 2 * WINDOW_HEIGHT_PX)));
+			grid_lines.push_back(createGridLine(registry, vec2(col * cell_width, 0), vec2(grid_line_width, 2 * WINDOW_HEIGHT_PX)));
 		}
 
 		// horizontal lines
 		int cell_height = GRID_CELL_HEIGHT_PX;
 		for (int col = 0; col < 10 + 1; col++) {
 			// width of 2 to make the grid easier to see
-			grid_lines.push_back(createGridLine(vec2(0, col * cell_height), vec2(2 * WINDOW_WIDTH_PX, grid_line_width)));
+			grid_lines.push_back(createGridLine(registry, vec2(0, col * cell_height), vec2(2 * WINDOW_WIDTH_PX, grid_line_width)));
 		}
 	}
 }
 
 // Compute collisions between entities
-void WorldSystem::handle_collisions() {
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: Loop over all collisions detected by the physics system
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ComponentContainer<Collision>& collision_container = registry.collisions;
-	for (uint i = 0; i < collision_container.components.size(); i++) {
-		
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TODO A1: handle collision between deadly (projectile) and invader
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// Mix_PlayChannel(-1, chicken_dead_sound, 0);
-
-
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TODO A1: handle collision between tower and invader
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// Mix_PlayChannel(-1, chicken_eat_sound, 0);
-
-	}
-
-	// Remove all collisions from this simulation step
-	registry.collisions.clear();
-}
 
 // Should the game be over ?
 bool WorldSystem::is_over() const {

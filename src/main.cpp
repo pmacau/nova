@@ -8,8 +8,6 @@
 #include <iostream>
 
 // internal
-#include "ai_system.hpp"
-#include "physics_system.hpp"
 #include "render_system.hpp"
 #include "world_system.hpp"
 
@@ -18,11 +16,13 @@ using Clock = std::chrono::high_resolution_clock;
 // Entry point
 int main()
 {
+	entt::registry reg;
+
 	// global systems
-	AISystem	  ai_system;
-	WorldSystem   world_system;
-	RenderSystem  renderer_system;
-	PhysicsSystem physics_system;
+	// AISystem	  ai_system;
+	WorldSystem   world_system(reg);
+	RenderSystem  renderer_system(reg);
+	// PhysicsSystem physics_system;
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -37,13 +37,9 @@ int main()
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
 
-	entt::registry registry;
-	const auto entity = registry.create();
-	registry.emplace<Player>(entity);
-
 	// initialize the main systems
 	renderer_system.init(window);
-	world_system.init(&renderer_system);
+	world_system.init();
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -60,10 +56,6 @@ int main()
 
 		// CK: be mindful of the order of your systems and rearrange this list only if necessary
 		world_system.step(elapsed_ms);
-		ai_system.step(elapsed_ms);
-		physics_system.step(elapsed_ms);
-		world_system.handle_collisions();
-
 		renderer_system.draw();
 	}
 

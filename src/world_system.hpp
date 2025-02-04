@@ -6,6 +6,7 @@
 // stlib
 #include <vector>
 #include <random>
+#include <entt.hpp>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -18,7 +19,8 @@
 class WorldSystem
 {
 public:
-	WorldSystem();
+
+	WorldSystem(entt::registry& reg);
 
 	// creates main window
 	GLFWwindow* create_window();
@@ -30,7 +32,7 @@ public:
 	void close_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init();
 
 	// releases all associated resources
 	~WorldSystem();
@@ -45,6 +47,7 @@ public:
 	bool is_over() const;
 
 private:
+	entt::registry& registry;
 
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
@@ -69,11 +72,10 @@ private:
 	unsigned int points;
 
 	// Game state
-	RenderSystem* renderer;
 	float current_speed;
 
 	// grid
-	std::vector<Entity> grid_lines;
+	std::vector<entt::entity> grid_lines;
 
 	// music references
 	Mix_Music* background_music;

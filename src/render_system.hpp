@@ -2,10 +2,11 @@
 
 #include <array>
 #include <utility>
+#include <entt.hpp>
 
 #include "common.hpp"
 #include "tinyECS/components.hpp"
-#include "tinyECS/tiny_ecs.hpp"
+// #include "tinyECS/tiny_ecs.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -22,10 +23,10 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	// Associated id with .obj path
-	const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
-		std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
-		// specify meshes of other assets here
-	};
+	// const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
+	// 	std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
+	// 	// specify meshes of other assets here
+	// };
 
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
@@ -46,9 +47,11 @@ class RenderSystem {
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
-	std::array<Mesh, geometry_count> meshes;
+	// std::array<Mesh, geometry_count> meshes;
 
 public:
+	RenderSystem(entt::registry& reg);
+
 	// Initialize the window
 	bool init(GLFWwindow* window);
 
@@ -59,9 +62,9 @@ public:
 
 	void initializeGlEffects();
 
-	void initializeGlMeshes();
+	// void initializeGlMeshes();
 
-	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
+	// Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
 
@@ -77,12 +80,14 @@ public:
 
 	mat3 createProjectionMatrix();
 
-	Entity get_screen_state_entity() { return screen_state_entity; }
+	entt::entity get_screen_state_entity() { return screen_state_entity; }
 
 private:
+	entt::registry& registry;
+
 	// Internal drawing functions for each entity type
-	void drawGridLine(Entity entity, const mat3& projection);
-	void drawTexturedMesh(Entity entity, const mat3& projection);
+	void drawGridLine(entt::entity entity, const mat3& projection);
+	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
 	// Window handle
@@ -93,7 +98,7 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 
-	Entity screen_state_entity;
+	entt::entity screen_state_entity;
 };
 
 bool loadEffectFromFile(

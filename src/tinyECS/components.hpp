@@ -47,12 +47,12 @@ struct Motion {
 };
 
 // Stucture to store collision information
-struct Collision
-{
-	// Note, the first object is stored in the ECS container.entities
-	Entity other; // the second object involved in the collision
-	Collision(Entity& other) { this->other = other; };
-};
+// struct Collision
+// {
+// 	// Note, the first object is stored in the ECS container.entities
+// 	Entity other; // the second object involved in the collision
+// 	Collision(Entity& other) { this->other = other; };
+// };
 
 // Data structure for toggling debug mode
 struct Debug {
@@ -100,13 +100,13 @@ struct TexturedVertex
 };
 
 // Mesh datastructure for storing vertex and index buffers
-struct Mesh
-{
-	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-	vec2 original_size = {1,1};
-	std::vector<ColoredVertex> vertices;
-	std::vector<uint16_t> vertex_indices;
-};
+// struct Mesh
+// {
+// 	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
+// 	vec2 original_size = {1,1};
+// 	std::vector<ColoredVertex> vertices;
+// 	std::vector<uint16_t> vertex_indices;
+// };
 
 /**
  * The following enumerators represent global identifiers refering to graphic

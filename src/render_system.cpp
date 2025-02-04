@@ -5,12 +5,20 @@
 
 // internal
 #include "render_system.hpp"
-#include "tinyECS/registry.hpp"
+// #include "tinyECS/registry.hpp"
+#include "tinyECS/components.hpp"
 
-void RenderSystem::drawGridLine(Entity entity,
+RenderSystem::RenderSystem(entt::registry& reg) :
+	registry(reg)
+{
+	screen_state_entity = registry.create();
+}
+
+void RenderSystem::drawGridLine(entt::entity entity,
 								const mat3& projection) {
 
-	GridLine& gridLine = registry.gridLines.get(entity);
+	auto& gridLine = registry.get<GridLine>(entity);
+	// GridLine& gridLine = registry.gridLines.get(entity);
 
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
@@ -19,8 +27,10 @@ void RenderSystem::drawGridLine(Entity entity,
 	transform.translate(gridLine.start_pos);
 	transform.scale(gridLine.end_pos);
 
-	assert(registry.renderRequests.has(entity));
-	const RenderRequest& render_request = registry.renderRequests.get(entity);
+	assert(registry.any_of<RenderRequest>(entity));
+	// assert(registry.renderRequests.has(entity));
+	const auto& render_request = registry.get<RenderRequest>(entity);
+	// const RenderRequest& render_request = registry.renderRequests.get(entity);
 
 	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
 	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
@@ -66,7 +76,7 @@ void RenderSystem::drawGridLine(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = registry.any_of<vec3>(entity) ? registry.get<vec3>(entity) : vec3(1);
 	// CK: std::cout << "line color: " << color.r << ", " << color.g << ", " << color.b << std::endl;
 	glUniform3fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
@@ -94,10 +104,11 @@ void RenderSystem::drawGridLine(Entity entity,
 	gl_has_errors();
 }
 
-void RenderSystem::drawTexturedMesh(Entity entity,
+void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
-	Motion &motion = registry.motions.get(entity);
+	auto& motion = registry.get<Motion>(entity);
+	// Motion &motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
@@ -106,8 +117,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	transform.scale(motion.scale);
 	transform.rotate(radians(motion.angle));
 
-	assert(registry.renderRequests.has(entity));
-	const RenderRequest &render_request = registry.renderRequests.get(entity);
+	assert(registry.any_of<RenderRequest>(entity));
+	const auto& render_request = registry.get<RenderRequest>(entity);
 
 	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
 	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
@@ -149,9 +160,9 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glActiveTexture(GL_TEXTURE0);
 		gl_has_errors();
 
-		assert(registry.renderRequests.has(entity));
+		assert(registry.any_of<RenderRequest>(entity));
 		GLuint texture_id =
-			texture_gl_handles[(GLuint)registry.renderRequests.get(entity).used_texture];
+			texture_gl_handles[(GLuint)registry.get<RenderRequest>(entity).used_texture];
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
@@ -180,7 +191,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
+	const vec3 color = registry.any_of<vec3>(entity) ? registry.get<vec3>(entity) : vec3(1);
 	glUniform3fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
@@ -250,7 +261,7 @@ void RenderSystem::drawToScreen()
 
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	
-	ScreenState &screen = registry.screenStates.get(screen_state_entity);
+	auto& screen = registry.get<ScreenState>(screen_state_entity);
 	// std::cout << "screen.darken_screen_factor: " << screen.darken_screen_factor << " entity id: " << screen_state_entity << std::endl;
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
 	gl_has_errors();
@@ -306,20 +317,29 @@ void RenderSystem::draw()
 
 	mat3 projection_2D = createProjectionMatrix();
 
-	// draw all entities with a render request to the frame buffer
-	for (Entity entity : registry.renderRequests.entities)
-	{
-		// filter to entities that have a motion component
-		if (registry.motions.has(entity)) {
-			// Note, its not very efficient to access elements indirectly via the entity
-			// albeit iterating through all Sprites in sequence. A good point to optimize
-			drawTexturedMesh(entity, projection_2D);
-		}
-		// draw grid lines separately, as they do not have motion but need to be rendered
-		else if (registry.gridLines.has(entity)) {
-			drawGridLine(entity, projection_2D);
-		}
+	auto motionRenders = registry.view<RenderRequest, Motion>();
+	for (auto entity : motionRenders) {
+		drawTexturedMesh(entity, projection_2D);
 	}
+	auto lineRenders = registry.view<RenderRequest, GridLine>();
+	for (auto entity : lineRenders) {
+		drawGridLine(entity, projection_2D);
+	}
+
+	// draw all entities with a render request to the frame buffer
+	// for (Entity entity : registry.renderRequests.entities)
+	// {
+	// 	// filter to entities that have a motion component
+	// 	if (registry.motions.has(entity)) {
+	// 		// Note, its not very efficient to access elements indirectly via the entity
+	// 		// albeit iterating through all Sprites in sequence. A good point to optimize
+	// 		drawTexturedMesh(entity, projection_2D);
+	// 	}
+	// 	// draw grid lines separately, as they do not have motion but need to be rendered
+	// 	else if (registry.gridLines.has(entity)) {
+	// 		drawGridLine(entity, projection_2D);
+	// 	}
+	// }
 
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied

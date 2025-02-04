@@ -7,8 +7,8 @@
 // internal
 #include "../ext/stb_image/stb_image.h"
 #include "render_system.hpp"
-#include "tinyECS/registry.hpp"
-
+//#include "tinyECS/registry.hpp"
+#include "tinyECS/components.hpp"
 
 // Render initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
@@ -115,33 +115,12 @@ void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices
 	gl_has_errors();
 }
 
-void RenderSystem::initializeGlMeshes()
-{
-	for (uint i = 0; i < mesh_paths.size(); i++)
-	{
-		// Initialize meshes
-		GEOMETRY_BUFFER_ID geom_index = mesh_paths[i].first;
-		std::string name = mesh_paths[i].second;
-		Mesh::loadFromOBJFile(name, 
-			meshes[(int)geom_index].vertices,
-			meshes[(int)geom_index].vertex_indices,
-			meshes[(int)geom_index].original_size);
-
-		bindVBOandIBO(geom_index,
-			meshes[(int)geom_index].vertices, 
-			meshes[(int)geom_index].vertex_indices);
-	}
-}
-
 void RenderSystem::initializeGlGeometryBuffers()
 {
 	// Vertex Buffer creation.
 	glGenBuffers((GLsizei)vertex_buffers.size(), vertex_buffers.data());
 	// Index Buffer creation.
 	glGenBuffers((GLsizei)index_buffers.size(), index_buffers.data());
-
-	// Index and Vertex buffer data initialization.
-	initializeGlMeshes();
 
 	//////////////////////////
 	// Initialize sprite
@@ -159,33 +138,6 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// Counterclockwise as it's the default OpenGL front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITE, textured_vertices, textured_indices);
-
-	/* LEGACY - not used, but code below still relies on it...*/
-	////////////////////////
-	// Initialize egg
-	std::vector<ColoredVertex> egg_vertices;
-	std::vector<uint16_t> egg_indices;
-	constexpr float z = -0.1f;
-	constexpr int NUM_TRIANGLES = 62;
-
-	for (int i = 0; i < NUM_TRIANGLES; i++) {
-		const float t = float(i) * M_PI * 2.f / float(NUM_TRIANGLES - 1);
-		egg_vertices.push_back({});
-		egg_vertices.back().position = { 0.5 * cos(t), 0.5 * sin(t), z };
-		egg_vertices.back().color = { 0.8, 0.8, 0.8 };
-	}
-	egg_vertices.push_back({});
-	egg_vertices.back().position = { 0, 0, 0 };
-	egg_vertices.back().color = { 1, 1, 1 };
-	for (int i = 0; i < NUM_TRIANGLES; i++) {
-		egg_indices.push_back((uint16_t)i);
-		egg_indices.push_back((uint16_t)((i + 1) % NUM_TRIANGLES));
-		egg_indices.push_back((uint16_t)NUM_TRIANGLES);
-	}
-	int geom_index = (int)GEOMETRY_BUFFER_ID::EGG;
-	meshes[geom_index].vertices = egg_vertices;
-	meshes[geom_index].vertex_indices = egg_indices;
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::EGG, meshes[geom_index].vertices, meshes[geom_index].vertex_indices);
 
 	//////////////////////////////////
 	// Initialize debug line
@@ -206,10 +158,6 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 	// Two triangles
 	line_indices = {0, 1, 3, 1, 2, 3};
-	
-	geom_index = (int)GEOMETRY_BUFFER_ID::DEBUG_LINE;
-	meshes[geom_index].vertices = line_vertices;
-	meshes[geom_index].vertex_indices = line_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::DEBUG_LINE, line_vertices, line_indices);
 
 	///////////////////////////////////////////////////////
@@ -243,15 +191,18 @@ RenderSystem::~RenderSystem()
 	gl_has_errors();
 
 	// remove all entities created by the render system
-	while (registry.renderRequests.entities.size() > 0)
-	    registry.remove_all_components_of(registry.renderRequests.entities.back());
+	auto view = registry.view<RenderRequest>();
+	registry.destroy(view.begin(), view.end());
+	// while (registry.renderRequests.entities.size() > 0)
+	//     registry.remove_all_components_of(registry.renderRequests.entities.back());
 }
 
 // Initialize the screen texture from a standard sprite
 bool RenderSystem::initScreenTexture()
 {
 	// create a single entry
-	registry.screenStates.emplace(screen_state_entity);
+	// registry.screenStates.emplace(screen_state_entity);
+	registry.emplace<ScreenState>(screen_state_entity, -1.0f);
 
 	int framebuffer_width, framebuffer_height;
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &framebuffer_width, &framebuffer_height);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
