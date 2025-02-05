@@ -7,13 +7,15 @@
 // Player component
 struct Player
 {
-
+	int health;
 };
 
-// Tower
-struct Tower {
-	float range;	// for vision / detection
-	int timer_ms;	// when to shoot - this could also be a separate timer component...
+// All data relevant to the shape and motion of entities
+struct Motion {
+	vec2  position = { 0, 0 };
+	float angle    = 0;
+	vec2  velocity = { 0, 0 };
+	vec2  scale    = { 10, 10 };
 };
 
 // Invader
@@ -36,14 +38,6 @@ struct Deadly
 struct Eatable
 {
 
-};
-
-// All data relevant to the shape and motion of entities
-struct Motion {
-	vec2  position = { 0, 0 };
-	float angle    = 0;
-	vec2  velocity = { 0, 0 };
-	vec2  scale    = { 10, 10 };
 };
 
 // Stucture to store collision information
@@ -73,18 +67,6 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// used to hold grid line start and end positions
-struct GridLine {
-	vec2 start_pos = {  0,  0 };
-	vec2 end_pos   = { 10, 10 };	// default to diagonal line
-};
-
-// A timer that will be associated to dying chicken
-struct DeathTimer
-{
-	float counter_ms = 3000;
-};
-
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
 struct ColoredVertex
 {
@@ -98,15 +80,6 @@ struct TexturedVertex
 	vec3 position;
 	vec2 texcoord;
 };
-
-// Mesh datastructure for storing vertex and index buffers
-// struct Mesh
-// {
-// 	static bool loadFromOBJFile(std::string obj_path, std::vector<ColoredVertex>& out_vertices, std::vector<uint16_t>& out_vertex_indices, vec2& out_size);
-// 	vec2 original_size = {1,1};
-// 	std::vector<ColoredVertex> vertices;
-// 	std::vector<uint16_t> vertex_indices;
-// };
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -133,30 +106,17 @@ struct TexturedVertex
  */
 
 enum class TEXTURE_ASSET_ID {
-	INVADER = 0,
-	TOWER = INVADER + 1,
-	PROJECTILE = TOWER + 1,
-	TEXTURE_COUNT = PROJECTILE + 1
+	INVADER, PROJECTILE, PLAYER, TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	COLOURED = 0,
-	EGG = COLOURED + 1,
-	CHICKEN = EGG + 1,
-	TEXTURED = CHICKEN + 1,
-	VIGNETTE = TEXTURED + 1,
-	EFFECT_COUNT = VIGNETTE + 1
+	TEXTURED, VIGNETTE, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
-	EGG = SPRITE + 1,
-	DEBUG_LINE = EGG + 1,
-	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	SPRITE, SCREEN_TRIANGLE, GEOMETRY_COUNT
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

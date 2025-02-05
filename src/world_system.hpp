@@ -14,6 +14,10 @@
 
 #include "render_system.hpp"
 
+enum KeyboardState {
+	UP, DOWN, LEFT, RIGHT, NUM_STATES
+};
+
 // Container for all our entities and game logic.
 // Individual rendering / updates are deferred to the update() methods.
 class WorldSystem
@@ -48,7 +52,9 @@ public:
 
 private:
 	entt::registry& registry;
-
+	entt::entity player_entity;
+	
+	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
 

@@ -1,7 +1,6 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
-//#include "tinyECS/registry.hpp"
 #include "tinyECS/components.hpp"
 
 // stlib
@@ -11,13 +10,16 @@
 
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg) :
-	points(0),
-	max_towers(MAX_TOWERS_START),
+	registry(reg),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
-	registry(reg)
+	max_towers(MAX_TOWERS_START),
+	points(0)
 {
 	// seeding rng with random device
+	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
+
 	rng = std::default_random_engine(std::random_device()());
 }
 
@@ -80,7 +82,7 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwWindowHint(GLFW_SCALE_TO_MONITOR, GL_FALSE);		// GLFW 3.3+
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX, "Towers vs Invaders Assignment", nullptr, nullptr);
+	window = glfwCreateWindow(WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX, "Nova", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cerr << "ERROR: Failed to glfwCreateWindow in world_system.cpp" << std::endl;
 		return nullptr;
@@ -147,77 +149,27 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	title_ss << "Points: " << points;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
+	auto player = registry.get<Player>(player_entity);
+	if (player.health <= 0) {
+		printf("[GAME OVER] restarting game now...\n");
+		restart_game();
+	}
 
-	// Remove debug info from the last step
-	auto debugs = registry.view<DebugComponent>();
-	registry.destroy(debugs.begin(), debugs.end());
-	// while (registry.debugComponents.entities.size() > 0)
-	//     registry.remove_all_components_of(registry.debugComponents.entities.back());
+	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
+	// TODO: make it so moving diagonally doesn't give extra speed (this is as simple as adding a few if statements)
+	auto& motion = registry.get<Motion>(player_entity);
+	motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
+	motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
+	if (key_state[KeyboardState::UP] && key_state[KeyboardState::DOWN]) motion.velocity.y = 0.0f;
+	if (key_state[KeyboardState::LEFT] && key_state[KeyboardState::RIGHT]) motion.velocity.x = 0.0f;
 
-	// Removing out of screen entities
-	// auto& motions_registry = registry.motions;
-
-	// // Remove entities that leave the screen on the left side
-	// // Iterate backwards to be able to remove without unterfering with the next object to visit
-	// // (the containers exchange the last element with the current)
-	// for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	//     Motion& motion = motions_registry.components[i];
-	// 	if (motion.position.x + abs(motion.scale.x) < 0.f) {
-	// 		if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
-	// 			registry.remove_all_components_of(motions_registry.entities[i]);
-	// 	}
-	// }
-
-	auto motions = registry.view<Motion>(entt::exclude<Player>);
-	for (auto entity: motions) {
+	// TODO: refactor simple physics system. done for testing player movement
+	float elapsed_s = elapsed_ms_since_last_update / 1000;
+	auto players = registry.view<Motion>();
+	for (auto entity : players) {
 		auto& motion = registry.get<Motion>(entity);
-		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			registry.destroy(entity);
-		}
+		motion.position += motion.velocity * elapsed_s;
 	}
-
-	// spawn new invaders
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: limit them to cells on the far-left, except (0, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	next_invader_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (next_invader_spawn < 0.f) {
-		// reset timer
-		next_invader_spawn = (INVADER_SPAWN_RATE_MS / 2) + uniform_dist(rng) * (INVADER_SPAWN_RATE_MS / 2);
-
-		// create invader with random initial position
-		createInvader(registry, vec2(50.f + uniform_dist(rng) * (WINDOW_WIDTH_PX - 100.f), 100.f));
-	}
-
-	// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// // TODO A1: game over fade out
-	// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// assert(registry.screenStates.components.size() <= 1);
-    // ScreenState &screen = registry.screenStates.components[0];
-
-    // float min_counter_ms = 3000.f;
-	// for (Entity entity : registry.deathTimers.entities) {
-
-	// 	// progress timer
-	// 	DeathTimer& counter = registry.deathTimers.get(entity);
-	// 	counter.counter_ms -= elapsed_ms_since_last_update;
-	// 	if(counter.counter_ms < min_counter_ms){
-	// 	    min_counter_ms = counter.counter_ms;
-	// 	}
-
-	// 	/* for A1, let the user press "R" to restart instead
-	// 	// restart the game once the death timer expires
-	// 	if (counter.counter_ms < 0) {
-	// 		registry.deathTimers.remove(entity);
-	// 		screen.darken_screen_factor = 0;
-    //         restart_game();
-	// 		return true;
-	// 	}
-	// 	*/
-	// }
-
-	// // reduce window brightness if any of the present chickens is dying
-	// screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	return true;
 }
@@ -240,38 +192,17 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	// while (registry.motions.entities.size() > 0)
-	//     registry.remove_all_components_of(registry.motions.entities.back());
-	auto motions = registry.view<Motion>();
+	auto motions = registry.view<Motion>(entt::exclude<Player>);
 	registry.destroy(motions.begin(), motions.end());
 
-	// debugging for memory/component leaks
-	// registry.list_all_components();
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: create grid lines
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	int grid_line_width = GRID_LINE_WIDTH_PX;
-
-	// create grid lines if they do not already exist
-	if (grid_lines.size() == 0) {
-		// vertical lines
-		int cell_width = GRID_CELL_WIDTH_PX;
-		for (int col = 0; col < 14 + 1; col++) {
-			// width of 2 to make the grid easier to see
-			grid_lines.push_back(createGridLine(registry, vec2(col * cell_width, 0), vec2(grid_line_width, 2 * WINDOW_HEIGHT_PX)));
-		}
-
-		// horizontal lines
-		int cell_height = GRID_CELL_HEIGHT_PX;
-		for (int col = 0; col < 10 + 1; col++) {
-			// width of 2 to make the grid easier to see
-			grid_lines.push_back(createGridLine(registry, vec2(0, col * cell_height), vec2(2 * WINDOW_WIDTH_PX, grid_line_width)));
-		}
-	}
+	// Reset player health
+	auto player = registry.get<Player>(player_entity);
+	player.health = PLAYER_HEALTH;
+	
+	// Reset player position
+	auto motion = registry.get<Motion>(player_entity);
+	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
 }
-
-// Compute collisions between entities
 
 // Should the game be over ?
 bool WorldSystem::is_over() const {
@@ -294,17 +225,33 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
-	// Debugging - not used in A1, but left intact for the debug lines
-	if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE) {
-			if (debugging.in_debug_mode) {
-				debugging.in_debug_mode = false;
-			}
-			else {
-				debugging.in_debug_mode = true;
-			}
-		}
+	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
+	//       a settings menu
+	switch (key) {
+		case GLFW_KEY_UP:
+			key_state[KeyboardState::UP] = (action != GLFW_RELEASE);
+			break;
+		case GLFW_KEY_DOWN:
+			key_state[KeyboardState::DOWN] = (action != GLFW_RELEASE);
+			break;
+		case GLFW_KEY_LEFT:
+			key_state[KeyboardState::LEFT] = (action != GLFW_RELEASE);
+			break;
+		case GLFW_KEY_RIGHT:
+			key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
 	}
+
+	// // Debugging - not used in A1, but left intact for the debug lines
+	// if (key == GLFW_KEY_D) {
+	// 	if (action == GLFW_RELEASE) {
+	// 		if (debugging.in_debug_mode) {
+	// 			debugging.in_debug_mode = false;
+	// 		}
+	// 		else {
+	// 			debugging.in_debug_mode = true;
+	// 		}
+	// 	}
+	// }
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -315,35 +262,8 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 }
 
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: Handle mouse clicking for invader and tower placement.
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// on button press
 	if (action == GLFW_PRESS) {
-
-		int tile_x = (int)(mouse_pos_x / GRID_CELL_WIDTH_PX);
-		int tile_y = (int)(mouse_pos_y / GRID_CELL_HEIGHT_PX);
-
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
-		std::cout << "mouse tile position: " << tile_x << ", " << tile_y << std::endl;
-
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TODO A1: place invaders on the left, except top left spot
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		// TODO A1: place a tower on the right, except top right spot
-		// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		
-			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			// TODO A1: right-click removes towers
-			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			
-			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			// TODO A1: left-click adds new tower (removing any existing towers), up to max_towers
-			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	}
 }

@@ -6,7 +6,6 @@
 
 #include "common.hpp"
 #include "tinyECS/components.hpp"
-// #include "tinyECS/tiny_ecs.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -31,23 +30,19 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("invaders/blue_1.png"),
-		textures_path("towers/tower01.png"),
-		textures_path("projectiles/gold_bubble.png")
+		textures_path("projectiles/gold_bubble.png"),
+		textures_path("player/astronaut.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
-		shader_path("coloured"),
-		shader_path("egg"),
-		shader_path("chicken"),
 		shader_path("textured"),
 		shader_path("vignette")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
-	// std::array<Mesh, geometry_count> meshes;
 
 public:
 	RenderSystem(entt::registry& reg);
@@ -61,10 +56,6 @@ public:
 	void initializeGlTextures();
 
 	void initializeGlEffects();
-
-	// void initializeGlMeshes();
-
-	// Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
 
@@ -86,7 +77,6 @@ private:
 	entt::registry& registry;
 
 	// Internal drawing functions for each entity type
-	void drawGridLine(entt::entity entity, const mat3& projection);
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 

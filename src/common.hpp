@@ -18,8 +18,6 @@
 #include <glm/mat3x3.hpp>           // mat3
 using namespace glm;
 
-// #include "tinyECS/tiny_ecs.hpp"
-
 // Simple utility functions to avoid mistyping directory name
 // audio_path("audio.ogg") -> data/audio/audio.ogg
 // Get defintion of PROJECT_SOURCE_DIR from:
@@ -46,6 +44,9 @@ const int INVADER_HEALTH = 50;
 const int INVADER_SPAWN_RATE_MS = 2 * 1000;
 
 const int PROJECTILE_DAMAGE = 10;
+
+const int PLAYER_HEALTH = 100;
+const float PLAYER_SPEED = 100.0f;
 
 // These are hard coded to the dimensions of the entity's texture
 
