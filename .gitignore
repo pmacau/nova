@@ -12,6 +12,9 @@ CMakeFiles/
 */.DS_Store
 .DS_Store
 
+ext/project_path.hpp
+ext/project_path.hpp.in
+
 # exclude executables
 # TODO: change for Nova; placeholder from A1 here
 tower_defense

@@ -227,19 +227,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
 	//       a settings menu
-	switch (key) {
-		case GLFW_KEY_UP:
-			key_state[KeyboardState::UP] = (action != GLFW_RELEASE);
-			break;
-		case GLFW_KEY_DOWN:
-			key_state[KeyboardState::DOWN] = (action != GLFW_RELEASE);
-			break;
-		case GLFW_KEY_LEFT:
-			key_state[KeyboardState::LEFT] = (action != GLFW_RELEASE);
-			break;
-		case GLFW_KEY_RIGHT:
-			key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-	}
+	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) key_state[KeyboardState::UP] = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) key_state[KeyboardState::DOWN] = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) key_state[KeyboardState::LEFT] = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
+
+	// switch (key) {
+	// 	case GLFW_KEY_UP:
+	// 		key_state[KeyboardState::UP] = (action != GLFW_RELEASE);
+	// 		break;
+	// 	case GLFW_KEY_DOWN:
+	// 		key_state[KeyboardState::DOWN] = (action != GLFW_RELEASE);
+	// 		break;
+	// 	case GLFW_KEY_LEFT:
+	// 		key_state[KeyboardState::LEFT] = (action != GLFW_RELEASE);
+	// 		break;
+	// 	case GLFW_KEY_RIGHT:
+	// 		key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
+	// }
 
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
