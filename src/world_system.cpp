@@ -156,12 +156,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
-	// TODO: make it so moving diagonally doesn't give extra speed (this is as simple as adding a few if statements)
-	auto& motion = registry.get<Motion>(player_entity);
-	motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
-	motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
-	if (key_state[KeyboardState::UP] && key_state[KeyboardState::DOWN]) motion.velocity.y = 0.0f;
-	if (key_state[KeyboardState::LEFT] && key_state[KeyboardState::RIGHT]) motion.velocity.x = 0.0f;
+	auto updatePlayerVelocity = [this]() {
+		auto& motion = registry.get<Motion>(player_entity);
+		motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
+		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
+
+		if      (key_state[KeyboardState::UP]    && key_state[KeyboardState::DOWN])  motion.velocity.y = 0.0f;
+		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::RIGHT]) motion.velocity.x = 0.0f;
+		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
+		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2(-0.7071f,  0.7071f);
+		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
+		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
+	};
+	updatePlayerVelocity();
 
 	// TODO: refactor simple physics system. done for testing player movement
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
@@ -227,24 +234,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
 	//       a settings menu
-	if (key == GLFW_KEY_UP || key == GLFW_KEY_W) key_state[KeyboardState::UP] = (action != GLFW_RELEASE);
-	if (key == GLFW_KEY_DOWN || key == GLFW_KEY_S) key_state[KeyboardState::DOWN] = (action != GLFW_RELEASE);
-	if (key == GLFW_KEY_LEFT || key == GLFW_KEY_A) key_state[KeyboardState::LEFT] = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_UP    || key == GLFW_KEY_W) key_state[KeyboardState::UP]    = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-
-	// switch (key) {
-	// 	case GLFW_KEY_UP:
-	// 		key_state[KeyboardState::UP] = (action != GLFW_RELEASE);
-	// 		break;
-	// 	case GLFW_KEY_DOWN:
-	// 		key_state[KeyboardState::DOWN] = (action != GLFW_RELEASE);
-	// 		break;
-	// 	case GLFW_KEY_LEFT:
-	// 		key_state[KeyboardState::LEFT] = (action != GLFW_RELEASE);
-	// 		break;
-	// 	case GLFW_KEY_RIGHT:
-	// 		key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-	// }
 
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {

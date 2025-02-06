@@ -2,6 +2,7 @@
 out/
 build/
 Makefile
+data/retextures/
 
 # exclude cache data
 .vs/
@@ -11,10 +12,10 @@ CMakeCache.txt
 CMakeFiles/
 */.DS_Store
 .DS_Store
-
 ext/project_path.hpp
 
+# exclude python script libraries
+scripts/.venv/
+
 # exclude executables
-# TODO: change for Nova; placeholder from A1 here
-tower_defense
 nova
