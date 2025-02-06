@@ -12,7 +12,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19, 31);
+	motion.scale = vec2(19 * 4, 31 * 4);
 
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
