@@ -5,7 +5,6 @@
 
 // internal
 #include "render_system.hpp"
-// #include "tinyECS/registry.hpp"
 #include "tinyECS/components.hpp"
 
 RenderSystem::RenderSystem(entt::registry& reg) :
@@ -14,101 +13,11 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	screen_state_entity = registry.create();
 }
 
-void RenderSystem::drawGridLine(entt::entity entity,
-								const mat3& projection) {
-
-	auto& gridLine = registry.get<GridLine>(entity);
-	// GridLine& gridLine = registry.gridLines.get(entity);
-
-	// Transformation code, see Rendering and Transformation in the template
-	// specification for more info Incrementally updates transformation matrix,
-	// thus ORDER IS IMPORTANT
-	Transform transform;
-	transform.translate(gridLine.start_pos);
-	transform.scale(gridLine.end_pos);
-
-	assert(registry.any_of<RenderRequest>(entity));
-	// assert(registry.renderRequests.has(entity));
-	const auto& render_request = registry.get<RenderRequest>(entity);
-	// const RenderRequest& render_request = registry.renderRequests.get(entity);
-
-	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
-	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
-	const GLuint program = (GLuint)effects[used_effect_enum];
-
-	// setting shaders
-	glUseProgram(program);
-	gl_has_errors();
-
-	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
-	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
-	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
-
-	// Setting vertex and index buffers
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	gl_has_errors();
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	gl_has_errors();
-
-	if (render_request.used_effect == EFFECT_ASSET_ID::EGG)
-	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		gl_has_errors();
-
-		GLint in_color_loc    = glGetAttribLocation(program, "in_color");
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-			sizeof(ColoredVertex), (void*)0);
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
-			sizeof(ColoredVertex), (void*)sizeof(vec3));
-		gl_has_errors();
-	}
-	else
-	{
-		assert(false && "Type of render request not supported");
-	}
-
-	// Getting uniform locations for glUniform* calls
-	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.any_of<vec3>(entity) ? registry.get<vec3>(entity) : vec3(1);
-	// CK: std::cout << "line color: " << color.r << ", " << color.g << ", " << color.b << std::endl;
-	glUniform3fv(color_uloc, 1, (float*)&color);
-	gl_has_errors();
-
-	// Get number of indices from index buffer, which has elements uint16_t
-	GLint size = 0;
-	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-	gl_has_errors();
-
-	GLsizei num_indices = size / sizeof(uint16_t);
-
-	GLint currProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
-	// Setting uniform values to the currently bound program
-	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
-	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float*)&transform.mat);
-	gl_has_errors();
-
-	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
-	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
-	gl_has_errors();
-
-	// Drawing of num_indices/3 triangles specified in the index buffer
-	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
-	gl_has_errors();
-}
-
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
 	auto& motion = registry.get<Motion>(entity);
-	// Motion &motion = registry.motions.get(entity);
+	
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
@@ -165,23 +74,6 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 			texture_gl_handles[(GLuint)registry.get<RenderRequest>(entity).used_texture];
 
 		glBindTexture(GL_TEXTURE_2D, texture_id);
-		gl_has_errors();
-	}
-	// .obj entities
-	else if (render_request.used_effect == EFFECT_ASSET_ID::CHICKEN || render_request.used_effect == EFFECT_ASSET_ID::EGG)
-	{
-		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-		GLint in_color_loc = glGetAttribLocation(program, "in_color");
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_position_loc);
-		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)0);
-		gl_has_errors();
-
-		glEnableVertexAttribArray(in_color_loc);
-		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
-							  sizeof(ColoredVertex), (void *)sizeof(vec3));
 		gl_has_errors();
 	}
 	else
@@ -262,7 +154,6 @@ void RenderSystem::drawToScreen()
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	
 	auto& screen = registry.get<ScreenState>(screen_state_entity);
-	// std::cout << "screen.darken_screen_factor: " << screen.darken_screen_factor << " entity id: " << screen_state_entity << std::endl;
 	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
 	gl_has_errors();
 
@@ -321,25 +212,6 @@ void RenderSystem::draw()
 	for (auto entity : motionRenders) {
 		drawTexturedMesh(entity, projection_2D);
 	}
-	auto lineRenders = registry.view<RenderRequest, GridLine>();
-	for (auto entity : lineRenders) {
-		drawGridLine(entity, projection_2D);
-	}
-
-	// draw all entities with a render request to the frame buffer
-	// for (Entity entity : registry.renderRequests.entities)
-	// {
-	// 	// filter to entities that have a motion component
-	// 	if (registry.motions.has(entity)) {
-	// 		// Note, its not very efficient to access elements indirectly via the entity
-	// 		// albeit iterating through all Sprites in sequence. A good point to optimize
-	// 		drawTexturedMesh(entity, projection_2D);
-	// 	}
-	// 	// draw grid lines separately, as they do not have motion but need to be rendered
-	// 	else if (registry.gridLines.has(entity)) {
-	// 		drawGridLine(entity, projection_2D);
-	// 	}
-	// }
 
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
