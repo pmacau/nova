@@ -24,37 +24,37 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !!! TODO A1: implement grid lines as gridLines with renderRequests and colors
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-entt::entity createInvader(entt::registry& registry, vec2 position)
-{
-	// reserve an entity
-	auto entity = registry.create();
+// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// // !!! TODO A1: implement grid lines as gridLines with renderRequests and colors
+// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// entt::entity createInvader(entt::registry& registry, vec2 position)
+// {
+// 	// reserve an entity
+// 	auto entity = registry.create();
 
-	// invader
-	auto& invader = registry.emplace<Invader>(entity);
-	invader.health = INVADER_HEALTH;
+// 	// invader
+// 	auto& invader = registry.emplace<Invader>(entity);
+// 	invader.health = INVADER_HEALTH;
 
-	// TODO A1: initialize the position, scale, and physics components
-	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-	motion.position = position;
+// 	// TODO A1: initialize the position, scale, and physics components
+// 	auto& motion = registry.emplace<Motion>(entity);
+// 	motion.angle = 0.f;
+// 	motion.velocity = { 0, 0 };
+// 	motion.position = position;
 
-	// resize, set scale to negative if you want to make it face the opposite way
-	// motion.scale = vec2({ -INVADER_BB_WIDTH, INVADER_BB_WIDTH });
-	motion.scale = vec2({ INVADER_BB_WIDTH, INVADER_BB_HEIGHT });
+// 	// resize, set scale to negative if you want to make it face the opposite way
+// 	// motion.scale = vec2({ -INVADER_BB_WIDTH, INVADER_BB_WIDTH });
+// 	motion.scale = vec2({ INVADER_BB_WIDTH, INVADER_BB_HEIGHT });
 
-	// create an (empty) Bug component to be able to refer to all bug
-	registry.emplace<Eatable>(entity);
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::INVADER;
-	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+// 	// create an (empty) Bug component to be able to refer to all bug
+// 	registry.emplace<Eatable>(entity);
+// 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+// 	renderRequest.used_texture = TEXTURE_ASSET_ID::INVADER;
+// 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+// 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
-	return entity;
-}
+// 	return entity;
+// }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // !!! TODO A1: create a new projectile w/ pos, size, & velocity
