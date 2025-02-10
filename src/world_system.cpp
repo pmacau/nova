@@ -177,63 +177,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		auto& motion = registry.get<Motion>(entity);
 		motion.position += motion.velocity * elapsed_s;
 	}
-
-
-	// Mob hits 
-	auto mobs = registry.view<Mob>();
-	for (auto mob : mobs) {
-		auto& mob_ref = registry.get<Mob>(mob);
-		if (mob_ref.hit_time > 0) {
-			mob_ref.hit_time -= elapsed_s;
-		}
-	}
-
-	// TODO: likely refactor this if our collision system becomes more complicated which it will if we decide we want obstacles to not be considered entities 
-	// between entities, also doesn't include projectiles yet. Also maybe implement a k-d tree to detect valid candidates.
-	bool markedDeath = false;
-	auto entities = registry.view<Motion>();
-	auto playerCheck = registry.view<Player>();
-	for (auto entity : entities) { // does a for loop for projectiles and what not right, now this isn't necessary. 
-		// only check once so decide if checks on player or invader (player chosen)
-		// checks if ID is player
-		if ((uint32_t) entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t) entt::entt_traits<entt::entity>::to_entity(entity)){
-			 
-			for (auto mob : mobs) {
-				std::cout << "ENTERED" << std::endl; 
-				Motion mob_position = registry.get<Motion>(mob); 
-				Motion player_position = registry.get<Motion>(entity); 
-				bool xCheck = mob_position.position.x < player_position.position.x + 10 && mob_position.position.x > player_position.position.x - 10; 
-				bool yCheck = mob_position.position.y < player_position.position.y + 10 && mob_position.position.y > player_position.position.y - 10;
-				if (xCheck && yCheck) {
-					std::cout << "COLLISION" << std::endl;
-					auto& player_ref = registry.get<Player>(entity);
-					auto& mob_ref = registry.get<Mob>(mob); 
-					if (mob_ref.hit_time <= 0) {
-						player_ref.health -= MOB_DAMAGE;
-						if (player_ref.health <= 0) {
-							markedDeath = true;
-							restart_game();
-						}
-						mob_ref.hit_time = 1.f;
-					}
-					
-				}
-
-
-			}
-		}
-		
-	}
-	if (markedDeath) {
-		// registry.destroy(playerCheck.begin(), playerCheck.end()); currently bugged something tries to access it after?
-		std::cout << "REACHED" << std::endl;
-		// restart_game(); 
-		
-	}
-	
-
 	return true;
 }
+
+void WorldSystem::player_respawn() {
+	// reset player health
+	Player& player = registry.get<Player>(player_entity);
+	player.health = PLAYER_HEALTH;
+
+	// reset player position
+	Motion& player_motion = registry.get<Motion>(player_entity);
+	player_motion.position.x = WINDOW_WIDTH_PX / 2;
+	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
+
+
+}
+
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
@@ -313,9 +272,11 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	mouse_pos_y = mouse_position.y;
 }
 
+
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
 	}
 }
+
