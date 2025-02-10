@@ -17,5 +17,8 @@ ext/project_path.hpp
 # exclude python script libraries
 scripts/.venv/
 
+# exclude project_path.hpp
+project_path.hpp
+
 # exclude executables
 nova
