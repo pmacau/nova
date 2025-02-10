@@ -48,6 +48,10 @@ const int PROJECTILE_DAMAGE = 10;
 const int PLAYER_HEALTH = 100;
 const float PLAYER_SPEED = 200.0f;
 
+// TODO: refactor better way for storing project constants
+const float PROJECTILE_SPEED = 500.0f;
+const float PROJECTILE_SIZE = 20.0f;
+
 // These are hard coded to the dimensions of the entity's texture
 
 // invaders are 64x64 px, but cells are 60x60

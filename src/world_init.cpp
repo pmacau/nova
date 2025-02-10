@@ -12,7 +12,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 4, 31 * 4);
+	motion.scale = vec2(19 * 2, 31 * 2);
 
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
@@ -63,9 +63,19 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 {
 	auto entity = registry.create();
 
-	// TODO: projectile
-	// TODO: motion
-	// TODO: renderRequests
+	auto& projectile = registry.emplace<Projectile>(entity);
+	projectile.damage = PROJECTILE_DAMAGE;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = velocity;
+	motion.position = pos;
+	motion.scale = size;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::GOLD_PROJECTILE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
 	return entity;
 }
