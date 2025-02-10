@@ -49,6 +49,8 @@ const int PLAYER_HEALTH = 100;
 const int MOB_HEALTH = 50; 
 const float PLAYER_SPEED = 200.0f;
 const float MOB_SPEED = 100.0f; 
+
+const int MOB_DAMAGE = 10; 
 // These are hard coded to the dimensions of the entity's texture
 
 // invaders are 64x64 px, but cells are 60x60

@@ -31,6 +31,7 @@ struct Projectile {
 // Mob
 struct Mob {
 	int health;
+	float hit_time; 
 };
 
 // used for Entities that cause damage
