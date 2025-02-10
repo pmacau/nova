@@ -1,14 +1,16 @@
 #include "collision_system.hpp"
-// stlib
-#include <cassert>
-#include <sstream>
-#include <iostream>
+
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 	registry(reg),
 	world(world)
 {
 }
+
+void CollisionSystem::impossibleMovements() {
+
+}
+
 
 void CollisionSystem::step(float elapsed_ms)
 {

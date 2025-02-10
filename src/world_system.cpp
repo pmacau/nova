@@ -170,13 +170,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	};
 	updatePlayerVelocity();
 
-	// TODO: refactor simple physics system. done for testing player movement
-	float elapsed_s = elapsed_ms_since_last_update / 1000;
-	auto players = registry.view<Motion>();
-	for (auto entity : players) {
-		auto& motion = registry.get<Motion>(entity);
-		motion.position += motion.velocity * elapsed_s;
-	}
 	return true;
 }
 
