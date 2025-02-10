@@ -10,7 +10,7 @@
 // internal
 #include "render_system.hpp"
 #include "world_system.hpp"
-
+#include "ai_system.hpp"
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
@@ -22,6 +22,7 @@ int main()
 	// AISystem	  ai_system;
 	WorldSystem   world_system(reg);
 	RenderSystem  renderer_system(reg);
+	AISystem ai_system(reg);
 	// PhysicsSystem physics_system;
 
 	// initialize window
@@ -57,6 +58,7 @@ int main()
 		// CK: be mindful of the order of your systems and rearrange this list only if necessary
 		world_system.step(elapsed_ms);
 		renderer_system.draw();
+		ai_system.step(elapsed_ms); // AI system should be before physics system
 	}
 
 	return EXIT_SUCCESS;

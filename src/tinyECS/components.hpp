@@ -28,6 +28,11 @@ struct Projectile {
 	int damage;
 };
 
+// Mob
+struct Mob {
+	int health;
+};
+
 // used for Entities that cause damage
 struct Deadly
 {
@@ -106,7 +111,7 @@ struct TexturedVertex
  */
 
 enum class TEXTURE_ASSET_ID {
-	PLAYER, TEXTURE_COUNT
+	PLAYER, MOB, TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

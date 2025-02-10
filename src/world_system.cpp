@@ -107,6 +107,7 @@ bool WorldSystem::start_and_load_sounds() {
 	
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
+
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		return false;
@@ -136,7 +137,6 @@ void WorldSystem::init() {
 	// start playing background music indefinitely
 	std::cout << "Starting music..." << std::endl;
 	Mix_PlayMusic(background_music, -1);
-
 	// Set all states to default
     restart_game();
 }
@@ -201,7 +201,7 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player>);
 	registry.destroy(motions.begin(), motions.end());
-
+	createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
 	// Reset player health
 	auto player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;

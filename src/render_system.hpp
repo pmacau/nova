@@ -29,7 +29,8 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
-		textures_path("player/astronaut.png")
+		textures_path("player/astronaut.png"), 
+		textures_path("mob/demoMob.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
