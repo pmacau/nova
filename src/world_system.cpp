@@ -7,6 +7,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
 
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg) :
@@ -179,6 +180,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		motion.position += motion.velocity * elapsed_s;
 	}
 
+	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
+	auto ship = registry.get<Ship>(ship_entity);
+
+	auto invaders = registry.view<Invader>();
+	for (auto entity : invaders) {
+		auto motion = registry.get<Motion>(entity);
+		auto shipMotion = registry.get<Motion>(ship_entity);
+
+		glm::vec2 shipPos = glm::vec2(shipMotion.position.x, shipMotion.position.y);
+		glm::vec2 enemyPos = glm::vec2(motion.position.x, motion.position.y);
+
+		if (glm::distance(shipPos, enemyPos) <= ship.range) {
+			vec2 direction = normalize(enemyPos - shipPos);
+			vec2 velocity = direction * PROJECTILE_SPEED;
+			createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+		}
+	}
+
 	return true;
 }
 
@@ -200,12 +219,8 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player>);
-	// registry.destroy(motions.begin(), motions.end());
-	for (auto entity : motions) {
-		if (entity == ship_entity) continue; // Keep the ship
-		registry.destroy(entity);
-	}
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship>);
+	registry.destroy(motions.begin(), motions.end());
 
 	// Reset player health
 	auto player = registry.get<Player>(player_entity);
