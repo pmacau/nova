@@ -116,6 +116,7 @@ struct TexturedVertex
 enum class TEXTURE_ASSET_ID {
 	PLAYER, 
 	SHIP,
+	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
