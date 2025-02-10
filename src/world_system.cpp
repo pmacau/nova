@@ -13,11 +13,12 @@ WorldSystem::WorldSystem(entt::registry& reg) :
 	registry(reg),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
-	max_towers(MAX_TOWERS_START),
+	max_towers(MAX_SHIP_START),
 	points(0)
 {
 	// seeding rng with random device
 	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 100));
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
 	rng = std::default_random_engine(std::random_device()());
@@ -193,14 +194,18 @@ void WorldSystem::restart_game() {
 	current_speed = 1.f;
 
 	points = 0;
-	max_towers = MAX_TOWERS_START;
+	max_towers = MAX_SHIP_START;
 	next_invader_spawn = 0;
 	invader_spawn_rate_ms = INVADER_SPAWN_RATE_MS;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player>);
-	registry.destroy(motions.begin(), motions.end());
+	// registry.destroy(motions.begin(), motions.end());
+	for (auto entity : motions) {
+		if (entity == ship_entity) continue; // Keep the ship
+		registry.destroy(entity);
+	}
 
 	// Reset player health
 	auto player = registry.get<Player>(player_entity);

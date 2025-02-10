@@ -24,6 +24,32 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
+entt::entity createShip(entt::registry& registry, vec2 position)
+{
+	auto entity = registry.create();
+	auto& ship = registry.emplace<Ship>(entity);
+	ship.health = SHIP_HEALTH;
+	ship.range = 25;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = vec2(19 * 45, 35 * 45);
+
+	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
+
+
+	registry.emplace<Eatable>(entity);
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+
+	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
 // // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // // !!! TODO A1: implement grid lines as gridLines with renderRequests and colors
 // // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

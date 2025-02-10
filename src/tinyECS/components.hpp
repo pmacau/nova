@@ -10,6 +10,14 @@ struct Player
 	int health;
 };
 
+// Ship component
+struct Ship
+{
+	int range;
+	int health;
+	int timer;
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
@@ -106,7 +114,9 @@ struct TexturedVertex
  */
 
 enum class TEXTURE_ASSET_ID {
-	PLAYER, TEXTURE_COUNT
+	PLAYER, 
+	SHIP,
+	TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
