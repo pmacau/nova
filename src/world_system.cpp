@@ -107,6 +107,7 @@ bool WorldSystem::start_and_load_sounds() {
 	
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
+
 	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
 		fprintf(stderr, "Failed to initialize SDL Audio");
 		return false;
@@ -136,7 +137,6 @@ void WorldSystem::init() {
 	// start playing background music indefinitely
 	std::cout << "Starting music..." << std::endl;
 	Mix_PlayMusic(background_music, -1);
-
 	// Set all states to default
     restart_game();
 }
@@ -170,16 +170,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	};
 	updatePlayerVelocity();
 
-	// TODO: refactor simple physics system. done for testing player movement
-	float elapsed_s = elapsed_ms_since_last_update / 1000;
-	auto players = registry.view<Motion>();
-	for (auto entity : players) {
-		auto& motion = registry.get<Motion>(entity);
-		motion.position += motion.velocity * elapsed_s;
-	}
-
 	return true;
 }
+
+void WorldSystem::player_respawn() {
+	// reset player health
+	Player& player = registry.get<Player>(player_entity);
+	player.health = PLAYER_HEALTH;
+
+	// reset player position
+	Motion& player_motion = registry.get<Motion>(player_entity);
+	player_motion.position.x = WINDOW_WIDTH_PX / 2;
+	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
+
+
+}
+
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
@@ -201,7 +207,7 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player>);
 	registry.destroy(motions.begin(), motions.end());
-
+	createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
 	// Reset player health
 	auto player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
@@ -259,6 +265,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	mouse_pos_y = mouse_position.y;
 }
 
+
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
@@ -279,3 +286,4 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	
 	}
 }
+
