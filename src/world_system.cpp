@@ -270,6 +270,20 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
+	
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			// TODO: implement shooting logic
+
+			auto& player_motion = registry.get<Motion>(player_entity);
+
+			vec2 direction = normalize(vec2(mouse_pos_x, mouse_pos_y) - player_motion.position);
+
+			vec2 velocity = direction * PROJECTILE_SPEED;
+
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			
+		}
+	
 	}
 }
 
