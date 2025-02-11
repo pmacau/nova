@@ -33,6 +33,24 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
+entt::entity createHealthbar(entt::registry& registry) {
+	auto entity = registry.create();
+	registry.emplace<Healthbar>(entity);
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = vec2({ WINDOW_WIDTH_PX - 150, 40});
+	motion.angle = 0.f;
+	motion.velocity = vec2({ 0, 0 });
+	motion.scale = vec2({200, 15 });
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 0, 0 };
+	sprite.sheet_dims = { 0, 0 };
+	auto& render_request = registry.emplace<RenderRequest>(entity);
+	render_request.used_texture = TEXTURE_ASSET_ID::HEALTHBAR_GREEN;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	return entity;
+}
+
 entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto entity = registry.create();
 	auto& mob = registry.emplace<Mob>(entity);

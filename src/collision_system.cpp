@@ -1,5 +1,5 @@
 #include "collision_system.hpp"
-
+#include "world_init.hpp"
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 	registry(reg),
@@ -9,6 +9,17 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 
 void CollisionSystem::impossibleMovements() {
 
+}
+
+void CollisionSystem::updateHealthbar(float health) {
+	std::cout << health << std::endl;
+	for (auto entity : registry.view<Healthbar>()) {
+		auto& healthbar_motion = registry.get<Motion>(entity);
+		float oldWidth = healthbar_motion.scale.x;
+		healthbar_motion.scale = vec2({ health * (200.f / PLAYER_HEALTH), 15 });
+		healthbar_motion.position.x += ((healthbar_motion.scale.x - oldWidth) / 2); // to keep the healthbar fixed to left because scaling happens relative to center
+		break; // since there is only one healthbar, is there a better way instead of doing the loop?
+	}
 }
 
 
@@ -42,7 +53,9 @@ void CollisionSystem::step(float elapsed_ms)
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE;
+						updateHealthbar(player_ref.health);
 						if (player_ref.health <= 0) {
+							updateHealthbar(PLAYER_HEALTH);
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;

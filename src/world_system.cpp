@@ -225,8 +225,6 @@ void WorldSystem::player_respawn() {
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.position.x = WINDOW_WIDTH_PX / 2;
 	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
-
-
 }
 
 
@@ -258,6 +256,8 @@ void WorldSystem::restart_game() {
 	// Reset player position
 	auto motion = registry.get<Motion>(player_entity);
 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
+
+	createHealthbar(registry);
 }
 
 // Should the game be over ?

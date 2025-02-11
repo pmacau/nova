@@ -45,6 +45,11 @@ struct Mob {
 	float hit_time; 
 };
 
+struct Healthbar
+{
+
+};
+
 // used for Entities that cause damage
 struct Deadly
 {
@@ -126,6 +131,7 @@ enum class TEXTURE_ASSET_ID {
 	PLAYER,
     MOB,
 	GOLD_PROJECTILE, 
+	HEALTHBAR_GREEN,
 	TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

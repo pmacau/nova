@@ -24,4 +24,5 @@ private:
 
 
     void impossibleMovements();
+    void updateHealthbar(float health);
 };

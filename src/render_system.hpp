@@ -32,8 +32,8 @@ class RenderSystem {
 		textures_path("player/astronaut-spritesheet.png"),
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
-		textures_path("projectiles/gold_bubble.png")
-
+		textures_path("projectiles/gold_bubble.png"), 
+		textures_path("healthbar/green.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
