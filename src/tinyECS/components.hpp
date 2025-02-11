@@ -29,6 +29,22 @@ struct Projectile {
 	int damage;
 };
 
+// Hit-Box given to player, mobs, structures, anything you don't want to pass through 
+struct HitBox {
+	float x1;
+	float x2;
+	float x3; 
+	float y1; 
+	float y2; 
+};
+
+
+// Mob
+struct Mob {
+	int health;
+	float hit_time; 
+};
+
 // used for Entities that cause damage
 struct Deadly
 {
@@ -108,6 +124,7 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
+    MOB,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };

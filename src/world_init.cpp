@@ -33,6 +33,26 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
+entt::entity createMob(entt::registry& registry, vec2 position) {
+	auto entity = registry.create();
+	auto& mob = registry.emplace<Mob>(entity);
+	mob.health = MOB_HEALTH;
+	mob.hit_time = 1.f;
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(19 * 25, 31 * 12);
+	registry.emplace<Eatable>(entity);
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	std::cout << "Created mob" << std::endl; 
+	return entity; 
+}
+
 // // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // // !!! TODO A1: implement grid lines as gridLines with renderRequests and colors
 // // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

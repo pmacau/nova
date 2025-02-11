@@ -2,7 +2,6 @@
 #include <SDL.h>
 #include <glm/trigonometric.hpp>
 #include <iostream>
-
 // internal
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
@@ -17,7 +16,6 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
 	auto& motion = registry.get<Motion>(entity);
-	
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
@@ -32,7 +30,6 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
 	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
 	const GLuint program = (GLuint)effects[used_effect_enum];
-
 	// Setting shaders
 	glUseProgram(program);
 	gl_has_errors();
@@ -45,7 +42,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
-
+	//std::cout << "Drawing entity with texture: " << (int)render_request.used_texture << std::endl;
 	// texture-mapped entities - use data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
@@ -221,6 +218,7 @@ void RenderSystem::draw()
 
 	auto motionRenders = registry.view<RenderRequest, Motion>();
 	for (auto entity : motionRenders) {
+		//entt::RenderRequest& renderRequest = registry.view<
 		drawTexturedMesh(entity, projection_2D);
 	}
 
