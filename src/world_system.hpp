@@ -66,9 +66,6 @@ private:
 	// restart level
 	void restart_game();
 
-	// player getter 
-	Player& get_player();
-
 	// OpenGL window handle
 	GLFWwindow* window;
 
