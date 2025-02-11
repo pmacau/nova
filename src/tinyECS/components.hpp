@@ -8,6 +8,7 @@
 struct Player
 {
 	int health;
+	int direction; // TODO: make this an enum; make compatible with enemies too...
 };
 
 // All data relevant to the shape and motion of entities
@@ -139,9 +140,22 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
-struct RenderRequest {
+struct RenderRequest
+{
 	TEXTURE_ASSET_ID   used_texture  = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID    used_effect   = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
 
+struct Sprite 
+{
+	vec2 coord = {0.0f, 0.0f};
+	vec2 dims;
+	vec2 sheet_dims;
+};
+
+struct Animation
+{
+	float frameDuration;
+	float frameTime = 0.0f;
+};

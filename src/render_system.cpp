@@ -103,6 +103,17 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
 
+	// TODO: update this with registry
+	assert(registry.any_of<Sprite>(entity) && "Textured entities must have a sprite component");
+
+	GLuint spriteData_loc = glGetUniformLocation(currProgram, "spriteData");
+	GLuint sheetDims_loc = glGetUniformLocation(currProgram, "sheetDims");
+	const auto& s = registry.get<Sprite>(entity);
+
+	glUniform4f(spriteData_loc, s.coord.x, s.coord.y, s.dims.x, s.dims.y);
+	glUniform2f(sheetDims_loc, s.sheet_dims.x, s.sheet_dims.y);
+	gl_has_errors();
+
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
