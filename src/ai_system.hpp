@@ -14,5 +14,5 @@ private:
     entt::registry& registry;
 	float magnitude(vec2 v);
 	float movementEpsilon = 0.2f; // Epsilon for movement
-
+    entt::entity player_entity; 
 };

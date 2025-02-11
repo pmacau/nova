@@ -123,7 +123,7 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
-  MOB,
+    MOB,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };
