@@ -28,6 +28,12 @@ void SaveAndLoad::save(entt::registry& registry) {
 				{"direction", player.direction}
 			};
 		}
+		if (registry.all_of<Healthbar>(entity)) {
+			entity_json["Healthbar"] = 1;
+		}
+		if (registry.all_of<Eatable>(entity)) {
+			entity_json["Eatable"] = 1;
+		}
 		if (registry.all_of<Mob>(entity)) {
 			auto mob = registry.get<Mob>(entity);
 			entity_json["Mob"] = {
@@ -77,34 +83,41 @@ void SaveAndLoad::save(entt::registry& registry) {
 	file.close();
 }
 
-void SaveAndLoad::load(entt::registry& registry) {
-	//registry.clear();
+void SaveAndLoad::load(entt::registry& registry, entt::entity& player_entity) {
 	auto motions = registry.view<Motion>(entt::exclude<Player>);
 	registry.destroy(motions.begin(), motions.end());
 	std::ifstream file("gamestate.json");
 	json registry_json;
 	file >> registry_json;
 	for (auto entity_json : registry_json["entities"]) {
-		auto entity = registry.create();
+		auto entity = entity_json.contains("Player") ? player_entity : registry.create();
 		if (entity_json.contains("Motion")) {
 			Motion motion;
 			motion.position = vec2({ entity_json["Motion"]["position"]["x"].get<float>(), entity_json["Motion"]["position"]["y"].get<float>()});
 			motion.angle = entity_json["Motion"]["angle"].get<float>();
 			motion.velocity = vec2({ entity_json["Motion"]["velocity"]["x"].get<float>(), entity_json["Motion"]["velocity"]["y"].get<float>() });
 			motion.scale = vec2({ entity_json["Motion"]["scale"]["x"].get<float>(), entity_json["Motion"]["scale"]["y"].get<float>() });
-			registry.emplace<Motion>(entity, motion);
+			registry.emplace_or_replace<Motion>(entity, motion); // emplace for new entity, replace for player_entity
 		}
 		if (entity_json.contains("Player")) {
 			Player player;
 			player.health = entity_json["Player"]["health"].get<int>();
 			player.direction = entity_json["Player"]["direction"].get<int>();
-			registry.emplace<Player>(entity, player);
+			registry.emplace_or_replace<Player>(entity, player);
+		}
+		if (entity_json.contains("Healthbar")) {
+			Healthbar healthbar;
+			registry.emplace_or_replace<Healthbar>(entity, healthbar);
+		}
+		if (entity_json.contains("Eatable")) {
+			Eatable eatable;
+			registry.emplace_or_replace<Eatable>(entity, eatable);
 		}
 		if (entity_json.contains("Mob")) {
 			Mob mob;
 			mob.health  = entity_json["Mob"]["health"].get<int>();
 			mob.hit_time = entity_json["Mob"]["hit_time"].get<float>();
-			registry.emplace<Mob>(entity, mob);
+			registry.emplace_or_replace<Mob>(entity, mob);
 		}
 		if (entity_json.contains("HitBox")) {
 			HitBox hitbox;
@@ -113,27 +126,27 @@ void SaveAndLoad::load(entt::registry& registry) {
 			hitbox.x3 = entity_json["HitBox"]["x3"].get<float>();
 			hitbox.y1 = entity_json["HitBox"]["y1"].get<float>();
 			hitbox.y2 = entity_json["HitBox"]["y2"].get<float>();
-			registry.emplace<HitBox>(entity, hitbox);
+			registry.emplace_or_replace<HitBox>(entity, hitbox);
 		}
 		if (entity_json.contains("Sprite")) {
 			Sprite sprite;
 			sprite.coord = vec2({ entity_json["Sprite"]["coord"]["x"].get<float>(), entity_json["Sprite"]["coord"]["y"].get<float>() });
 			sprite.dims = vec2({ entity_json["Sprite"]["dims"]["x"].get<float>(), entity_json["Sprite"]["dims"]["y"].get<float>() });
 			sprite.sheet_dims = vec2({ entity_json["Sprite"]["sheet_dims"]["x"].get<float>(), entity_json["Sprite"]["sheet_dims"]["y"].get<float>() });
-			registry.emplace<Sprite>(entity, sprite);
+			registry.emplace_or_replace<Sprite>(entity, sprite);
 		}
 		if (entity_json.contains("Animation")) {
 			Animation animation;
 			animation.frameDuration = entity_json["Animation"]["frame_duration"].get<float>();
 			animation.frameTime = entity_json["Animation"]["frame_time"].get<float>();
-			registry.emplace<Animation>(entity, animation);
+			registry.emplace_or_replace<Animation>(entity, animation);
 		}
-		if (entity_json.contains("RenderRequest")) {
+		if (entity_json.contains("RenderRequest") && !entity_json.contains("Player")) {
 			RenderRequest render_request;
 			render_request.used_texture = static_cast<TEXTURE_ASSET_ID>(entity_json["RenderRequest"]["used_texture"].get<int>());
 			render_request.used_effect = static_cast<EFFECT_ASSET_ID>(entity_json["RenderRequest"]["used_effect"].get<int>());
 			render_request.used_geometry = static_cast<GEOMETRY_BUFFER_ID>(entity_json["RenderRequest"]["used_geometry"].get<int>());
-			registry.emplace<RenderRequest>(entity, render_request);
+			registry.emplace_or_replace<RenderRequest>(entity, render_request);
 		}
 	}
 }

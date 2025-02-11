@@ -51,8 +51,8 @@ public:
 	void player_respawn();
 
 private:
-	entt::registry& registry;
 	entt::entity player_entity;
+	entt::registry& registry;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;

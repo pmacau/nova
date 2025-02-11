@@ -288,7 +288,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
 		std::cout << "Loading game state from gamestate.json file\n";
-		SaveAndLoad::load(registry);
+		SaveAndLoad::load(registry, player_entity);
 	}
 	
 

@@ -11,7 +11,7 @@ void CollisionSystem::impossibleMovements() {
 
 }
 
-void CollisionSystem::updateHealthbar(float health) {
+void CollisionSystem::updateHealthbar(int health) {
 	std::cout << health << std::endl;
 	for (auto entity : registry.view<Healthbar>()) {
 		auto& healthbar_motion = registry.get<Motion>(entity);
