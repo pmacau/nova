@@ -34,13 +34,9 @@ void CollisionSystem::step(float elapsed_ms)
 		if ((uint32_t)entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t)entt::entt_traits<entt::entity>::to_entity(entity)) {
 
 			for (auto mob : mobs) {
-				std::cout << "ENTERED" << std::endl;
-				Motion mob_position = registry.get<Motion>(mob);
-				Motion player_position = registry.get<Motion>(entity);
-				bool xCheck = mob_position.position.x < player_position.position.x + 10 && mob_position.position.x > player_position.position.x - 10;
-				bool yCheck = mob_position.position.y < player_position.position.y + 10 && mob_position.position.y > player_position.position.y - 10;
-				if (xCheck && yCheck) {
-					std::cout << "COLLISION" << std::endl;
+				//std::cout << "ENTERED" << std::endl;
+				if (isContact(mob, entity, registry)){
+					//std::cout << "COLLISION" << std::endl;
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
@@ -58,4 +54,14 @@ void CollisionSystem::step(float elapsed_ms)
 		}
 
 	}
+}
+
+
+// determines if tw
+bool CollisionSystem::isContact(entt::entity e1 , entt::entity e2, entt::registry& registry) {
+	Motion m1 = registry.get<Motion>(e1); 
+	Motion m2 = registry.get<Motion>(e2);
+	bool xCheck = m1.position.x < m2.position.x + 10 && m1.position.x > m2.position.x - 10;
+	bool yCheck = m1.position.y < m2.position.y + 10 && m1.position.y > m2.position.y - 10;
+	return xCheck && yCheck; 
 }
