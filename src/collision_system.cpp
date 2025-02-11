@@ -7,7 +7,29 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 {
 }
 
-void CollisionSystem::impossibleMovements() {
+// checks if entity, assuming a motion is given, 
+bool CollisionSystem::isCollision(entt::entity) {
+	auto motion_entities = registry.view<Motion>(); 
+
+	// EACH MOTION MUST BE GIVEN A HITBOX. 
+	for (auto motion_entity : motion_entities) {
+		// get motion position, dont want to modify
+		Motion
+
+		// generate hit box in given position 
+
+
+		// see if entity is contained in hit box, IF SO RESET TO FORMER POSITION
+
+
+		// if no FORMER POSITION, allow to be inside (for now)
+
+
+
+
+	}
+	return true; 
+
 
 }
 
@@ -58,7 +80,7 @@ void CollisionSystem::step(float elapsed_ms)
 }
 
 
-// determines if tw
+// determines if should get hit or not maybe just refactor into hit box system after.
 bool CollisionSystem::isContact(entt::entity e1 , entt::entity e2, entt::registry& registry, float epsilon) {
 	Motion m1 = registry.get<Motion>(e1); 
 	Motion m2 = registry.get<Motion>(e2);

@@ -39,14 +39,14 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	// dummy sprite
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 140.f, 93.f };
-	sprite.sheet_dims = { 140.f, 93.f };
+	sprite.sheet_dims = {1128.f, 744.f};
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = vec2(19 * 25, 31 * 12);
+	motion.scale = vec2(19 * 12.5, 31 * 6);
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;

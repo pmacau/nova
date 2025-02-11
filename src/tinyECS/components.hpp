@@ -3,6 +3,8 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include <cmath>
+#include <limits>
 
 // Player component
 struct Player
@@ -17,6 +19,7 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
+	vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for everything except projectiles. 
 };
 
 // Invader
@@ -29,14 +32,16 @@ struct Projectile {
 	int damage;
 };
 
-// Hit-Box given to player, mobs, structures, anything you don't want to pass through 
+// Hit-Box given to player, mobs, and projectiles (since circular)
 struct HitBox {
-	float x1;
-	float x2;
-	float x3; 
-	float y1; 
-	float y2; 
+	float radius; 
 };
+
+// Obstacle HitBox? We could make rectangular obstacles, circular obstacles (in that case just hitbox), triangular obstacles, etc.
+//struct Obstacle{
+//	float position; 
+//};
+
 
 
 // Mob

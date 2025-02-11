@@ -17,11 +17,10 @@ public:
 
     std::set<entt::entity> collisionMarked; 
 
+    bool isCollision(entt::entity);
+
 
 private:
     entt::registry& registry;
     WorldSystem& world;  
-
-
-    void impossibleMovements();
 };
