@@ -5,14 +5,23 @@
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
 	auto entity = registry.create();
+
+	auto& animation = registry.emplace<Animation>(entity);
+	animation.frameDuration = 100.0f;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = {19.f, 32.f};
+	sprite.sheet_dims = {152.f, 96.f};
+
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
+	player.direction = 0; // TODO: use enum
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 2, 31 * 2);
+	motion.scale = vec2(19 * 2, 32 * 2);
 
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
@@ -62,6 +71,10 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity)
 {
 	auto entity = registry.create();
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = {18.f, 18.f};
+	sprite.sheet_dims = {18.f, 18.f};
 
 	auto& projectile = registry.emplace<Projectile>(entity);
 	projectile.damage = PROJECTILE_DAMAGE;

@@ -154,6 +154,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		printf("[GAME OVER] restarting game now...\n");
 		restart_game();
 	}
+	
+	// TODO: move player direction system
+	auto& p_motion = registry.get<Motion>(player_entity);
+	auto& p_sprite = registry.get<Sprite>(player_entity);
+
+	switch (player.direction) {
+		case KeyboardState::UP:
+			p_sprite.coord.x = 2.f;
+			p_motion.scale.x = abs(p_motion.scale.x);
+			break;
+		case KeyboardState::DOWN:
+			p_sprite.coord.x = 0.f;
+			p_motion.scale.x = abs(p_motion.scale.x);
+			break;
+		case KeyboardState::LEFT:
+			p_sprite.coord.x = 1.f;
+			p_motion.scale.x = -1.f * abs(p_motion.scale.x);
+			break;
+		case KeyboardState::RIGHT:
+			p_sprite.coord.x = 1.f;
+			p_motion.scale.x = abs(p_motion.scale.x);
+			break;
+	}
 
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
@@ -172,10 +195,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// TODO: refactor simple physics system. done for testing player movement
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
-	auto players = registry.view<Motion>();
-	for (auto entity : players) {
+	auto motions = registry.view<Motion>();
+	for (auto entity : motions) {
 		auto& motion = registry.get<Motion>(entity);
 		motion.position += motion.velocity * elapsed_s;
+	}
+
+
+	// TODO: move this animation system
+	auto animations = registry.view<Animation, Sprite, Motion>();
+	for (auto entity : animations) {
+		auto& sprite = registry.get<Sprite>(entity);
+		auto& animation = registry.get<Animation>(entity);
+		auto& motion = registry.get<Motion>(entity);
+
+		animation.frameTime += elapsed_ms_since_last_update;
+		if (animation.frameTime >= animation.frameDuration) {
+			if (length(motion.velocity) <= 0.5f) {
+				sprite.coord.y = 0;
+			} else {
+				int numFrames = (int) (sprite.sheet_dims.x / sprite.dims.x);
+				sprite.coord.y = ((int) (sprite.coord.y + 1)) % numFrames;
+			}
+			animation.frameTime = 0.0f;
+		}
 	}
 
 	return true;
@@ -238,6 +281,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
+
+	if (action != GLFW_PRESS) return;
+
+	auto& player = registry.get<Player>(player_entity);
+	if (key == GLFW_KEY_UP    || key == GLFW_KEY_W) player.direction = KeyboardState::UP;
+	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) player.direction = KeyboardState::DOWN;
+	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) player.direction = KeyboardState::LEFT;
+	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) player.direction = KeyboardState::RIGHT;
 
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
