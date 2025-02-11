@@ -28,6 +28,16 @@ struct Projectile {
 	int damage;
 };
 
+// Hit-Box given to player, mobs, structures, anything you don't want to pass through 
+struct HitBox {
+	float x1;
+	float x2;
+	float x3; 
+	float y1; 
+	float y2; 
+};
+
+
 // Mob
 struct Mob {
 	int health;

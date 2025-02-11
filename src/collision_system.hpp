@@ -11,11 +11,12 @@ class CollisionSystem {
 public:
     CollisionSystem(entt::registry& reg, WorldSystem& world);  
 
-    static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry);
+    static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry, float epsilon);
 
     void step(float elapsed_ms);
 
     std::set<entt::entity> collisionMarked; 
+
 
 private:
     entt::registry& registry;

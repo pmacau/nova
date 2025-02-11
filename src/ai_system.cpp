@@ -26,7 +26,7 @@ void AISystem::step(float elapsed_ms)
 	//std::cout << "player_position" << player_motion.position.x << " " << player_motion.position.y << std::endl;
 	for (auto entity : mobs) {
 		Motion& mob_motion = registry.get<Motion>(entity); // gets motion component of mob
-		if (CollisionSystem::isContact(entity, player.front(), registry)) {
+		if (CollisionSystem::isContact(entity, player.front(), registry, 10)) {
 			mob_motion.velocity = vec2(0, 0);
 			continue; 
 		}
