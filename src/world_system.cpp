@@ -2,6 +2,7 @@
 #include "world_system.hpp"
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
+#include "save_and_load.hpp"
 
 // stlib
 #include <cassert>
@@ -279,6 +280,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
         restart_game();
 	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
+		std::cout << "Saving game state to gamestate.json file\n";
+		SaveAndLoad::save(registry);
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
+		std::cout << "Loading game state from gamestate.json file\n";
+		SaveAndLoad::load(registry);
+	}
+	
 
 	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
 	//       a settings menu
