@@ -25,6 +25,7 @@ using namespace glm;
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
+//inline std::string textures_path(const std::string& name) {return data_path() + "/retextures/" + std::string(name);};
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
 
 //
@@ -48,11 +49,15 @@ const int INVADER_SPAWN_RATE_MS = 2 * 1000;
 const int PROJECTILE_DAMAGE = 10;
 
 const int PLAYER_HEALTH = 100;
+const int MOB_HEALTH = 50; 
 const float PLAYER_SPEED = 200.0f;
+const float MOB_SPEED = 100.0f; 
 
-// TODO: refactor better way for storing project constants
+
+const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
 const float PROJECTILE_SIZE = 20.0f;
+
 
 // These are hard coded to the dimensions of the entity's texture
 

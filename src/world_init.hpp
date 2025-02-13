@@ -5,12 +5,13 @@
 // #include "tinyECS/tiny_ecs.hpp"
 #include "render_system.hpp"
 
+
 entt::entity createPlayer(entt::registry& registry, vec2 position);
 
 entt::entity createShip(entt::registry& registry, vec2 position);
 
 // invaders
-entt::entity createInvader(entt::registry& registry, vec2 position);
+entt::entity createMob(entt::registry& registry, vec2 position);
 
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);

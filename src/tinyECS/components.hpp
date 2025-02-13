@@ -8,6 +8,7 @@
 struct Player
 {
 	int health;
+	int direction; // TODO: make this an enum; make compatible with enemies too...
 };
 
 // Ship component
@@ -34,6 +35,22 @@ struct Invader {
 // Projectile
 struct Projectile {
 	int damage;
+};
+
+// Hit-Box given to player, mobs, structures, anything you don't want to pass through 
+struct HitBox {
+	float x1;
+	float x2;
+	float x3; 
+	float y1; 
+	float y2; 
+};
+
+
+// Mob
+struct Mob {
+	int health;
+	float hit_time; 
 };
 
 // used for Entities that cause damage
@@ -114,8 +131,9 @@ struct TexturedVertex
  */
 
 enum class TEXTURE_ASSET_ID {
-	PLAYER, 
+	PLAYER,
 	SHIP,
+    MOB,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };
@@ -131,9 +149,22 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
-struct RenderRequest {
+struct RenderRequest
+{
 	TEXTURE_ASSET_ID   used_texture  = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID    used_effect   = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 };
 
+struct Sprite 
+{
+	vec2 coord = {0.0f, 0.0f};
+	vec2 dims;
+	vec2 sheet_dims;
+};
+
+struct Animation
+{
+	float frameDuration;
+	float frameTime = 0.0f;
+};
