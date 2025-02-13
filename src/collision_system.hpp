@@ -11,7 +11,7 @@ class CollisionSystem {
 public:
     CollisionSystem(entt::registry& reg, WorldSystem& world);  
 
-    static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry, float epsilon);
+    static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry, vec2 scale);
 
     void step(float elapsed_ms);
 
@@ -24,5 +24,6 @@ private:
 
 
     void impossibleMovements();
-    void updateHealthbar(int health);
+    void updatePlayerHealthBar(int health);
+    void updateMobHealthBar(entt::entity& entity);
 };

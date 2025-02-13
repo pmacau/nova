@@ -1,4 +1,4 @@
-#include "common.hpp"
+	#include "common.hpp"
 #include <entt.hpp>
 #include <string>
 #include "tinyECS/components.hpp"
@@ -27,9 +27,6 @@ void SaveAndLoad::save(entt::registry& registry) {
 				{"health", player.health}, 
 				{"direction", player.direction}
 			};
-		}
-		if (registry.all_of<Healthbar>(entity)) {
-			entity_json["Healthbar"] = 1;
 		}
 		if (registry.all_of<Eatable>(entity)) {
 			entity_json["Eatable"] = 1;
@@ -104,10 +101,6 @@ void SaveAndLoad::load(entt::registry& registry, entt::entity& player_entity) {
 			player.health = entity_json["Player"]["health"].get<int>();
 			player.direction = entity_json["Player"]["direction"].get<int>();
 			registry.emplace_or_replace<Player>(entity, player);
-		}
-		if (entity_json.contains("Healthbar")) {
-			Healthbar healthbar;
-			registry.emplace_or_replace<Healthbar>(entity, healthbar);
 		}
 		if (entity_json.contains("Eatable")) {
 			Eatable eatable;

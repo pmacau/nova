@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include <entt.hpp>
 
 // Player component
 struct Player
@@ -45,9 +46,14 @@ struct Mob {
 	float hit_time; 
 };
 
-struct Healthbar
+struct PlayerHealthBar 
 {
 
+};
+
+struct MobHealthBar
+{
+	entt::entity ent;
 };
 
 // used for Entities that cause damage
@@ -132,6 +138,7 @@ enum class TEXTURE_ASSET_ID {
     MOB,
 	GOLD_PROJECTILE, 
 	HEALTHBAR_GREEN,
+	HEALTHBAR_RED,
 	TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

@@ -11,6 +11,7 @@ public:
     void step(float elapsed_ms);
 
 private:
+    void updateMobHealthBarMotion(entt::registry& registry, vec2 direction);
     entt::registry& registry;
 	float magnitude(vec2 v);
 	float movementEpsilon = 0.2f; // Epsilon for movement

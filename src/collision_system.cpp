@@ -11,20 +11,35 @@ void CollisionSystem::impossibleMovements() {
 
 }
 
-void CollisionSystem::updateHealthbar(int health) {
-	std::cout << health << std::endl;
-	for (auto entity : registry.view<Healthbar>()) {
-		auto& healthbar_motion = registry.get<Motion>(entity);
-		float oldWidth = healthbar_motion.scale.x;
-		healthbar_motion.scale = vec2({ health * (200.f / PLAYER_HEALTH), 15 });
-		healthbar_motion.position.x += ((healthbar_motion.scale.x - oldWidth) / 2); // to keep the healthbar fixed to left because scaling happens relative to center
+void CollisionSystem::updatePlayerHealthBar(int health) {
+	for (auto entity : registry.view<PlayerHealthBar>()) {
+		auto& playerhealth_motion = registry.get<Motion>(entity);
+		float old_width = playerhealth_motion.scale.x;
+		playerhealth_motion.scale = vec2({ health * (200.f / PLAYER_HEALTH), 15 });
+		playerhealth_motion.position.x += ((playerhealth_motion.scale.x - old_width) / 2); // to keep the healthbar fixed to left because scaling happens relative to center
 		break; // since there is only one healthbar, is there a better way instead of doing the loop?
+	}
+}
+
+void CollisionSystem::updateMobHealthBar(entt::entity& mob_entity) {
+	auto& mob = registry.get<Mob>(mob_entity);
+	auto& mob_motion = registry.get<Motion>(mob_entity);
+	for (auto entity : registry.view<MobHealthBar>()) {
+		auto& healthbar = registry.get<MobHealthBar>(entity);
+		if (healthbar.ent == mob_entity) {
+			auto& mobhealth_motion = registry.get<Motion>(entity);
+			float old_width = mobhealth_motion.scale.x;
+			mobhealth_motion.scale = vec2({ mob.health * std::max(50.f, mob_motion.scale.x / 2) / MOB_HEALTH, 10 }); 
+			mobhealth_motion.position.x += ((mobhealth_motion.scale.x - old_width) / 2); 
+			break;
+		}
 	}
 }
 
 
 void CollisionSystem::step(float elapsed_ms)
 {
+	std::vector<entt::entity> destroy_entities;
 	// TODO: likely refactor this if our collision system becomes more complicated which it will if we decide we want obstacles to not be considered entities 
 	// between entities, also doesn't include projectiles yet. Also maybe implement a k-d tree to detect valid candidates.
 	
@@ -46,36 +61,60 @@ void CollisionSystem::step(float elapsed_ms)
 		if ((uint32_t)entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t)entt::entt_traits<entt::entity>::to_entity(entity)) {
 			for (auto mob : mobs) {
 				//std::cout << "ENTERED" << std::endl;
-				if (isContact(mob, entity, registry, 40)){
+				auto& motion = registry.get<Motion>(mob);
+				if (isContact(entity, mob, registry, motion.scale)){
 					
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE;
-						updateHealthbar(player_ref.health);
+						updatePlayerHealthBar(player_ref.health);
 						if (player_ref.health <= 0) {
-							updateHealthbar(PLAYER_HEALTH);
+							updatePlayerHealthBar(PLAYER_HEALTH);
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;
 					}
 
 				}
-
-
 			}
 		}
-
+		if (registry.all_of<Projectile>(entity)) {
+			auto& projectile = registry.get<Projectile>(entity);
+			for (auto mob_entity : mobs) {
+				auto& motion = registry.get<Motion>(mob_entity);
+				auto& mob = registry.get<Mob>(mob_entity);
+				if (isContact(entity, mob_entity, registry, { motion.scale.x / 2, motion.scale.y / 2 })) {
+					registry.destroy(entity);
+					mob.health -= projectile.damage;
+					updateMobHealthBar(mob_entity);
+					if (mob.health <= 0) {
+						for (auto healthbar_entity : registry.view<MobHealthBar>()) {
+							auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);
+							std::cout << (healthbar.ent == mob_entity) << "\n";
+							if (healthbar.ent == mob_entity) {
+								destroy_entities.push_back(healthbar_entity); 
+								break;
+							}
+						}
+						destroy_entities.push_back(mob_entity);
+					}
+				}
+			}
+		}
+	}
+	for (auto entity : destroy_entities) {
+		registry.destroy(entity);
 	}
 }
 
 
 // determines if tw
-bool CollisionSystem::isContact(entt::entity e1 , entt::entity e2, entt::registry& registry, float epsilon) {
+bool CollisionSystem::isContact(entt::entity e1 , entt::entity e2, entt::registry& registry, vec2 scale) {
 	Motion m1 = registry.get<Motion>(e1); 
 	Motion m2 = registry.get<Motion>(e2);
-	bool xCheck = m1.position.x < m2.position.x + epsilon && m1.position.x > m2.position.x - epsilon;
-	bool yCheck = m1.position.y < m2.position.y + epsilon && m1.position.y > m2.position.y - epsilon;
+	bool xCheck = m1.position.x < m2.position.x + scale.x && m1.position.x > m2.position.x - scale.x;
+	bool yCheck = m1.position.y < m2.position.y + scale.y && m1.position.y > m2.position.y - scale.y;
 	return xCheck && yCheck; 
 }

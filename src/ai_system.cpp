@@ -10,6 +10,13 @@ AISystem::AISystem(entt::registry& reg) :
 	player_entity = *reg.view<Player>().begin(); 
 }
 
+void AISystem::updateMobHealthBarMotion(entt::registry& registry, vec2 direction) {
+	for (auto entity : registry.view<MobHealthBar>()) {
+		auto& motion = registry.get<Motion>(entity);
+		motion.velocity = direction;
+	}
+}
+
 
 void AISystem::step(float elapsed_ms)
 {
@@ -25,8 +32,9 @@ void AISystem::step(float elapsed_ms)
 	//std::cout << "player_position" << player_motion.position.x << " " << player_motion.position.y << std::endl;
 	for (auto entity : mobs) {
 		Motion& mob_motion = registry.get<Motion>(entity); // gets motion component of mob
-		if (CollisionSystem::isContact(entity, player_entity, registry, 10)) {
+		if (CollisionSystem::isContact(entity, player_entity, registry, mob_motion.scale)) {
 			mob_motion.velocity = vec2(0, 0);
+			updateMobHealthBarMotion(registry, vec2(0, 0));
 			continue; 
 		}
 		vec2 direction = player_motion.position - mob_motion.position; 
@@ -37,6 +45,7 @@ void AISystem::step(float elapsed_ms)
 			direction = normalize(direction) * MOB_SPEED; 
 		}
 		mob_motion.velocity = direction; // sets velocity of mob to be towards player
+		updateMobHealthBarMotion(registry, direction);
 		//std::cout << "mob velocity" << mob_motion.velocity.x << " " << mob_motion.velocity.y << std::endl;
 
 	}

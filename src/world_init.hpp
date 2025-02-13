@@ -14,4 +14,6 @@ entt::entity createMob(entt::registry& registry, vec2 position);
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);
 
-entt::entity createHealthbar(entt::registry& registry);
+entt::entity createPlayerHealthBar(entt::registry& registry);
+
+entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity);
