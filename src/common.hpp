@@ -37,9 +37,10 @@ const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
 const int GRID_LINE_WIDTH_PX = 2;
 
-const int SHIP_TIMER_MS = 1000;	// number of milliseconds between ship shots
+const int SHIP_TIMER_MS = 30;	// number of milliseconds between ship shots
 const int MAX_SHIP_START = 5;
 const int SHIP_HEALTH = 500;
+const int SHIP_RANGE = 250;
 
 const int INVADER_HEALTH = 50;
 const int INVADER_SPAWN_RATE_MS = 2 * 1000;

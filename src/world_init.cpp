@@ -29,13 +29,14 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	auto entity = registry.create();
 	auto& ship = registry.emplace<Ship>(entity);
 	ship.health = SHIP_HEALTH;
-	ship.range = 25;
+	ship.range = SHIP_RANGE;
+	ship.timer = SHIP_TIMER_MS;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 45, 35 * 45);
+	motion.scale = vec2(19 * 13, 35 * 7);
 
 	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
 

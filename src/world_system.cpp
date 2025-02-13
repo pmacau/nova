@@ -19,7 +19,7 @@ WorldSystem::WorldSystem(entt::registry& reg) :
 {
 	// seeding rng with random device
 	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
-	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 100));
+	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 200));
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
 	rng = std::default_random_engine(std::random_device()());
@@ -181,22 +181,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
-	auto ship = registry.get<Ship>(ship_entity);
-
+	auto &ship = registry.get<Ship>(ship_entity);
 	auto invaders = registry.view<Invader>();
-	for (auto entity : invaders) {
-		auto motion = registry.get<Motion>(entity);
-		auto shipMotion = registry.get<Motion>(ship_entity);
 
-		glm::vec2 shipPos = glm::vec2(shipMotion.position.x, shipMotion.position.y);
-		glm::vec2 enemyPos = glm::vec2(motion.position.x, motion.position.y);
+	ship.timer -= elapsed_s;
+	// std::cout << ship.timer << std::endl;
+	if (ship.timer <= 0) {
+		ship.timer = SHIP_TIMER_MS;
+		
+		// for (auto entity : players) {
+			auto motion = registry.get<Motion>(player_entity);
+			auto shipMotion = registry.get<Motion>(ship_entity);
 
-		if (glm::distance(shipPos, enemyPos) <= ship.range) {
-			vec2 direction = normalize(enemyPos - shipPos);
-			vec2 velocity = direction * PROJECTILE_SPEED;
-			createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
-		}
+			glm::vec2 shipPos = glm::vec2(shipMotion.position.x, shipMotion.position.y);
+			glm::vec2 enemyPos = glm::vec2(motion.position.x, motion.position.y);
+
+			std::cout << "Ship Position: (" << shipPos.x << ", " << shipPos.y << ")" << std::endl;
+    		std::cout << "Enemy Position: (" << enemyPos.x << ", " << enemyPos.y << ")" << std::endl;
+
+			std::cout << "distance: " << glm::distance(shipPos, enemyPos) << std::endl;
+
+			if (glm::distance(shipPos, enemyPos) <= ship.range) {
+				vec2 direction = normalize(enemyPos - shipPos);
+				vec2 velocity = direction * PROJECTILE_SPEED;
+				createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+				std::cout << "shooting" << std::endl;
+			}
+		// }
 	}
+
+	
 
 	return true;
 }
