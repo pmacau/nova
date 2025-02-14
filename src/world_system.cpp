@@ -14,7 +14,6 @@ WorldSystem::WorldSystem(entt::registry& reg) :
 	registry(reg),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
-	max_towers(MAX_SHIP_START),
 	points(0)
 {
 	// seeding rng with random device
@@ -220,7 +219,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
 	ship.timer -= elapsed_s;
-	
+
 	if (ship.timer <= 0) {
 		ship.timer = SHIP_TIMER_MS;
 		
@@ -276,7 +275,6 @@ void WorldSystem::restart_game() {
 	current_speed = 1.f;
 
 	points = 0;
-	max_towers = MAX_SHIP_START;
 	next_invader_spawn = 0;
 	invader_spawn_rate_ms = INVADER_SPAWN_RATE_MS;
 
