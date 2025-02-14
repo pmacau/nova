@@ -4,6 +4,10 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+struct Background
+{
+};
+
 // Player component
 struct Player
 {
@@ -125,6 +129,7 @@ struct TexturedVertex
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
     MOB,
+	BACKGROUND,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };

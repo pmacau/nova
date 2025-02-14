@@ -3,6 +3,8 @@
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
 
+#include "util/file_loader.hpp"
+
 // stlib
 #include <cassert>
 #include <sstream>
@@ -138,6 +140,7 @@ void WorldSystem::init() {
 	std::cout << "Starting music..." << std::endl;
 	Mix_PlayMusic(background_music, -1);
 	// Set all states to default
+
     restart_game();
 }
 
@@ -257,6 +260,33 @@ void WorldSystem::restart_game() {
 	// Reset player position
 	auto motion = registry.get<Motion>(player_entity);
 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
+
+
+	// Load game map
+	auto game_map = loadBinaryMap(map_path("map.bin"), 50, 50);
+	for (int row = 0; row < 50; row++) {
+		for (int col = 0; col < 50; col++) {
+			auto entity = registry.create();
+
+			auto& renderRequest = registry.emplace<RenderRequest>(entity);
+			renderRequest.used_texture = TEXTURE_ASSET_ID::BACKGROUND;
+			renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+			renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+			auto& sprite = registry.emplace<Sprite>(entity);
+			sprite.coord = {0, game_map[col][row]};
+			sprite.dims = {16, 16};
+			sprite.sheet_dims = {32, 16};
+
+			float d = 16;
+			auto& motion = registry.emplace<Motion>(entity);
+			motion.velocity = {0, 0};
+			motion.scale = {d, d};
+			motion.position = {col * d, row * d};
+
+			registry.emplace<Background>(entity);
+		}
+	}
 }
 
 // Should the game be over ?

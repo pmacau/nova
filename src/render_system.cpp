@@ -216,7 +216,13 @@ void RenderSystem::draw()
 
 	mat3 projection_2D = createProjectionMatrix();
 
-	auto motionRenders = registry.view<RenderRequest, Motion>();
+	// Draw background first
+	auto backgroundRenders = registry.view<Background>();
+	for (auto entity : backgroundRenders) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	auto motionRenders = registry.view<RenderRequest, Motion>(entt::exclude<Background>);
 	for (auto entity : motionRenders) {
 		//entt::RenderRequest& renderRequest = registry.view<
 		drawTexturedMesh(entity, projection_2D);
