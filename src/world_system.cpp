@@ -7,17 +7,19 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
 
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg) :
 	registry(reg),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
-	max_towers(MAX_TOWERS_START),
+	max_towers(MAX_SHIP_START),
 	points(0)
 {
 	// seeding rng with random device
 	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 200));
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
 	rng = std::default_random_engine(std::random_device()());
@@ -212,6 +214,39 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
+	auto &ship = registry.get<Ship>(ship_entity);
+	auto mobs = registry.view<Mob>();
+
+	float elapsed_s = elapsed_ms_since_last_update / 1000;
+	ship.timer -= elapsed_s;
+	
+	if (ship.timer <= 0) {
+		ship.timer = SHIP_TIMER_MS;
+		
+		for (auto entity : mobs) {
+			auto motion = registry.get<Motion>(entity);
+			auto shipMotion = registry.get<Motion>(ship_entity);
+
+			glm::vec2 shipPos = glm::vec2(shipMotion.position.x, shipMotion.position.y);
+			glm::vec2 enemyPos = glm::vec2(motion.position.x, motion.position.y);
+
+			std::cout << "Ship Position: (" << shipPos.x << ", " << shipPos.y << ")" << std::endl;
+    		std::cout << "Enemy Position: (" << enemyPos.x << ", " << enemyPos.y << ")" << std::endl;
+
+			std::cout << "distance: " << glm::distance(shipPos, enemyPos) << std::endl;
+
+			if (glm::distance(shipPos, enemyPos) <= ship.range) {
+				vec2 direction = normalize(enemyPos - shipPos);
+				vec2 velocity = direction * PROJECTILE_SPEED;
+				createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+				std::cout << "shooting" << std::endl;
+			}
+		}
+	}
+
+	
+
 	return true;
 }
 
@@ -241,13 +276,13 @@ void WorldSystem::restart_game() {
 	current_speed = 1.f;
 
 	points = 0;
-	max_towers = MAX_TOWERS_START;
+	max_towers = MAX_SHIP_START;
 	next_invader_spawn = 0;
 	invader_spawn_rate_ms = INVADER_SPAWN_RATE_MS;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship>);
 	registry.destroy(motions.begin(), motions.end());
 	createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
 	// Reset player health

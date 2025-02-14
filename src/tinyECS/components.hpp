@@ -11,6 +11,14 @@ struct Player
 	int direction; // TODO: make this an enum; make compatible with enemies too...
 };
 
+// Ship component
+struct Ship
+{
+	int range;
+	int health;
+	int timer;
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
@@ -124,6 +132,7 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
+	SHIP,
     MOB,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
