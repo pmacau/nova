@@ -21,7 +21,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 2, 32 * 2);
+	motion.scale = vec2(sprite.dims.x, sprite.dims.y);
 
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
@@ -37,12 +37,12 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	auto entity = registry.create();
 	registry.emplace<PlayerHealthBar>(entity);
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.position = vec2({ WINDOW_WIDTH_PX - 150, 40});
+	motion.position = vec2({ WINDOW_WIDTH_PX - 170, 40});
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
-	motion.scale = vec2({200, 15 });
+	motion.scale = vec2({120, 8});
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 0, 0 };
+	sprite.dims = { 1, 1 };
 	sprite.sheet_dims = { 0, 0 };
 	auto& render_request = registry.emplace<RenderRequest>(entity);
 	render_request.used_texture = TEXTURE_ASSET_ID::HEALTHBAR_GREEN;
@@ -65,7 +65,7 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = vec2(sprite.dims.x * 2, sprite.dims.y * 2);
+	motion.scale = vec2(sprite.dims.x, sprite.dims.y);
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
@@ -85,12 +85,12 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;
-	motion.position.y = mob_motion.position.y - mob_motion.scale.y / 2 - 10;
+	motion.position.y = mob_motion.position.y - mob_motion.scale.y / 2 - 40;
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
-	motion.scale = vec2({ std::max(50.f, mob_motion.scale.x / 2), 10}); // for boss we may want bigger health bar hence max function
+	motion.scale = vec2({ std::max(30.f, mob_motion.scale.x / 3), 5}); // for boss we may want bigger health bar hence max function
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 0, 0 };
+	sprite.dims = { 1, 1 };
 	sprite.sheet_dims = { 0, 0 };
 	auto& render_request = registry.emplace<RenderRequest>(entity);
 	render_request.used_texture = TEXTURE_ASSET_ID::HEALTHBAR_RED;

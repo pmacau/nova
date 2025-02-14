@@ -54,7 +54,7 @@ const float MOB_SPEED = 100.0f;
 
 const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
-const float PROJECTILE_SIZE = 20.0f;
+const float PROJECTILE_SIZE = 10.0f;
 
 
 // These are hard coded to the dimensions of the entity's texture

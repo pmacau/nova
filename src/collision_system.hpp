@@ -11,7 +11,7 @@ class CollisionSystem {
 public:
     CollisionSystem(entt::registry& reg, WorldSystem& world);  
 
-    static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry, vec2 scale);
+    static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry, float adjust);
 
     void step(float elapsed_ms);
 

@@ -125,10 +125,10 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// Initialize sprite
 	// The position corresponds to the center of the texture.
 	std::vector<TexturedVertex> textured_vertices(4);
-	textured_vertices[0].position = { -1.f/2, +1.f/2, 0.f };
-	textured_vertices[1].position = { +1.f/2, +1.f/2, 0.f };
-	textured_vertices[2].position = { +1.f/2, -1.f/2, 0.f };
-	textured_vertices[3].position = { -1.f/2, -1.f/2, 0.f };
+	textured_vertices[0].position = { -1.f, +1.f, 0.f };
+	textured_vertices[1].position = { +1.f, +1.f, 0.f };
+	textured_vertices[2].position = { +1.f, -1.f, 0.f };
+	textured_vertices[3].position = { -1.f, -1.f, 0.f };
 	textured_vertices[0].texcoord = { 0.f, 1.f };
 	textured_vertices[1].texcoord = { 1.f, 1.f };
 	textured_vertices[2].texcoord = { 1.f, 0.f };
