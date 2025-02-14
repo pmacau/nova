@@ -73,8 +73,6 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 
 	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
 
-	registry.emplace<Eatable>(entity);
-
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0.0f, 0.0f};
     // sprite.dims = {19 * 15, 35 * 7};
