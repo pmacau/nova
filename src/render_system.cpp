@@ -1,5 +1,6 @@
 
 #include <SDL.h>
+#include <glm/gtc/matrix_transform.hpp> 
 #include <glm/trigonometric.hpp>
 #include <iostream>
 // internal
@@ -16,13 +17,28 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
 	auto& motion = registry.get<Motion>(entity);
+
+	auto camera_entity = registry.view<Camera>().front(); // TODO: make this more robust
+	auto& camera = registry.get<Camera>(camera_entity);
+
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
 	Transform transform;
-	transform.translate(motion.position);
+
+	vec2 world_coordiante = motion.position - camera.offset + vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
+	transform.translate(world_coordiante);
 	transform.scale(motion.scale);
 	transform.rotate(radians(motion.angle));
+
+	Transform model_transform;
+	model_transform.translate(motion.position);
+	model_transform.scale(motion.scale);
+	model_transform.rotate(radians(motion.angle));
+
+	Transform camera_transform;
+	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
+	camera_transform.translate(- camera.offset);
 
 	assert(registry.any_of<RenderRequest>(entity));
 	const auto& render_request = registry.get<RenderRequest>(entity);
@@ -99,6 +115,32 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
 	gl_has_errors();
 
+	// model transform
+	GLuint model_transform_loc = glGetUniformLocation(currProgram, "model_transform");
+	glUniformMatrix3fv(model_transform_loc, 1, GL_FALSE, (float *)&model_transform.mat);
+	gl_has_errors();
+
+	// camera transform
+	GLuint camera_transform_loc = glGetUniformLocation(currProgram, "camera_transform");
+	glUniformMatrix3fv(camera_transform_loc, 1, GL_FALSE, (float *)&camera_transform.mat);
+	gl_has_errors();
+
+	// camera pos
+	GLuint camera_position_loc = glGetUniformLocation(currProgram, "cameraPos");
+	glUniform3f(camera_position_loc, camera.position.x, camera.position.y, camera.position.z);
+	gl_has_errors();
+
+	// Debug: zValue
+	float zDepth = 1.0f - (motion.position.y / WINDOW_HEIGHT_PX);
+
+
+	GLuint zValue_loc = glGetUniformLocation(currProgram, "zValue");
+	glUniform1f(zValue_loc, zDepth);
+	gl_has_errors();
+
+	std::cout << "zValue: " << zDepth << std::endl;
+	// std::cout << "zValue_loc: " << zValue_loc << std::endl;
+
 	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
 	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
 	gl_has_errors();
@@ -142,7 +184,9 @@ void RenderSystem::drawToScreen()
 	// Enabling alpha channel for textures
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST); // Debug: disable depth test
+
+	glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -205,11 +249,20 @@ void RenderSystem::draw()
 	// white background
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	glClearDepth(10.f);
+	// Debug: claer depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+// Debug
+	// glClearDepth(10.f);
+	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+
+	// Debug
+	glEnable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
@@ -244,9 +297,14 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
 
-	return {
-		{ sx, 0.f, 0.f},
-		{0.f,  sy, 0.f},
-		{ tx,  ty, 1.f}
-	};
+	// return {
+	// 	{ sx, 0.f, 0.f},
+	// 	{0.f,  sy, 0.f},
+	// 	{ tx,  ty, 1.f}
+	// };
+
+	float near_plane = -1.0f; // Near clipping plane
+    float far_plane = 1.0f;   // Far clipping plane
+
+	return glm::ortho(left, right, bottom, top, near_plane, far_plane);
 }

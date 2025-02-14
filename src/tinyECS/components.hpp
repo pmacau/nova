@@ -3,6 +3,8 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include <entt.hpp>
+
 
 // Player component
 struct Player
@@ -17,6 +19,7 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
+	float zValue   = 0.f;
 };
 
 // Invader
@@ -158,4 +161,16 @@ struct Animation
 {
 	float frameDuration;
 	float frameTime = 0.0f;
+};
+
+
+// Camera
+struct Camera
+{
+	entt::entity target; // the entity the camera follows
+	float distance_from_target = CAMERA_PLAYER_DIST; // position relative to (center of the screen)
+	float angle = CAMERA_ANGLE; // angle relative to the player
+	vec2 offset = vec2(0.f, 0.f); // offset from the player
+
+	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
 };

@@ -23,12 +23,25 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.position = position;
 	motion.scale = vec2(19 * 2, 32 * 2);
 
+	// Debug:
+	motion.zValue = 0.8f;
+
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 
 	renderRequest.used_texture = TEXTURE_ASSET_ID::PLAYER;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createCamera(entt::registry& registry, entt::entity target)
+{
+	auto entity = registry.create();
+
+	auto& camera = registry.emplace<Camera>(entity);
+	camera.target = target;
 
 	return entity;
 }

@@ -18,6 +18,10 @@ WorldSystem::WorldSystem(entt::registry& reg) :
 {
 	// seeding rng with random device
 	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+
+	// create camera
+	main_camera_entity = createCamera(registry, player_entity);
+
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
 	rng = std::default_random_engine(std::random_device()());
