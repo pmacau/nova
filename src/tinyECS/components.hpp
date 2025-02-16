@@ -91,6 +91,11 @@ struct ScreenState
 	float darken_screen_factor = -1;
 };
 
+// will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 
+struct Object {
+
+};
+
 // A struct to refer to debugging graphics in the ECS
 struct DebugComponent
 {
@@ -142,11 +147,11 @@ enum class TEXTURE_ASSET_ID {
 	TEXTURE_COUNT
 };
 
-enum class hitBoxType {
-	Mob,
-	Projectile, 
-	Player
-};
+//enum class hitBoxType {
+//	Mob,
+//	Projectile, 
+//	Player
+//};
 
 
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

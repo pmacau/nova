@@ -64,7 +64,7 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	motion.position.x = position.x + sprite.dims[0] / 2;
 	//std::cout << sprite.dims[0] << std::endl; 
 	motion.position.y = position.y + sprite.dims[1] / 2;
-	motion.scale = vec2(120, 120);
+	motion.scale = vec2(100, 120);
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;

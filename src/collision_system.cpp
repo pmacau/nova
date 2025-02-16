@@ -93,12 +93,13 @@ void CollisionSystem::step(float elapsed_ms)
 }
 
 
-	//void handleCollisions(e)
-
+	
+	// refactor this so it uses the hitboxes.
 	// determines if should get hit or not maybe just refactor into hit box system after.
 	bool CollisionSystem::isContact(entt::entity e1, entt::entity e2, entt::registry & registry, float epsilon) {
 		Motion m1 = registry.get<Motion>(e1);
 		Motion m2 = registry.get<Motion>(e2);
+		// HitBox h1 = registry.get<Hit
 		bool xCheck = m1.position.x < m2.position.x + epsilon && m1.position.x > m2.position.x - epsilon;
 		bool yCheck = m1.position.y < m2.position.y + epsilon && m1.position.y > m2.position.y - epsilon;
 		return xCheck && yCheck;
