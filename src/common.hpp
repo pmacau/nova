@@ -52,6 +52,7 @@ const int MOB_HEALTH = 50;
 const float PLAYER_SPEED = 200.0f;
 const float MOB_SPEED = 100.0f; 
 
+const float GAME_SCALE = 2.f;
 
 const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
