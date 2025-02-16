@@ -8,7 +8,6 @@
 struct Player
 {
 	int health;
-	int direction; // TODO: make this an enum; make compatible with enemies too...
 };
 
 // Ship component
@@ -167,4 +166,8 @@ struct Animation
 {
 	float frameDuration;
 	float frameTime = 0.0f;
+};
+
+const Sprite PLAYER_SPRITESHEET = {
+    {}, {19.f, 32.f}, {152.f, 96.f}
 };

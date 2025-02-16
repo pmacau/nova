@@ -156,29 +156,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		restart_game();
 	}
 	
-	// TODO: move player direction system
-	auto& p_motion = registry.get<Motion>(player_entity);
-	auto& p_sprite = registry.get<Sprite>(player_entity);
-
-	switch (player.direction) {
-		case KeyboardState::UP:
-			p_sprite.coord.x = 2.f;
-			p_motion.scale.x = abs(p_motion.scale.x);
-			break;
-		case KeyboardState::DOWN:
-			p_sprite.coord.x = 0.f;
-			p_motion.scale.x = abs(p_motion.scale.x);
-			break;
-		case KeyboardState::LEFT:
-			p_sprite.coord.x = 1.f;
-			p_motion.scale.x = -1.f * abs(p_motion.scale.x);
-			break;
-		case KeyboardState::RIGHT:
-			p_sprite.coord.x = 1.f;
-			p_motion.scale.x = abs(p_motion.scale.x);
-			break;
-	}
-
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
 		auto& motion = registry.get<Motion>(player_entity);
@@ -193,6 +170,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
 	};
 	updatePlayerVelocity();
+
+
+	// TODO: move player direction system
+	auto& p_motion = registry.get<Motion>(player_entity);
+	auto& p_sprite = registry.get<Sprite>(player_entity);
+
+	if (length(p_motion.velocity) > 0.0f) {
+		vec2 velo = p_motion.velocity;
+		float x_scale = abs(p_motion.scale.x);
+
+		if (abs(velo.x) > 0) {
+			p_sprite.coord.x = 1.f;
+			p_motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
+		}
+
+		if (abs(velo.y) > 0) {
+			p_sprite.coord.x = (velo.y > 0) ? 0.f : 2.f;
+			p_motion.scale.x = x_scale;
+		}
+	}
 
 	// TODO: move this animation system
 	auto animations = registry.view<Animation, Sprite, Motion>();
@@ -230,16 +227,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			glm::vec2 shipPos = glm::vec2(shipMotion.position.x, shipMotion.position.y);
 			glm::vec2 enemyPos = glm::vec2(motion.position.x, motion.position.y);
 
-			std::cout << "Ship Position: (" << shipPos.x << ", " << shipPos.y << ")" << std::endl;
-    		std::cout << "Enemy Position: (" << enemyPos.x << ", " << enemyPos.y << ")" << std::endl;
-
-			std::cout << "distance: " << glm::distance(shipPos, enemyPos) << std::endl;
-
 			if (glm::distance(shipPos, enemyPos) <= ship.range) {
 				vec2 direction = normalize(enemyPos - shipPos);
 				vec2 velocity = direction * PROJECTILE_SPEED;
 				createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
-				std::cout << "shooting" << std::endl;
 			}
 		}
 	}
@@ -320,14 +311,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
 
-	if (action != GLFW_PRESS) return;
-
-	auto& player = registry.get<Player>(player_entity);
-	if (key == GLFW_KEY_UP    || key == GLFW_KEY_W) player.direction = KeyboardState::UP;
-	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) player.direction = KeyboardState::DOWN;
-	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) player.direction = KeyboardState::LEFT;
-	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) player.direction = KeyboardState::RIGHT;
-
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
 	// 	if (action == GLFW_RELEASE) {
@@ -352,7 +335,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
-		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
+		// std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
 	
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			// TODO: implement shooting logic

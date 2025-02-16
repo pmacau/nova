@@ -2,7 +2,6 @@
 
 #include "common.hpp"
 #include <entt.hpp>
-// #include "tinyECS/tiny_ecs.hpp"
 #include "render_system.hpp"
 
 
