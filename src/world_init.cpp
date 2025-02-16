@@ -34,19 +34,21 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto entity = registry.create();
+
 	auto& mob = registry.emplace<Mob>(entity);
-	// dummy sprite
-	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 140.f, 93.f };
-	sprite.sheet_dims = { 140.f, 93.f };
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 40.f, 54.f };
+	sprite.sheet_dims = { 40.f, 54.f };
+
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = vec2(19 * 25, 31 * 12);
-	registry.emplace<Eatable>(entity);
+	motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
+
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;

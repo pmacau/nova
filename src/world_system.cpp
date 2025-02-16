@@ -172,7 +172,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	updatePlayerVelocity();
 
 
-	// TODO: move player direction system
+	// TODO: move direction system
+	auto dir_view = registry.view<Motion, Sprite>();
+	for (auto& entity : dir_view) {
+		auto& motion = registry.get<Motion>(entity);
+		auto& sprite = registry.get<Sprite>(entity);
+
+		if (length(motion.velocity) > 0.0f) {
+			vec2 velo = motion.velocity;
+			float x_scale = abs(motion.scale.x);
+
+			if (abs(velo.y) > 0) {
+				sprite.coord.x = (velo.y > 0) ? sprite.down_row : sprite.up_row;
+				motion.scale.x = x_scale;
+			}
+
+			if (abs(velo.x) > 0) {
+				sprite.coord.x = sprite.right_row;
+				motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
+			}
+		}
+	}
+
 	auto& p_motion = registry.get<Motion>(player_entity);
 	auto& p_sprite = registry.get<Sprite>(player_entity);
 

@@ -160,6 +160,10 @@ struct Sprite
 	vec2 coord = {0.0f, 0.0f};
 	vec2 dims;
 	vec2 sheet_dims;
+
+	float up_row = 0.f;
+	float down_row = 0.f;
+	float right_row = 0.f;
 };
 
 struct Animation
@@ -169,5 +173,5 @@ struct Animation
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 32.f}, {152.f, 96.f}
+    {}, {19.f, 32.f}, {152.f, 96.f}, 3.f, 0.f, 1.f
 };
