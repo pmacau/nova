@@ -38,15 +38,22 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 }
 
 entt::entity createMob(entt::registry& registry, vec2 position) {
+	// ENTITY CREATION
 	auto entity = registry.create();
 	auto& mob = registry.emplace<Mob>(entity);
-	// dummy sprite
+	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	mobMap.insert(entity); 
 	sprite.dims = { 140.f, 93.f };
 	sprite.sheet_dims = {140.f, 93.f};
+	// HITBOX
+	auto& hitBox = registry.emplace<HitBox>(entity); 
+	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
+	hitBox.shape.circle.radius = 40.f; 
+
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
+	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };

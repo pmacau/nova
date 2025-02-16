@@ -72,7 +72,6 @@ void CollisionSystem::step(float elapsed_ms)
 			for (auto mob : mobs) {
 				//std::cout << "ENTERED" << std::endl;
 				if (isContact(mob, entity, registry, 40)) {
-
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
@@ -95,7 +94,6 @@ void CollisionSystem::step(float elapsed_ms)
 
 
 	//void handleCollisions(e)
-
 
 	// determines if should get hit or not maybe just refactor into hit box system after.
 	bool CollisionSystem::isContact(entt::entity e1, entt::entity e2, entt::registry & registry, float epsilon) {

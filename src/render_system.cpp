@@ -5,6 +5,7 @@
 // internal
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem(entt::registry& reg) :
 	registry(reg)
@@ -12,10 +13,95 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	screen_state_entity = registry.create();
 }
 
+static std::vector<glm::vec2> generateCircleVertices(float centerX, float centerY, float radius, int segments = 32) {
+	std::vector<glm::vec2> vertices;
+	for (int i = 0; i < segments; i++) {
+		float theta = 2.0f * 3.14159f * float(i) / float(segments);
+		float x = centerX + radius * cos(theta);
+		float y = centerY + radius * sin(theta);
+		vertices.emplace_back(x, y);
+	}
+	return vertices;
+}
+
+std::vector<glm::vec2> generateRectVertices(float centerX, float centerY, float width, float height) {
+	float halfW = width / 2.0f;
+	float halfH = height / 2.0f;
+	return {
+		{centerX - halfW, centerY - halfH},
+		{centerX + halfW, centerY - halfH},
+		{centerX + halfW, centerY + halfH},
+		{centerX - halfW, centerY + halfH}
+	};
+}
+
+void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform) {
+	// Bind your debug shader program
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
+	std::cout << "PASSED 1 " << std::endl; 
+	gl_has_errors();
+	//// Set uniform parameters
+	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
+	std::cout << projLoc << std::endl;
+	GLint transLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
+	std::cout << transLoc << std::endl;
+	GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
+	std::cout << colorLoc << std::endl;
+	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
+	glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f); // Draw in red
+	std::cout << "PASSED 2 " << std::endl;
+	gl_has_errors();
+	//// Assume entities have both HitBox and Motion components.
+	auto view = registry.view<HitBox, Motion>();
+	for (auto entity : view) {
+		// Compute vertices…
+		std::vector<glm::vec2> vertices;
+		float posX = registry.get<Motion>(entity).position.x;
+		float posY = registry.get<Motion>(entity).position.y;
+		if (registry.get<HitBox>(entity).type == HITBOX_CIRCLE) {
+			vertices = generateCircleVertices(posX, posY, registry.get<HitBox>(entity).shape.circle.radius);
+		}
+		else if (registry.get<HitBox>(entity).type == HITBOX_RECT) {
+			vertices = generateRectVertices(posX, posY,
+				registry.get<HitBox>(entity).shape.rect.width,
+				registry.get<HitBox>(entity).shape.rect.height);
+		}
+
+		// Create temporary VAO/VBO for debug geometry.
+		GLuint debugVAO, debugVBO;
+		glGenVertexArrays(1, &debugVAO);
+		glGenBuffers(1, &debugVBO);
+
+		glBindVertexArray(debugVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, debugVBO);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2), vertices.data(), GL_DYNAMIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+
+		glDrawArrays(GL_LINE_LOOP, 0, vertices.size());
+
+		// Unbind the debug VAO and VBO before deletion.
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		glDeleteBuffers(1, &debugVBO);
+		glDeleteVertexArrays(1, &debugVAO);
+	}
+
+	// Rebind the default VAO so subsequent rendering has valid state.
+	glBindVertexArray(defaultVAO);
+}
+
+
+
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
+	glBindVertexArray(defaultVAO);
 	auto& motion = registry.get<Motion>(entity);
+	std::cout << "PASSED 8 " << std::endl;
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
@@ -23,7 +109,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
 	transform.rotate(radians(motion.angle));
-
+	std::cout << "PASSED 8.1 " << std::endl;
 	assert(registry.any_of<RenderRequest>(entity));
 	const auto& render_request = registry.get<RenderRequest>(entity);
 
@@ -33,11 +119,11 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	// Setting shaders
 	glUseProgram(program);
 	gl_has_errors();
-
+	std::cout << "PASSED 8.3 " << std::endl;
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
 	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
 	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
-
+	std::cout << "PASSED 8.5 " << std::endl;
 	// Setting vertex and index buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -46,16 +132,21 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	// texture-mapped entities - use data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
+		std::cout << "PASSED 8.6 " << std::endl;
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+		std::cout << "PASSED 8.7 " << std::endl;
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
-
+		std::cout << "PASSED 8.8 " << std::endl;
 		glEnableVertexAttribArray(in_position_loc);
+		gl_has_errors();
+		std::cout << "PASSED 8.9 " << std::endl;
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(TexturedVertex), (void *)0);
+		std::cout << "PASSED 8.10 " << std::endl;
 		gl_has_errors();
-
+		std::cout << "PASSED 8.8 " << std::endl;
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
@@ -65,13 +156,15 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 		// Enabling and binding texture to slot 0
 		glActiveTexture(GL_TEXTURE0);
 		gl_has_errors();
-
+		std::cout << "PASSED 8.9 " << std::endl;
 		assert(registry.any_of<RenderRequest>(entity));
 		GLuint texture_id =
 			texture_gl_handles[(GLuint)registry.get<RenderRequest>(entity).used_texture];
-
+		std::cout << "PASSED 9 " << std::endl;
 		glBindTexture(GL_TEXTURE_2D, texture_id);
+		std::cout << "PASSED 10 " << std::endl;
 		gl_has_errors();
+		std::cout << "PASSED 11 " << std::endl;
 	}
 	else
 	{
@@ -190,45 +283,70 @@ void RenderSystem::drawToScreen()
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
+	std::cout << "PASSED 1 " << std::endl;
 	// Getting size of window
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 
+	std::cout << "PASSED 2 " << std::endl;
 	// First render to the custom framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+
+	std::cout << "PASSED 3 " << std::endl;
 	gl_has_errors();
-	
+
+	std::cout << "PASSED  4" << std::endl;
 	// clear backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	
+
+	std::cout << "PASSED 5 " << std::endl;
 	// white background
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
+	std::cout << "PASSED 6.1 " << std::endl;
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	std::cout << "PASSED 6.2 " << std::endl;
 	glEnable(GL_BLEND);
+	std::cout << "PASSED 6.3 " << std::endl;
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	std::cout << "PASSED 6.4 " << std::endl;
 	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
+	std::cout << "PASSED 6.5 " << std::endl;
 	gl_has_errors();
 
 	mat3 projection_2D = createProjectionMatrix();
-
+	std::cout << "PASSED 6.6 " << std::endl;
 	auto motionRenders = registry.view<RenderRequest, Motion>();
+	std::cout << "PASSED 6.7.0 " << std::endl;
 	for (auto entity : motionRenders) {
-		//entt::RenderRequest& renderRequest = registry.view<
+		//entt::RenderRequest& renderRequest = registry.view< 
 		drawTexturedMesh(entity, projection_2D);
+		std::cout << "PASSED 6.7 " << std::endl;
 	}
 
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
 	drawToScreen();
+	std::cout << "PASSED 6.8 " << std::endl;
 
+	std::cout << "PASSED 6 " << std::endl;
+	// DEBUG
+	auto debugView = registry.view<Debug>();
+	if (!debugView.empty()) {
+		std::cout << "DEBUGGG" << std::endl;
+		glm::mat3 projection = createProjectionMatrix();
+		glm::mat3 transform = glm::mat3(1.0f);
+		drawDebugHitBoxes(projection, transform);
+	}
+	std::cout << "PASSED 12 " << std::endl;
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
+	std::cout << "PASSED 13 " << std::endl;
 	gl_has_errors();
+	std::cout << "PASSED 14 " << std::endl;
 }
 
 mat3 RenderSystem::createProjectionMatrix()

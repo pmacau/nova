@@ -55,7 +55,8 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
-
+	glGenVertexArrays(1, &defaultVAO);
+	glBindVertexArray(defaultVAO);
 	return true;
 }
 

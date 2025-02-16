@@ -6,6 +6,25 @@
 #include <cmath>
 #include <limits>
 
+enum HitBoxType {
+	HITBOX_CIRCLE,
+	HITBOX_RECT
+};
+
+struct HitBox {
+	HitBoxType type;
+	union {
+		struct {
+			float radius;
+		} circle;
+		struct {
+			float width;
+			float height;
+		} rect;
+	} shape;
+};
+
+
 // Player component
 struct Player
 {
@@ -31,17 +50,6 @@ struct Invader {
 struct Projectile {
 	int damage;
 };
-
-// Hit-Box given to player, mobs, and projectiles (since circular)
-struct HitBox {
-	float radius; 
-};
-
-// Obstacle HitBox? We could make rectangular obstacles, circular obstacles (in that case just hitbox), triangular obstacles, etc.
-//struct Obstacle{
-//	float position; 
-//};
-
 
 
 // Mob
@@ -144,7 +152,7 @@ enum class hitBoxType {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, EFFECT_COUNT
+	TEXTURED, VIGNETTE, DEBUG, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

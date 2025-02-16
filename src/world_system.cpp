@@ -295,6 +295,20 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) player.direction = KeyboardState::LEFT;
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) player.direction = KeyboardState::RIGHT;
 
+	//probably a better way of doing this... 
+	if (key == GLFW_KEY_P) {
+		auto debugView = registry.view<Debug>();
+		if (debugView.empty()) {
+			registry.emplace<Debug>(player_entity);
+		}
+		else {
+			for (auto entity : debugView) {
+				registry.remove<Debug>(entity);
+			}
+		}
+	}
+		  
+
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
 	// 	if (action == GLFW_RELEASE) {
