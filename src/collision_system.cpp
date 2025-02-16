@@ -1,5 +1,6 @@
 #include "collision_system.hpp"
 #include "world_init.hpp"
+#include "ui_system.hpp"
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 	registry(reg),
@@ -9,31 +10,6 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 
 void CollisionSystem::impossibleMovements() {
 
-}
-
-void CollisionSystem::updatePlayerHealthBar(int health) {
-	for (auto entity : registry.view<PlayerHealthBar>()) {
-		auto& playerhealth_motion = registry.get<Motion>(entity);
-		float left = playerhealth_motion.position.x - playerhealth_motion.scale.x;
-		playerhealth_motion.scale = vec2({ health * (120.f / PLAYER_HEALTH), 8});
-		playerhealth_motion.position.x = left + playerhealth_motion.scale.x; // to keep the healthbar fixed to left because scaling happens relative to center
-		break; // since there is only one healthbar, is there a better way instead of doing the loop?
-	}
-}
-
-void CollisionSystem::updateMobHealthBar(entt::entity& mob_entity) {
-	auto& mob = registry.get<Mob>(mob_entity);
-	auto& mob_motion = registry.get<Motion>(mob_entity);
-	for (auto entity : registry.view<MobHealthBar>()) {
-		auto& healthbar = registry.get<MobHealthBar>(entity);
-		if (healthbar.ent == mob_entity) {
-			auto& mobhealth_motion = registry.get<Motion>(entity);
-			float left = mobhealth_motion.position.x - mobhealth_motion.scale.x;
-			mobhealth_motion.scale = vec2({ mob.health * std::max(30.f, mob_motion.scale.x / 3) / MOB_HEALTH, 5 }); 
-			mobhealth_motion.position.x = left + mobhealth_motion.scale.x;
-			break;
-		}
-	}
 }
 
 
@@ -68,9 +44,9 @@ void CollisionSystem::step(float elapsed_ms)
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE;
-						updatePlayerHealthBar(player_ref.health);
+						UISystem::updatePlayerHealthBar(registry, player_ref.health);
 						if (player_ref.health <= 0) {
-							updatePlayerHealthBar(PLAYER_HEALTH);
+							UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;
@@ -86,7 +62,7 @@ void CollisionSystem::step(float elapsed_ms)
 				if (isContact(entity, mob_entity, registry, 10.f)) {
 					registry.destroy(entity);
 					mob.health -= projectile.damage;
-					updateMobHealthBar(mob_entity);
+					UISystem::updateMobHealthBar(registry, mob_entity);
 					if (mob.health <= 0) {
 						for (auto healthbar_entity : registry.view<MobHealthBar>()) {
 							auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);

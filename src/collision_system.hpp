@@ -24,6 +24,4 @@ private:
 
 
     void impossibleMovements();
-    void updatePlayerHealthBar(int health);
-    void updateMobHealthBar(entt::entity& entity);
 };

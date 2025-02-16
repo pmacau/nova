@@ -3,18 +3,12 @@
 #include "world_init.hpp"
 #include "world_system.hpp"
 #include "tinyECS/components.hpp"
+#include "ui_system.hpp"
 
 AISystem::AISystem(entt::registry& reg) :
 	registry(reg)
 {
 	player_entity = *reg.view<Player>().begin(); 
-}
-
-void AISystem::updateMobHealthBarMotion(entt::registry& registry, vec2 direction) {
-	for (auto entity : registry.view<MobHealthBar>()) {
-		auto& motion = registry.get<Motion>(entity);
-		motion.velocity = direction;
-	}
 }
 
 
@@ -34,7 +28,7 @@ void AISystem::step(float elapsed_ms)
 		Motion& mob_motion = registry.get<Motion>(entity); // gets motion component of mob
 		if (CollisionSystem::isContact(entity, player_entity, registry, 30.f)) {
 			mob_motion.velocity = vec2(0, 0);
-			updateMobHealthBarMotion(registry, vec2(0, 0));
+			UISystem::updateMobHealthBarMotion(registry, vec2(0, 0));
 			continue; 
 		}
 		vec2 direction = player_motion.position - mob_motion.position; 
@@ -45,7 +39,7 @@ void AISystem::step(float elapsed_ms)
 			direction = normalize(direction) * MOB_SPEED; 
 		}
 		mob_motion.velocity = direction; // sets velocity of mob to be towards player
-		updateMobHealthBarMotion(registry, direction);
+		UISystem::updateMobHealthBarMotion(registry, direction);
 		//std::cout << "mob velocity" << mob_motion.velocity.x << " " << mob_motion.velocity.y << std::endl;
 
 	}

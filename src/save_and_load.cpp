@@ -1,4 +1,4 @@
-	#include "common.hpp"
+#include "common.hpp"
 #include <entt.hpp>
 #include <string>
 #include "tinyECS/components.hpp"
