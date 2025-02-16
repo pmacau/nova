@@ -20,7 +20,11 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
 	player.direction = 0; // TODO: use enum
-
+	// HITBOX
+	auto& hitBox = registry.emplace<HitBox>(entity);
+	hitBox.type = HitBoxType::HITBOX_CIRCLE;
+	hitBox.shape.circle.radius = 25.f;
+	// 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
@@ -44,8 +48,8 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	mobMap.insert(entity); 
-	sprite.dims = { 140.f, 93.f };
-	sprite.sheet_dims = {140.f, 93.f};
+	sprite.dims = { 43.f, 55.f };
+	sprite.sheet_dims = {43.f, 55.f};
 	// HITBOX
 	auto& hitBox = registry.emplace<HitBox>(entity); 
 	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
@@ -57,8 +61,10 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	motion.position = position;
-	motion.scale = vec2(19 * 12.5, 31 * 6);
+	motion.position.x = position.x + sprite.dims[0] / 2;
+	//std::cout << sprite.dims[0] << std::endl; 
+	motion.position.y = position.y + sprite.dims[1] / 2;
+	motion.scale = vec2(120, 120);
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
@@ -69,37 +75,6 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	return entity; 
 }
 
-// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// // !!! TODO A1: implement grid lines as gridLines with renderRequests and colors
-// // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// entt::entity createInvader(entt::registry& registry, vec2 position)
-// {
-// 	// reserve an entity
-// 	auto entity = registry.create();
-
-// 	// invader
-// 	auto& invader = registry.emplace<Invader>(entity);
-// 	invader.health = INVADER_HEALTH;
-
-// 	// TODO A1: initialize the position, scale, and physics components
-// 	auto& motion = registry.emplace<Motion>(entity);
-// 	motion.angle = 0.f;
-// 	motion.velocity = { 0, 0 };
-// 	motion.position = position;
-
-// 	// resize, set scale to negative if you want to make it face the opposite way
-// 	// motion.scale = vec2({ -INVADER_BB_WIDTH, INVADER_BB_WIDTH });
-// 	motion.scale = vec2({ INVADER_BB_WIDTH, INVADER_BB_HEIGHT });
-
-// 	// create an (empty) Bug component to be able to refer to all bug
-// 	registry.emplace<Eatable>(entity);
-// 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-// 	renderRequest.used_texture = TEXTURE_ASSET_ID::INVADER;
-// 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-// 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-
-// 	return entity;
-// }
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // !!! TODO A1: create a new projectile w/ pos, size, & velocity

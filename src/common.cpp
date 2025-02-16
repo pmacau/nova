@@ -24,7 +24,7 @@ void Transform::translate(vec2 offset)
 bool gl_has_errors()
 {
 	GLenum error = glGetError();
-	std::cout << error << std::endl; 
+	//std::cout << error << std::endl; 
 	if (error == GL_NO_ERROR) return false;
 
 	while (error != GL_NO_ERROR)
