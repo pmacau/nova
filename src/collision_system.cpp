@@ -8,13 +8,28 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
 }
 
 // checks if entity, assuming a motion is given, 
-bool CollisionSystem::isCollision(entt::entity) {
+bool CollisionSystem::isCollision(entt::entity e, entt::registry& registry) {
+	// EACH MOTION MUST BE GIVEN A HITBOX.
+	
+	Motion primary_entity_motion = registry.get<Motion>(e);
+
 	auto motion_entities = registry.view<Motion>(); 
 
-	// EACH MOTION MUST BE GIVEN A HITBOX. 
+	
 	for (auto motion_entity : motion_entities) {
 		// get motion position, dont want to modify
-		Motion
+		Motion m = registry.get<Motion>(motion_entity); 
+		// determining type
+		if (mobMap.find(e) != mobMap.end()) {
+
+		}
+		else if (playerMap.find(e) != playerMap.end()) {
+
+		}
+		else {
+			std::cout << "Projectile" << std::endl;
+		}
+
 
 		// generate hit box in given position 
 
@@ -25,7 +40,7 @@ bool CollisionSystem::isCollision(entt::entity) {
 		// if no FORMER POSITION, allow to be inside (for now)
 
 
-
+		break; 
 
 	}
 	return true; 
@@ -38,7 +53,6 @@ void CollisionSystem::step(float elapsed_ms)
 {
 	// TODO: likely refactor this if our collision system becomes more complicated which it will if we decide we want obstacles to not be considered entities 
 	// between entities, also doesn't include projectiles yet. Also maybe implement a k-d tree to detect valid candidates.
-	
 	float elapsed_s = elapsed_ms / 1000.f;
 	// All mobs
 	auto mobs = registry.view<Mob>();
@@ -57,8 +71,8 @@ void CollisionSystem::step(float elapsed_ms)
 		if ((uint32_t)entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t)entt::entt_traits<entt::entity>::to_entity(entity)) {
 			for (auto mob : mobs) {
 				//std::cout << "ENTERED" << std::endl;
-				if (isContact(mob, entity, registry, 40)){
-					
+				if (isContact(mob, entity, registry, 40)) {
+
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
@@ -80,11 +94,14 @@ void CollisionSystem::step(float elapsed_ms)
 }
 
 
-// determines if should get hit or not maybe just refactor into hit box system after.
-bool CollisionSystem::isContact(entt::entity e1 , entt::entity e2, entt::registry& registry, float epsilon) {
-	Motion m1 = registry.get<Motion>(e1); 
-	Motion m2 = registry.get<Motion>(e2);
-	bool xCheck = m1.position.x < m2.position.x + epsilon && m1.position.x > m2.position.x - epsilon;
-	bool yCheck = m1.position.y < m2.position.y + epsilon && m1.position.y > m2.position.y - epsilon;
-	return xCheck && yCheck; 
-}
+	//void handleCollisions(e)
+
+
+	// determines if should get hit or not maybe just refactor into hit box system after.
+	bool CollisionSystem::isContact(entt::entity e1, entt::entity e2, entt::registry & registry, float epsilon) {
+		Motion m1 = registry.get<Motion>(e1);
+		Motion m2 = registry.get<Motion>(e2);
+		bool xCheck = m1.position.x < m2.position.x + epsilon && m1.position.x > m2.position.x - epsilon;
+		bool yCheck = m1.position.y < m2.position.y + epsilon && m1.position.y > m2.position.y - epsilon;
+		return xCheck && yCheck;
+	}

@@ -133,6 +133,14 @@ enum class TEXTURE_ASSET_ID {
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };
+
+enum class hitBoxType {
+	Mob,
+	Projectile, 
+	Player
+};
+
+
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {

@@ -2,9 +2,13 @@
 // #include "tinyECS/registry.hpp"
 #include <iostream>
 
+
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
 	auto entity = registry.create();
+	
+	//adding to list 
+	playerMap.insert(entity); 
 
 	auto& animation = registry.emplace<Animation>(entity);
 	animation.frameDuration = 100.0f;
@@ -38,8 +42,9 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& mob = registry.emplace<Mob>(entity);
 	// dummy sprite
 	auto& sprite = registry.emplace<Sprite>(entity);
+	mobMap.insert(entity); 
 	sprite.dims = { 140.f, 93.f };
-	sprite.sheet_dims = {1128.f, 744.f};
+	sprite.sheet_dims = {140.f, 93.f};
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
 	auto& motion = registry.emplace<Motion>(entity);

@@ -5,7 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
-
+#include "world_init.hpp"
 
 class CollisionSystem {
 public:
@@ -17,7 +17,7 @@ public:
 
     std::set<entt::entity> collisionMarked; 
 
-    bool isCollision(entt::entity);
+    static bool isCollision(entt::entity e, entt::registry& registry);
 
 
 private:
