@@ -6,10 +6,12 @@
 #include <sstream>
 #include <iostream>
 #include "world_init.hpp"
+#include "physics_system.hpp"
+
 
 class CollisionSystem {
 public:
-    CollisionSystem(entt::registry& reg, WorldSystem& world);  
+    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics);  
 
     static bool isContact(entt::entity e1, entt::entity e2, entt::registry& registry, float epsilon);
 
@@ -17,10 +19,9 @@ public:
 
     std::set<entt::entity> collisionMarked; 
 
-    static bool isCollision(entt::entity e, entt::registry& registry);
-
 
 private:
     entt::registry& registry;
+    PhysicsSystem& physics; 
     WorldSystem& world;  
 };

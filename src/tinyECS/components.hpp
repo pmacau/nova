@@ -38,7 +38,8 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
-	vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for everything except projectiles. 
+	vec2 acceleration = { 0, 0 }; 
+	vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for map obstacles
 };
 
 // Invader

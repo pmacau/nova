@@ -25,8 +25,8 @@ int main()
 	WorldSystem   world_system(reg);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system);
-	PhysicsSystem physics_system(reg, collision_system);
+	PhysicsSystem physics_system(reg);
+	CollisionSystem collision_system(reg, world_system, physics_system);
 	// PhysicsSystem physics_system;
 
 	// initialize window

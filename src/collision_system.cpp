@@ -1,52 +1,13 @@
 #include "collision_system.hpp"
 
 
-CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world) :
+CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
 	registry(reg),
-	world(world)
+	world(world), 
+	physics(physics)
 {
 }
 
-// checks if entity, assuming a motion is given, 
-bool CollisionSystem::isCollision(entt::entity e, entt::registry& registry) {
-	// EACH MOTION MUST BE GIVEN A HITBOX.
-	
-	Motion primary_entity_motion = registry.get<Motion>(e);
-
-	auto motion_entities = registry.view<Motion>(); 
-
-	
-	for (auto motion_entity : motion_entities) {
-		// get motion position, dont want to modify
-		Motion m = registry.get<Motion>(motion_entity); 
-		// determining type
-		if (mobMap.find(e) != mobMap.end()) {
-
-		}
-		else if (playerMap.find(e) != playerMap.end()) {
-
-		}
-		else {
-			std::cout << "Projectile" << std::endl;
-		}
-
-
-		// generate hit box in given position 
-
-
-		// see if entity is contained in hit box, IF SO RESET TO FORMER POSITION
-
-
-		// if no FORMER POSITION, allow to be inside (for now)
-
-
-		break; 
-
-	}
-	return true; 
-
-
-}
 
 
 void CollisionSystem::step(float elapsed_ms)
@@ -63,7 +24,7 @@ void CollisionSystem::step(float elapsed_ms)
 			mob_ref.hit_time -= elapsed_s;
 		}
 	}
-	auto entities = registry.view<Motion>();
+	auto entities = registry.view<Motion, HitBox>(); // only goes through motion objects with HitBox (should essentially be all of them)
 	auto playerCheck = registry.view<Player>();
 	for (auto entity : entities) { // does a for loop for projectiles and what not right, now this isn't necessary. 
 		// only check once so decide if checks on player or invader (player chosen)
@@ -82,8 +43,12 @@ void CollisionSystem::step(float elapsed_ms)
 						}
 						mob_ref.hit_time = 1.f;
 					}
-
+					// repelling force 
+					physics.suppress(entity, mob);
 				}
+				
+				
+				
 
 
 			}
@@ -95,11 +60,15 @@ void CollisionSystem::step(float elapsed_ms)
 
 	
 	// refactor this so it uses the hitboxes.
+	// ASSUMES ENTIT
 	// determines if should get hit or not maybe just refactor into hit box system after.
 	bool CollisionSystem::isContact(entt::entity e1, entt::entity e2, entt::registry & registry, float epsilon) {
 		Motion m1 = registry.get<Motion>(e1);
 		Motion m2 = registry.get<Motion>(e2);
-		// HitBox h1 = registry.get<Hit
+		HitBox h1 = registry.get<HitBox>(e1); // can be a circle or a rectangle
+		HitBox h2 = registry.get<HitBox>(e2); 
+	
+		// cases two circles, 
 		bool xCheck = m1.position.x < m2.position.x + epsilon && m1.position.x > m2.position.x - epsilon;
 		bool yCheck = m1.position.y < m2.position.y + epsilon && m1.position.y > m2.position.y - epsilon;
 		return xCheck && yCheck;
