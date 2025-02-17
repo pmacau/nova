@@ -217,9 +217,20 @@ void RenderSystem::draw()
 	mat3 projection_2D = createProjectionMatrix();
 
 	// Draw background first
-	auto backgroundRenders = registry.view<Background>();
+	entt::entity player_entity = *registry.view<Player>().begin();
+	const auto& p_motion = registry.get<Motion>(player_entity);
+
+	auto backgroundRenders = registry.view<Background, Motion>();
 	for (auto entity : backgroundRenders) {
-		drawTexturedMesh(entity, projection_2D);
+		const auto& motion = registry.get<Motion>(entity);
+		
+		if (p_motion.position.x - WINDOW_WIDTH_PX  < motion.position.x &&
+			p_motion.position.x + WINDOW_WIDTH_PX  > motion.position.x &&
+			p_motion.position.y - WINDOW_HEIGHT_PX < motion.position.y &&
+			p_motion.position.y + WINDOW_HEIGHT_PX > motion.position.y
+		) {
+			drawTexturedMesh(entity, projection_2D);
+		}
 	}
 
 	auto motionRenders = registry.view<RenderRequest, Motion>(entt::exclude<Background>);

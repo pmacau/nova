@@ -146,7 +146,7 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
+	
 	// Updating window title with points
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
@@ -224,11 +224,9 @@ void WorldSystem::player_respawn() {
 	player.health = PLAYER_HEALTH;
 
 	// reset player position
-	Motion& player_motion = registry.get<Motion>(player_entity);
-	player_motion.position.x = WINDOW_WIDTH_PX / 2;
-	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
-
-
+	// Motion& player_motion = registry.get<Motion>(player_entity);
+	// player_motion.position.x = WINDOW_WIDTH_PX / 2;
+	// player_motion.position.y = WINDOW_HEIGHT_PX / 2;
 }
 
 
@@ -253,19 +251,18 @@ void WorldSystem::restart_game() {
 	auto motions = registry.view<Motion>(entt::exclude<Player>);
 	registry.destroy(motions.begin(), motions.end());
 	createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	
 	// Reset player health
-	auto player = registry.get<Player>(player_entity);
+	auto& player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
 	
-	// Reset player position
-	auto motion = registry.get<Motion>(player_entity);
-	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
-
+	int start_row = 0;
+	int start_col = 0;
 
 	// Load game map
-	auto game_map = loadBinaryMap(map_path("map.bin"), 50, 50);
-	for (int row = 0; row < 50; row++) {
-		for (int col = 0; col < 50; col++) {
+	auto game_map = loadBinaryMap(map_path("map.bin"), 200, 200);
+	for (int row = 0; row < 200; row++) {
+		for (int col = 0; col < 200; col++) {
 			auto entity = registry.create();
 
 			auto& renderRequest = registry.emplace<RenderRequest>(entity);
@@ -274,7 +271,13 @@ void WorldSystem::restart_game() {
 			renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
 			auto& sprite = registry.emplace<Sprite>(entity);
-			sprite.coord = {0, game_map[col][row]};
+
+			if (game_map[col][row] == 3) {
+				start_row = row;
+				start_col = col;
+			}
+			
+			sprite.coord.y = (game_map[col][row] == 0) ? 0.f : 1.f;
 			sprite.dims = {16, 16};
 			sprite.sheet_dims = {32, 16};
 
@@ -287,6 +290,10 @@ void WorldSystem::restart_game() {
 			registry.emplace<Background>(entity);
 		}
 	}
+
+	// Reset player position
+	auto& motion = registry.get<Motion>(player_entity);
+	motion.position = vec2(start_col * 16, start_row * 16);
 }
 
 // Should the game be over ?
