@@ -59,11 +59,12 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 
 	// Load game map
+	tileMap.resize(200, std::vector<TileRender>(200));
+
 	auto game_map = loadBinaryMap(map_path("map.bin"), 200, 200);
 	for (int row = 0; row < 200; row++) {
 		for (int col = 0; col < 200; col++) {
-			tileMap[row][col] = new TileRender();
-			tileMap[row][col]->coord.y = (game_map[row][col] == 0) ? 0.f : 1.f;
+			tileMap[row][col].coord.y = (game_map[row][col] == 0) ? 0.f : 1.f;
 		}
 	}
 

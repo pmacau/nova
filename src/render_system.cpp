@@ -32,7 +32,7 @@ void RenderSystem::drawBackground(const mat3& projection) {
 			transform.translate(vec2(j * 16, i * 16));
 			transform.scale(vec2(16.f, 16.f));
 
-			RenderRequest render_request = tileMap[i][j]->request;
+			RenderRequest render_request = tileMap[i][j].request;
 
 			const GLuint used_effect_enum = (GLuint)render_request.used_effect;
 			assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
@@ -105,7 +105,7 @@ void RenderSystem::drawBackground(const mat3& projection) {
 			GLuint spriteData_loc = glGetUniformLocation(currProgram, "spriteData");
 			GLuint sheetDims_loc = glGetUniformLocation(currProgram, "sheetDims");
 
-			vec2& coord = tileMap[i][j]->coord;
+			vec2& coord = tileMap[i][j].coord;
 			glUniform4f(spriteData_loc, coord.x, coord.y, 16.f, 16.f);
 			glUniform2f(sheetDims_loc, 32.f, 16.f);
 			gl_has_errors();

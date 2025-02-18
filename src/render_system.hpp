@@ -56,7 +56,8 @@ class RenderSystem {
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
-	TileRender* tileMap[200][200];
+
+	std::vector<std::vector<TileRender>> tileMap;
 
 public:
 	RenderSystem(entt::registry& reg);
