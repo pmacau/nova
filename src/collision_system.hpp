@@ -24,4 +24,6 @@ private:
     entt::registry& registry;
     PhysicsSystem& physics; 
     WorldSystem& world;  
+    // collision helpers
+    static bool circlesCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon);
 };

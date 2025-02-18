@@ -32,18 +32,20 @@ void CollisionSystem::step(float elapsed_ms)
 		if ((uint32_t)entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t)entt::entt_traits<entt::entity>::to_entity(entity)) {
 			for (auto mob : mobs) {
 				//std::cout << "ENTERED" << std::endl;
-				if (isContact(mob, entity, registry, 40)) {
+				if (isContact(mob, entity, registry, 10)) {
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
-						player_ref.health -= MOB_DAMAGE;
+						//player_ref.health -= MOB_DAMAGE; FOR DEBUGGING
 						if (player_ref.health <= 0) {
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;
 					}
-					// repelling force 
+				}
+				// repelling force if overlap
+				if (isContact(mob, entity, registry, 0)) {
 					physics.suppress(entity, mob);
 				}
 				
@@ -63,13 +65,22 @@ void CollisionSystem::step(float elapsed_ms)
 	// ASSUMES ENTIT
 	// determines if should get hit or not maybe just refactor into hit box system after.
 	bool CollisionSystem::isContact(entt::entity e1, entt::entity e2, entt::registry & registry, float epsilon) {
-		Motion m1 = registry.get<Motion>(e1);
-		Motion m2 = registry.get<Motion>(e2);
-		HitBox h1 = registry.get<HitBox>(e1); // can be a circle or a rectangle
-		HitBox h2 = registry.get<HitBox>(e2); 
-	
-		// cases two circles, 
-		bool xCheck = m1.position.x < m2.position.x + epsilon && m1.position.x > m2.position.x - epsilon;
-		bool yCheck = m1.position.y < m2.position.y + epsilon && m1.position.y > m2.position.y - epsilon;
-		return xCheck && yCheck;
+		const Motion& m1 = registry.get<Motion>(e1);
+		const Motion& m2 = registry.get<Motion>(e2);
+		const HitBox& h1 = registry.get<HitBox>(e1); // can be a circle or a rectangle
+		const HitBox& h2 = registry.get<HitBox>(e2); 
+		
+		// cases two circles
+		if (h1.type == HitBoxType::HITBOX_CIRCLE && h2.type == HitBoxType::HITBOX_CIRCLE) {
+			return circlesCollision(m1, h1, m2, h2, epsilon);
+		}
+		return false; 
 	}
+
+	bool CollisionSystem::circlesCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon) {
+		float dx = m1.position.x - m2.position.x;
+		float dy = m1.position.y - m2.position.y;
+		float rSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
+		return (dx * dx + dy * dy) <= (rSum * rSum); //avoiding sqrt 
+	}
+
