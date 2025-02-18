@@ -8,6 +8,7 @@
 #include "../ext/stb_image/stb_image.h"
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
+#include "util/file_loader.hpp"
 
 // Render initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
@@ -55,6 +56,16 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
+
+
+	// Load game map
+	auto game_map = loadBinaryMap(map_path("map.bin"), 200, 200);
+	for (int row = 0; row < 200; row++) {
+		for (int col = 0; col < 200; col++) {
+			tileMap[row][col] = new TileRender();
+			tileMap[row][col]->coord.y = (game_map[row][col] == 0) ? 0.f : 1.f;
+		}
+	}
 
 	return true;
 }

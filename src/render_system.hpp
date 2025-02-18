@@ -7,6 +7,16 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
+struct TileRender {
+	RenderRequest request = {
+		TEXTURE_ASSET_ID::BACKGROUND,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE
+	};
+	vec2 coord = {0.f, 0.f};
+};
+
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -46,6 +56,7 @@ class RenderSystem {
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
+	TileRender* tileMap[200][200];
 
 public:
 	RenderSystem(entt::registry& reg);
@@ -82,6 +93,8 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
+
+	void drawBackground(const mat3& projection);
 
 	// Window handle
 	GLFWwindow* window;

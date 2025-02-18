@@ -1,4 +1,3 @@
-
 #include <SDL.h>
 #include <glm/trigonometric.hpp>
 #include <iostream>
@@ -11,6 +10,113 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 {
 	screen_state_entity = registry.create();
 }
+
+void RenderSystem::drawBackground(const mat3& projection) {
+	entt::entity player_entity = *registry.view<Player>().begin();
+	auto& p_motion = registry.get<Motion>(player_entity);
+
+	int p_row = int(p_motion.position.y / 16); 
+	int p_col = int(p_motion.position.x / 16);
+	int screen_tile_width = WINDOW_WIDTH_PX / 16;
+	int screen_tile_height = WINDOW_WIDTH_PX / 16;
+
+	int min_x = max(0, p_col - screen_tile_width);
+	int max_x = min(200, p_col + screen_tile_width);
+	int min_y = max(0, p_row - screen_tile_height);
+	int max_y = min(200, p_row + screen_tile_height);
+
+
+	for (int i = min_y; i < max_y; i++) {
+		for (int j = min_x; j < max_x; j++) {
+			Transform transform;
+			transform.translate(vec2(j * 16, i * 16));
+			transform.scale(vec2(16.f, 16.f));
+
+			RenderRequest render_request = tileMap[i][j]->request;
+
+			const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+			assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+			const GLuint program = (GLuint)effects[used_effect_enum];
+			// Setting shaders
+			glUseProgram(program);
+			gl_has_errors();
+
+			assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+			const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+			const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+			// Setting vertex and index buffers
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			gl_has_errors();
+
+			GLint in_position_loc = glGetAttribLocation(program, "in_position");
+			GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+			gl_has_errors();
+			assert(in_texcoord_loc >= 0);
+
+			glEnableVertexAttribArray(in_position_loc);
+			glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+								sizeof(TexturedVertex), (void *)0);
+			gl_has_errors();
+
+			glEnableVertexAttribArray(in_texcoord_loc);
+			glVertexAttribPointer(
+				in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+				(void *)sizeof(
+					vec3)); // note the stride to skip the preceeding vertex position
+
+			// Enabling and binding texture to slot 0
+			glActiveTexture(GL_TEXTURE0);
+			gl_has_errors();
+
+			GLuint texture_id =
+				texture_gl_handles[(GLuint)render_request.used_texture];
+
+			glBindTexture(GL_TEXTURE_2D, texture_id);
+			gl_has_errors();
+
+			// Getting uniform locations for glUniform* calls
+			GLint color_uloc = glGetUniformLocation(program, "fcolor");
+			const vec3 color = vec3(1);
+			glUniform3fv(color_uloc, 1, (float *)&color);
+			gl_has_errors();
+
+			// Get number of indices from index buffer, which has elements uint16_t
+			GLint size = 0;
+			glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+			gl_has_errors();
+
+			GLsizei num_indices = size / sizeof(uint16_t);
+			// GLsizei num_triangles = num_indices / 3;
+
+			GLint currProgram;
+			glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+			// Setting uniform values to the currently bound program
+			GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+			glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
+			gl_has_errors();
+
+			GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+			glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
+			gl_has_errors();
+
+
+			GLuint spriteData_loc = glGetUniformLocation(currProgram, "spriteData");
+			GLuint sheetDims_loc = glGetUniformLocation(currProgram, "sheetDims");
+
+			vec2& coord = tileMap[i][j]->coord;
+			glUniform4f(spriteData_loc, coord.x, coord.y, 16.f, 16.f);
+			glUniform2f(sheetDims_loc, 32.f, 16.f);
+			gl_has_errors();
+
+			// Drawing of num_indices/3 triangles specified in the index buffer
+			glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
+			gl_has_errors();
+		}
+	}
+}
+
 
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
@@ -217,25 +323,10 @@ void RenderSystem::draw()
 	mat3 projection_2D = createProjectionMatrix();
 
 	// Draw background first
-	entt::entity player_entity = *registry.view<Player>().begin();
-	const auto& p_motion = registry.get<Motion>(player_entity);
-
-	auto backgroundRenders = registry.view<Background, Motion>();
-	for (auto entity : backgroundRenders) {
-		const auto& motion = registry.get<Motion>(entity);
-		
-		if (p_motion.position.x - WINDOW_WIDTH_PX  < motion.position.x &&
-			p_motion.position.x + WINDOW_WIDTH_PX  > motion.position.x &&
-			p_motion.position.y - WINDOW_HEIGHT_PX < motion.position.y &&
-			p_motion.position.y + WINDOW_HEIGHT_PX > motion.position.y
-		) {
-			drawTexturedMesh(entity, projection_2D);
-		}
-	}
+	drawBackground(projection_2D);
 
 	auto motionRenders = registry.view<RenderRequest, Motion>(entt::exclude<Background>);
 	for (auto entity : motionRenders) {
-		//entt::RenderRequest& renderRequest = registry.view<
 		drawTexturedMesh(entity, projection_2D);
 	}
 

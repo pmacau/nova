@@ -3,8 +3,6 @@
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
 
-#include "util/file_loader.hpp"
-
 // stlib
 #include <cassert>
 #include <sstream>
@@ -253,47 +251,13 @@ void WorldSystem::restart_game() {
 	createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
 	
 	// Reset player health
-	auto& player = registry.get<Player>(player_entity);
-	player.health = PLAYER_HEALTH;
-	
-	int start_row = 0;
-	int start_col = 0;
+	// auto& player = registry.get<Player>(player_entity);
+	// player.health = PLAYER_HEALTH;
 
-	// Load game map
-	auto game_map = loadBinaryMap(map_path("map.bin"), 200, 200);
-	for (int row = 0; row < 200; row++) {
-		for (int col = 0; col < 200; col++) {
-			auto entity = registry.create();
-
-			auto& renderRequest = registry.emplace<RenderRequest>(entity);
-			renderRequest.used_texture = TEXTURE_ASSET_ID::BACKGROUND;
-			renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-			renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-
-			auto& sprite = registry.emplace<Sprite>(entity);
-
-			if (game_map[col][row] == 3) {
-				start_row = row;
-				start_col = col;
-			}
-			
-			sprite.coord.y = (game_map[col][row] == 0) ? 0.f : 1.f;
-			sprite.dims = {16, 16};
-			sprite.sheet_dims = {32, 16};
-
-			float d = 16;
-			auto& motion = registry.emplace<Motion>(entity);
-			motion.velocity = {0, 0};
-			motion.scale = {d, d};
-			motion.position = {col * d, row * d};
-
-			registry.emplace<Background>(entity);
-		}
-	}
-
-	// Reset player position
-	auto& motion = registry.get<Motion>(player_entity);
-	motion.position = vec2(start_col * 16, start_row * 16);
+	// // Reset player position
+	// auto& motion = registry.get<Motion>(player_entity);
+	// motion.position = vec2(start_col * 16, start_row * 16);
+	player_respawn();
 }
 
 // Should the game be over ?
