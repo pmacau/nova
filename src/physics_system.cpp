@@ -55,23 +55,22 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     //std::cout << "SUPPRESSED" << std::endl; 
     Motion& m1 = registry.get<Motion>(e1); 
     Motion& m2 = registry.get<Motion>(e2);
-    vec2 direction = getDirection(e1, e2); // gets e2 to e1
+    vec2 direction = getDirection(e1, e2); // gets e2 to e1 
     // set accelerations based off positions, if very close then very high repellent. 
     /*std::cout << m1.position.x - m2.position.x << std::endl; 
     std::cout << m1.position.y - m2.position.y << std::endl;*/
-    float repellentAccelerationX = min(1 / exp(-abs(m1.position.x - m2.position.x)), 30.f); 
-    float repellentAccelerationY = min(1 / exp(-abs(m1.position.y - m2.position.y)), 30.f);
-    m1.acceleration.x = repellentAccelerationX; 
-    m1.acceleration.y = repellentAccelerationY; 
-    m2.acceleration.x = repellentAccelerationX;
-    m2.acceleration.y = repellentAccelerationY;
+    direction = normalize(direction);
+    float repellentMagnitude = min(1 / exp(-glm::length(direction)), 1000.f); 
+    
+    m1.acceleration = direction * repellentMagnitude; 
+    m2.acceleration = -direction * repellentMagnitude;
 
-    std::cout << "X: " << repellentAccelerationX << " Y: " << repellentAccelerationY << std::endl;
+    // std::cout << "X: " << repellentAccelerationX << " Y: " << repellentAccelerationY << std::endl;
+    
     
 
-
 }
-
+//NOT NORMALIZED BUT WILL RETURN -1, 0 IF 0,0. 
 vec2 PhysicsSystem::getDirection(entt::entity e1, entt::entity e2) {
     Motion& m1 = registry.get<Motion>(e1);
     Motion& m2 = registry.get<Motion>(e2);
@@ -85,9 +84,6 @@ vec2 PhysicsSystem::getDirection(entt::entity e1, entt::entity e2) {
     vec2 direction = m1.position - m2.position;
     if (m1.position - m2.position == vec2(0, 0)) { //prevents undefined when dividing by 0
         direction = vec2(-1, 0); // move to the left, shouldn't happen since acceleration should increase as they get closer. 
-    }
-    else {
-        direction = normalize(direction);
     }
     return direction; 
 }
