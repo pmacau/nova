@@ -214,6 +214,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	for (auto& entity : registry.view<Projectile>()) {
+		auto& projectile = registry.get<Projectile>(entity);
+		projectile.timer -= elapsed_ms_since_last_update;
+		if (projectile.timer <= 0) {
+			std::cout << "projectile destroyed\n";
+			registry.destroy(entity);
+		}
+	}
+
 	return true;
 }
 

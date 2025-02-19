@@ -45,6 +45,7 @@ const int INVADER_HEALTH = 50;
 const int INVADER_SPAWN_RATE_MS = 2 * 1000;
 
 const int PROJECTILE_DAMAGE = 10;
+const int PROJECTILE_TIMER = 5000; 
 
 const int PLAYER_HEALTH = 100;
 const int MOB_HEALTH = 50; 

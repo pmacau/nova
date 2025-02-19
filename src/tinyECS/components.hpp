@@ -28,6 +28,7 @@ struct Invader {
 // Projectile
 struct Projectile {
 	int damage;
+	int timer;
 };
 
 // Hit-Box given to player, mobs, structures, anything you don't want to pass through 
