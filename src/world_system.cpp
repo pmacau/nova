@@ -144,12 +144,6 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	// Updating window title with points
-	std::stringstream title_ss;
-	title_ss << "Points: " << points;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
-
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		printf("[GAME OVER] restarting game now...\n");
