@@ -11,6 +11,7 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	screen_state_entity = registry.create();
 }
 
+// TODO: can refactor this, and possibly speed it up by not binding the same texture again and again
 void RenderSystem::drawBackground(const mat3& projection) {
 	entt::entity player_entity = *registry.view<Player>().begin();
 	auto& p_motion = registry.get<Motion>(player_entity);
@@ -20,10 +21,10 @@ void RenderSystem::drawBackground(const mat3& projection) {
 	int screen_tile_width = WINDOW_WIDTH_PX / 16;
 	int screen_tile_height = WINDOW_WIDTH_PX / 16;
 
-	int min_x = max(0, p_col - screen_tile_width);
-	int max_x = min(200, p_col + screen_tile_width);
-	int min_y = max(0, p_row - screen_tile_height);
-	int max_y = min(200, p_row + screen_tile_height);
+	int min_x = max(0, p_col - screen_tile_width / 2 - 1);
+	int max_x = min(199, p_col + screen_tile_width / 2 + 1);
+	int min_y = max(0, p_row - screen_tile_height / 2 - 1);
+	int max_y = min(199, p_row + screen_tile_height / 2 + 1);
 
 
 	for (int i = min_y; i < max_y; i++) {
@@ -107,7 +108,7 @@ void RenderSystem::drawBackground(const mat3& projection) {
 
 			vec2& coord = tileMap[i][j].coord;
 			glUniform4f(spriteData_loc, coord.x, coord.y, 16.f, 16.f);
-			glUniform2f(sheetDims_loc, 32.f, 16.f);
+			glUniform2f(sheetDims_loc, 112.f, 112.f);
 			gl_has_errors();
 
 			// Drawing of num_indices/3 triangles specified in the index buffer
@@ -325,7 +326,7 @@ void RenderSystem::draw()
 	// Draw background first
 	drawBackground(projection_2D);
 
-	auto motionRenders = registry.view<RenderRequest, Motion>(entt::exclude<Background>);
+	auto motionRenders = registry.view<RenderRequest, Motion>();
 	for (auto entity : motionRenders) {
 		drawTexturedMesh(entity, projection_2D);
 	}

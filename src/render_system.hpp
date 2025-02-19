@@ -7,9 +7,10 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
+// TODO refactor this background render stuff...
 struct TileRender {
 	RenderRequest request = {
-		TEXTURE_ASSET_ID::BACKGROUND,
+		TEXTURE_ASSET_ID::TILESET,
 		EFFECT_ASSET_ID::TEXTURED,
 		GEOMETRY_BUFFER_ID::SPRITE
 	};
@@ -42,7 +43,7 @@ class RenderSystem {
 		textures_path("player/astronaut-spritesheet.png"),
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
-		textures_path("tile/background.png"),
+		textures_path("tile/tileset.png"),
 		textures_path("projectiles/gold_bubble.png")
 
 	};
