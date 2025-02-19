@@ -14,6 +14,7 @@ public:
     PhysicsSystem(entt::registry& reg);
     void step(float elapsed_ms);
     void suppress(entt::entity& e1, entt::entity& e2);
+    void knockback(entt::entity& e1, entt::entity& e2, float force);
 
 private:
     entt::registry& registry;

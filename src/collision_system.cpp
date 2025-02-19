@@ -32,20 +32,24 @@ void CollisionSystem::step(float elapsed_ms)
 		if ((uint32_t)entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t)entt::entt_traits<entt::entity>::to_entity(entity)) {
 			for (auto mob : mobs) {
 				//std::cout << "ENTERED" << std::endl;
+				
 				if (isContact(mob, entity, registry, 10)) {
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						//player_ref.health -= MOB_DAMAGE; FOR DEBUGGING
+						physics.knockback(entity, mob, 400); 
 						if (player_ref.health <= 0) {
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;
+						
 					}
 				}
 				// repelling force if overlap
 				if (isContact(mob, entity, registry, 0)) {
+					std::cout << "SUPRESS" << std::endl;
 					physics.suppress(entity, mob);
 				}
 				
