@@ -53,6 +53,7 @@ public:
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
+	entt::entity ship_entity;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
