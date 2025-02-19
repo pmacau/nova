@@ -1,5 +1,4 @@
 #include "tinyECS/components.hpp"
-#include "world_system.hpp"
 #include "ui_system.hpp"
 #include <iostream>
 
@@ -62,7 +61,7 @@ void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
 	}
 }
 
-void UISystem::useItem(entt::registry& registry, entt::entity& entity, InventorySlot& inventory_slot) {
+void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	auto& item = registry.get<Item>(entity);
 	if (item.item_type == ITEM_TYPE::POTION) {
 		auto& potion = registry.get<Potion>(entity);
@@ -72,49 +71,46 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity, Inventory
 			updatePlayerHealthBar(registry, player.health);
 			break;
 		}
-		inventory_slot.hasItem = false;
-		registry.destroy(entity);
 	}
 }
 
 
-bool UISystem::useItemFromInventory(entt::registry& registry, std::vector<entt::entity> inventory, float mouse_pos_x, float mouse_pos_y) {
+void UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 25.f && mouse_pos_y <= 75.f && mouse_pos_x >= 25.f) {
 		int i = (int)((mouse_pos_x - 25.f) / 50.f);
-		if (i >= 0 && i < inventory.size()) {
-			auto& inventory_entity = inventory[i];
+		if (i >= 0 && i < inventory.slots.size()) {
+			auto& inventory_entity = inventory.slots[i];
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
-				useItem(registry, inventory_slot.item, inventory_slot);
-				return true;
+				useItem(registry, inventory_slot.item);
+				inventory_slot.hasItem = false;
+				registry.destroy(inventory_slot.item);
 			}
 		}
 	}
-	return false;
 }
 
-void UISystem::addToInventory(entt::registry& registry, std::vector<entt::entity> inventory, entt::entity& entity) {
-	for (int i = 0; i < inventory.size(); i++) {
-		auto& inventory_slot = registry.get<InventorySlot>(inventory[i]);
+void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	for (int i = 0; i < inventory.slots.size(); i++) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 		if (!inventory_slot.hasItem) {
 			inventory_slot.hasItem = true;
-			inventory_slot.item = entity;
-			auto& motion = registry.get<Motion>(entity);
+			inventory_slot.item = item_entity;
+			auto& motion = registry.get<Motion>(item_entity);
 			motion.position = {50.f + 48.f * i, 50.f};
 			break;
 		}
 	}
 }
 
-bool UISystem::equipItem(entt::registry& registry, std::vector<entt::entity> inventory, float mouse_pos_x, float mouse_pos_y) {
-	for (auto entity : registry.view<Motion>()) {
-		if (registry.all_of<Item>(entity)) {
-			auto& motion = registry.get<Motion>(entity);
-			if (abs(mouse_pos_x - motion.position.x) <= 10 && abs(mouse_pos_y - motion.position.y) <= 10) {
-				addToInventory(registry, inventory, entity);
-				return true;
-			}
+void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
+	for (auto entity : registry.view<Motion, Item>()) {
+		auto& motion = registry.get<Motion>(entity);
+		if (abs(player_motion.position.x - motion.position.x) <= 10 && abs(player_motion.position.y - motion.position.y) <= 10) {
+			addToInventory(registry, entity);
+			break;
 		}
 	}
-	return false;
 }

@@ -1,4 +1,5 @@
 #include "physics_system.hpp"
+#include "ui_system.hpp"
 
 PhysicsSystem::PhysicsSystem(entt::registry& reg, CollisionSystem& CollisionSystem):
 	registry(reg),
@@ -18,5 +19,8 @@ void PhysicsSystem::step(float elapsed_ms) {
     for (auto entity : players) {
         auto& motion = registry.get<Motion>(entity);
         motion.position += motion.velocity * elapsed_s;
+        if (registry.all_of<Player>(entity)) {
+            UISystem::equipItem(registry, motion);
+        }
     }
 }

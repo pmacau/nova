@@ -50,6 +50,7 @@ public:
 	// player respawn
 	void player_respawn();
 
+
 private:
 	entt::entity player_entity;
 	entt::registry& registry;
@@ -79,9 +80,6 @@ private:
 
 	// Game state
 	float current_speed;
-
-	// inventory
-	std::vector<entt::entity> inventory;
 
 	// grid
 	std::vector<entt::entity> grid_lines;

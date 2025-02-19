@@ -18,4 +18,4 @@ entt::entity createPlayerHealthBar(entt::registry& registry);
 
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity);
 
-std::vector<entt::entity> createInventory(entt::registry& registry);
+void createInventory(entt::registry& registry);

@@ -94,6 +94,11 @@ struct InventorySlot
 	entt::entity item;
 };
 
+struct Inventory
+{
+	std::vector<entt::entity> slots;
+};
+
 
 
 // Stucture to store collision information

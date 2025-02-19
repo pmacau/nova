@@ -259,7 +259,7 @@ void WorldSystem::restart_game() {
 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
 
 	createPlayerHealthBar(registry);
-	inventory = createInventory(registry);
+	createInventory(registry);
 }
 
 // Should the game be over ?
@@ -336,9 +336,7 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
 	
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-			UISystem::useItemFromInventory(registry, inventory, mouse_pos_x, mouse_pos_y);
-			UISystem::equipItem(registry, inventory, mouse_pos_x, mouse_pos_y);
-
+			UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y);
 			auto& player_motion = registry.get<Motion>(player_entity);
 
 			vec2 direction = normalize(vec2(mouse_pos_x, mouse_pos_y) - player_motion.position);
@@ -351,4 +349,3 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	
 	}
 }
-

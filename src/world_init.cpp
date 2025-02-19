@@ -102,14 +102,15 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	return entity;
 }
 
-std::vector<entt::entity> createInventory(entt::registry& registry) {
-	std::vector<entt::entity> inventory;
+void createInventory(entt::registry& registry) {
+	auto inventory_entity = registry.create();
+	auto& inventory = registry.emplace<Inventory>(inventory_entity);
 	float startX = 50.0f;
 	const float startY = 50.0f;
 	const float SLOT_SIZE = 25.f;
 	for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
 		auto entity = registry.create();
-		inventory.push_back(entity);
+		inventory.slots.push_back(entity);
 		registry.emplace<InventorySlot>(entity);
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = 0.0f;
@@ -126,7 +127,6 @@ std::vector<entt::entity> createInventory(entt::registry& registry) {
 		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	}
-	return inventory;
 }
 
 // // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
