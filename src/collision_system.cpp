@@ -72,6 +72,7 @@ void CollisionSystem::step(float elapsed_ms)
 								break;
 							}
 						}
+						UISystem::renderItem(registry, mob_entity);
 						destroy_entities.push_back(mob_entity);
 					}
 				}

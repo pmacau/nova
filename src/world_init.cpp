@@ -37,7 +37,7 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	auto entity = registry.create();
 	registry.emplace<PlayerHealthBar>(entity);
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.position = vec2({ WINDOW_WIDTH_PX - 170, 40});
+	motion.position = vec2({ WINDOW_WIDTH_PX - 170, 50});
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
 	motion.scale = vec2({120, 8});
@@ -73,6 +73,9 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	createMobHealthBar(registry, entity);
 
+	auto& drop = registry.emplace<Drop>(entity);
+	drop.item_type = ITEM_TYPE::POTION;
+
 	std::cout << "Created mob" << std::endl; 
 	return entity; 
 }
@@ -97,6 +100,33 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	return entity;
+}
+
+std::vector<entt::entity> createInventory(entt::registry& registry) {
+	std::vector<entt::entity> inventory;
+	float startX = 50.0f;
+	const float startY = 50.0f;
+	const float SLOT_SIZE = 25.f;
+	for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+		auto entity = registry.create();
+		inventory.push_back(entity);
+		registry.emplace<InventorySlot>(entity);
+		auto& motion = registry.emplace<Motion>(entity);
+		motion.angle = 0.0f;
+		motion.position = {startX, startY};
+		startX += 2 * SLOT_SIZE - 2;
+		motion.scale = {SLOT_SIZE, SLOT_SIZE};
+		motion.velocity = {0.f, 0.f};
+		auto& sprite = registry.emplace<Sprite>(entity);
+		sprite.coord = {0.f, 0.f};
+		sprite.dims = {510.f, 510.f};
+		sprite.sheet_dims = {510.f, 510.f};
+		auto& render_request = registry.emplace<RenderRequest>(entity);
+		render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT;
+		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	}
+	return inventory;
 }
 
 // // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

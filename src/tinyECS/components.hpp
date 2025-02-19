@@ -68,6 +68,34 @@ struct Eatable
 
 };
 
+enum class ITEM_TYPE {
+	POTION
+};
+
+// used for entities which when killed will drop items (usually bosses)
+struct Drop 
+{
+	ITEM_TYPE item_type;
+};
+
+struct Item 
+{
+	ITEM_TYPE item_type;
+};
+
+struct Potion 
+{
+	int heal;
+};
+
+struct InventorySlot 
+{
+	bool hasItem = false;
+	entt::entity item;
+};
+
+
+
 // Stucture to store collision information
 // struct Collision
 // {
@@ -139,6 +167,8 @@ enum class TEXTURE_ASSET_ID {
 	GOLD_PROJECTILE, 
 	HEALTHBAR_GREEN,
 	HEALTHBAR_RED,
+	INVENTORY_SLOT, 
+	POTION,
 	TEXTURE_COUNT
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

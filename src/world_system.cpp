@@ -3,6 +3,7 @@
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
 #include "save_and_load.hpp"
+#include "ui_system.hpp"
 
 // stlib
 #include <cassert>
@@ -258,6 +259,7 @@ void WorldSystem::restart_game() {
 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
 
 	createPlayerHealthBar(registry);
+	inventory = createInventory(registry);
 }
 
 // Should the game be over ?
@@ -334,7 +336,8 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
 	
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-			// TODO: implement shooting logic
+			UISystem::useItemFromInventory(registry, inventory, mouse_pos_x, mouse_pos_y);
+			UISystem::equipItem(registry, inventory, mouse_pos_x, mouse_pos_y);
 
 			auto& player_motion = registry.get<Motion>(player_entity);
 

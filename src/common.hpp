@@ -56,6 +56,8 @@ const int MOB_DAMAGE = 25;
 const float PROJECTILE_SPEED = 500.0f;
 const float PROJECTILE_SIZE = 10.0f;
 
+const float MAX_INVENTORY_SLOTS = 5;
+
 
 // These are hard coded to the dimensions of the entity's texture
 

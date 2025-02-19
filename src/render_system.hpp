@@ -34,7 +34,9 @@ class RenderSystem {
         textures_path("mob/demoMob.png"),
 		textures_path("projectiles/gold_bubble.png"), 
 		textures_path("healthbar/green.png"),
-		textures_path("healthbar/red.png")
+		textures_path("healthbar/red.png"), 
+		textures_path("inventory/inventory-slot.png"), 
+		textures_path("items/potion.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
