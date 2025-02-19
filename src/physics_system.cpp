@@ -7,13 +7,43 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 
 
 
-void PhysicsSystem::checkMovement() {
-    // Movement checking code here
-}
 
-//knockback
-//hitbox flag refactorig
-// debug mode bind to a key 
+//void PhysicsSystem::updatePlayerVelocity(InputState i) {
+//    auto& motion = registry.get<Motion>(registry.view<Player>().front());
+//
+//    glm::vec2 inputVelocity{ 0.0f, 0.0f };
+//    std::cout << i.up << std::endl;
+//    std::cout << i.down << std::endl;
+//    if (!i.up && i.down) {
+//		std::cout << "DOWN" << std::endl;
+//		inputVelocity.y -= PLAYER_SPEED;
+//    }
+//    if (!i.down && i.up) {
+//		std::cout << "UP" << std::endl;
+//		inputVelocity.y += PLAYER_SPEED;
+//    }
+//    if (i.left && !i.right) {
+//        inputVelocity.x -= PLAYER_SPEED;
+//    }
+//    if (i.right && !i.left) {
+//		inputVelocity.x += PLAYER_SPEED;
+//    }
+//    if ((i.up || i.down) &&
+//        (i.left || i.right)) {
+//        inputVelocity = PLAYER_SPEED * glm::normalize(inputVelocity);
+//    }
+//    vec2 proposedVelcoity = motion.velocity + inputVelocity;
+//	if (glm::length(proposedVelcoity) <= PLAYER_SPEED) {
+//        std::cout << "upfad" << std::endl;
+//		motion.velocity = proposedVelcoity;
+//	} 
+//
+//	if (glm::length(inputVelocity) == 0) {
+//		motion.velocity = {0.0f, 0.0f };
+//	}
+//	// no update if else. 
+//}
+
 // dash  
 
 void PhysicsSystem::step(float elapsed_ms) {
@@ -83,13 +113,6 @@ void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
 vec2 PhysicsSystem::getDirection(entt::entity e1, entt::entity e2) {
     Motion& m1 = registry.get<Motion>(e1);
     Motion& m2 = registry.get<Motion>(e2);
-    /*std::cout << "M1" << std::endl;
-    std::cout << m1.position.x << std::endl; 
-    std::cout << m1.position.y << std::endl;
-    std::cout << "M2" << std::endl;
-    std::cout << m2.position.x << std::endl;
-    std::cout << m2.position.y << std::endl;*/
-
     vec2 direction = m1.position - m2.position;
     if (m1.position - m2.position == vec2(0, 0)) { //prevents undefined when dividing by 0
         direction = vec2(-1, 0); // move to the left, shouldn't happen since acceleration should increase as they get closer. 

@@ -22,10 +22,10 @@ int main()
 
 	// global systems
 	// AISystem	  ai_system;
-	WorldSystem   world_system(reg);
+	PhysicsSystem physics_system(reg);
+	WorldSystem   world_system(reg, physics_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
-	PhysicsSystem physics_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	// PhysicsSystem physics_system;
 

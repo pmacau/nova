@@ -11,6 +11,13 @@ enum HitBoxType {
 	HITBOX_RECT
 };
 
+struct InputState {
+	bool up;
+	bool down;
+	bool left;
+	bool right;
+};
+
 struct HitBox {
 	HitBoxType type;
 	union {

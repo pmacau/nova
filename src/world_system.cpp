@@ -9,8 +9,9 @@
 #include <iostream>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry(reg),
+	physics_system(physics_system),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
 	max_towers(MAX_TOWERS_START),
@@ -174,9 +175,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			break;
 		case KeyboardState::RIGHT:
 			p_sprite.coord.x = 1.f;
+       
 			p_motion.scale.x = abs(p_motion.scale.x);
 			break;
 	}
+	
 
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
@@ -191,7 +194,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
 	};
-	updatePlayerVelocity();
+	updatePlayerVelocity(); 
+
+	/*InputState input;
+	input.up = key_state[KeyboardState::UP];
+	input.down = key_state[KeyboardState::DOWN];
+	input.left = key_state[KeyboardState::LEFT];
+	input.right = key_state[KeyboardState::RIGHT];
+	physics_system.updatePlayerVelocity(input);*/
 
 	// TODO: move this animation system
 	auto animations = registry.view<Animation, Sprite, Motion>();

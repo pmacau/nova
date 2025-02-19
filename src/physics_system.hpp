@@ -6,6 +6,8 @@
 #include <sstream>
 #include <iostream>
 #include <tinyECS/components.hpp>
+#include "render_system.hpp"
+
 
 class CollisionSystem;
 
@@ -15,7 +17,7 @@ public:
     void step(float elapsed_ms);
     void suppress(entt::entity& e1, entt::entity& e2);
     void knockback(entt::entity& e1, entt::entity& e2, float force);
-
+    //void updatePlayerVelocity(InputState i);
 private:
     entt::registry& registry;
     
