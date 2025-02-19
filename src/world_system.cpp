@@ -147,7 +147,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	float s_elapsed = elapsed_ms_since_last_update / 1000;
+
+	title_ss << std::fixed << std::setprecision(3) << "FPS: " << (1 / s_elapsed);
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	auto player = registry.get<Player>(player_entity);
