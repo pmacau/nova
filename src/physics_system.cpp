@@ -22,5 +22,14 @@ void PhysicsSystem::step(float elapsed_ms) {
         if (registry.all_of<Player>(entity)) {
             UISystem::equipItem(registry, motion);
         }
+        if (registry.all_of<Projectile>(entity)) {
+            auto& player_entity = *registry.view<Player>().begin();
+            auto& player_motion = registry.get<Motion>(player_entity);
+            if (abs(player_motion.position.x - motion.position.x) >= WINDOW_WIDTH_PX &&
+                abs(player_motion.position.y - motion.position.y) >= WINDOW_HEIGHT_PX) {
+                std::cout << "projectile destroyed\n";
+                registry.destroy(entity);
+            }
+        }
     }
 }

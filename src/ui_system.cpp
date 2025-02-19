@@ -75,7 +75,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 }
 
 
-void UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
+bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 25.f && mouse_pos_y <= 75.f && mouse_pos_x >= 25.f) {
 		int i = (int)((mouse_pos_x - 25.f) / 50.f);
@@ -86,9 +86,11 @@ void UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				useItem(registry, inventory_slot.item);
 				inventory_slot.hasItem = false;
 				registry.destroy(inventory_slot.item);
+				return true;
 			}
 		}
 	}
+	return false;
 }
 
 void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
