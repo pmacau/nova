@@ -16,7 +16,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
-	player.direction = 0; // TODO: use enum
+	//player.direction = 0; // TODO: use enum
 	// HITBOX
 	auto& hitBox = registry.emplace<HitBox>(entity);
 	hitBox.type = HitBoxType::HITBOX_CIRCLE;
@@ -45,7 +45,6 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& mob = registry.emplace<Mob>(entity);
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	mobMap.insert(entity); 
 	sprite.dims = { 43.f, 55.f };
 	sprite.sheet_dims = {43.f, 55.f};
 	// HITBOX

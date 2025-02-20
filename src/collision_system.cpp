@@ -38,7 +38,7 @@ void CollisionSystem::step(float elapsed_ms)
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
-						//player_ref.health -= MOB_DAMAGE; FOR DEBUGGING
+						player_ref.health -= MOB_DAMAGE; // FOR DEBUGGING
 						physics.knockback(entity, mob, 400); 
 						if (player_ref.health <= 0) {
 							world.player_respawn();
