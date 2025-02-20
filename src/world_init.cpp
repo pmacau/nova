@@ -22,6 +22,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = vec2(19 * 2, 32 * 2);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
 	// Debug:
 	motion.zValue = 0.8f;
@@ -53,13 +54,19 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 140.f, 93.f };
 	sprite.sheet_dims = { 140.f, 93.f };
+
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
+
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = vec2(19 * 25, 31 * 12);
+	motion.scale = vec2(38*3, 54*3);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
+
+
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
@@ -122,6 +129,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::GOLD_PROJECTILE;

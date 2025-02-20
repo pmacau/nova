@@ -20,6 +20,8 @@ struct Motion {
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
 	float zValue   = 0.f;
+
+    vec2 offset_to_ground = { 0, 0 };  // Offset from top-left to ground position
 };
 
 // Invader
@@ -134,12 +136,15 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	SPRITE, SCREEN_TRIANGLE, GEOMETRY_COUNT
+	SPRITE, 
+	SCREEN_TRIANGLE,
+	DEBUG_POINT,
+	GEOMETRY_COUNT
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

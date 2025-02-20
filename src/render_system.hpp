@@ -40,7 +40,8 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("textured"),
-		shader_path("vignette")
+		shader_path("vignette"),
+		shader_path("coloured")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -82,6 +83,8 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
+	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
+	
 	// Window handle
 	GLFWwindow* window;
 
