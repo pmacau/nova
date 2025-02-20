@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <numbers>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -22,11 +23,18 @@ using namespace glm;
 // audio_path("audio.ogg") -> data/audio/audio.ogg
 // Get defintion of PROJECT_SOURCE_DIR from:
 #include "../ext/project_path.hpp"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846f
+#endif
+
+
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
 //inline std::string textures_path(const std::string& name) {return data_path() + "/retextures/" + std::string(name);};
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
+inline std::string map_path(const std::string& name)  {return data_path() + "/maps/" + std::string(name);};
 
 //
 // game constants
@@ -69,9 +77,12 @@ const float INVADER_BB_HEIGHT = (float)GRID_CELL_HEIGHT_PX;
 const float TOWER_BB_WIDTH = (float)GRID_CELL_WIDTH_PX;
 const float TOWER_BB_HEIGHT = (float)GRID_CELL_HEIGHT_PX;
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846f
-#endif
+// Camera system
+const float CAMERA_SPEED = 0.2f;
+const float CAMERA_ZOOM_SPEED = 0.1f;
+const float CAMERA_PLAYER_DIST = 100.0f;
+const float CAMERA_ANGLE = M_PI / 4.0f;
+
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

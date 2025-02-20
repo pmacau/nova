@@ -29,11 +29,8 @@ void AISystem::step(float elapsed_ms)
 			mob_motion.velocity = vec2(0, 0);
 			continue; 
 		}
-		vec2 direction = player_motion.position - mob_motion.position; 
-		if (player_motion.position - mob_motion.position == vec2(0, 0)) { //prevents undefined when dividing by 0
-			direction = vec2(0, 0);
-		}
-		else {
+		vec2 direction = (player_motion.position + player_motion.offset_to_ground) - (mob_motion.position + mob_motion.offset_to_ground); // direction from mob to player
+		if (direction != vec2(0, 0)) {
 			direction = normalize(direction) * MOB_SPEED; 
 		}
 		mob_motion.velocity = direction; // sets velocity of mob to be towards player

@@ -14,3 +14,6 @@ entt::entity createMob(entt::registry& registry, vec2 position);
 
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);
+
+// camera
+entt::entity createCamera(entt::registry& registry, entt::entity target);

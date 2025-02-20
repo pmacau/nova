@@ -55,6 +55,7 @@ private:
 	PhysicsSystem& physics_system;
 
 	entt::entity ship_entity;
+	entt::entity main_camera_entity;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
