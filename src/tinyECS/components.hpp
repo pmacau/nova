@@ -3,6 +3,35 @@
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
+#include <cmath>
+#include <limits>
+#include <entt.hpp>
+
+enum HitBoxType {
+	HITBOX_CIRCLE,
+	HITBOX_RECT
+};
+
+struct InputState {
+	bool up;
+	bool down;
+	bool left;
+	bool right;
+};
+
+struct HitBox {
+	HitBoxType type;
+	union {
+		struct {
+			float radius;
+		} circle;
+		struct {
+			float width;
+			float height;
+		} rect;
+	} shape;
+};
+
 
 // Player component
 struct Player
@@ -24,6 +53,12 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
+	float zValue   = 0.f;
+
+    vec2 offset_to_ground = { 0, 0 };  // Offset from top-left to ground position
+
+	vec2 acceleration = { 0, 0 }; 
+	vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for map obstacles
 };
 
 // Invader
@@ -34,15 +69,6 @@ struct Invader {
 // Projectile
 struct Projectile {
 	int damage;
-};
-
-// Hit-Box given to player, mobs, structures, anything you don't want to pass through 
-struct HitBox {
-	float x1;
-	float x2;
-	float x3; 
-	float y1; 
-	float y2; 
 };
 
 
@@ -83,6 +109,11 @@ extern Debug debugging;
 struct ScreenState
 {
 	float darken_screen_factor = -1;
+};
+
+// will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 
+struct Object {
+
 };
 
 // A struct to refer to debugging graphics in the ECS
@@ -137,15 +168,26 @@ enum class TEXTURE_ASSET_ID {
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };
+
+//enum class hitBoxType {
+//	Mob,
+//	Projectile, 
+//	Player
+//};
+
+
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	SPRITE, SCREEN_TRIANGLE, GEOMETRY_COUNT
+	SPRITE, 
+	SCREEN_TRIANGLE,
+	DEBUG_POINT,
+	GEOMETRY_COUNT
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -171,6 +213,17 @@ struct Animation
 {
 	float frameDuration;
 	float frameTime = 0.0f;
+};
+
+// Camera
+struct Camera
+{
+	entt::entity target; // the entity the camera follows
+	float distance_from_target = CAMERA_PLAYER_DIST; // position relative to (center of the screen)
+	float angle = CAMERA_ANGLE; // angle relative to the player
+	vec2 offset = vec2(0.f, 0.f); // offset from the player
+
+	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
