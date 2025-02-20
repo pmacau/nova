@@ -2,6 +2,7 @@
 // #include "tinyECS/registry.hpp"
 #include <iostream>
 
+
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
 	auto entity = registry.create();
@@ -15,7 +16,12 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
-
+	//player.direction = 0; // TODO: use enum
+	// HITBOX
+	auto& hitBox = registry.emplace<HitBox>(entity);
+	hitBox.type = HitBoxType::HITBOX_CIRCLE;
+	hitBox.shape.circle.radius = 25.f;
+	// 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
@@ -45,23 +51,38 @@ entt::entity createCamera(entt::registry& registry, entt::entity target)
 }
 
 entt::entity createMob(entt::registry& registry, vec2 position) {
+	// ENTITY CREATION
 	auto entity = registry.create();
 
 	auto& mob = registry.emplace<Mob>(entity);
+	// SPRITE 
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 43.f, 55.f };
+	sprite.sheet_dims = {43.f, 55.f};
+	// HITBOX
+	auto& hitBox = registry.emplace<HitBox>(entity); 
+	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
+	hitBox.shape.circle.radius = 40.f; 
+
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
-
-	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 40.f, 54.f };
-	sprite.sheet_dims = { 40.f, 54.f };
-
+	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	motion.position = position;
-	motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
+	// motion.position = position;
+
+	motion.position.x = position.x + sprite.dims[0] / 2;
+	//std::cout << sprite.dims[0] << std::endl; 
+	motion.position.y = position.y + sprite.dims[1] / 2;
+	motion.scale = vec2(100, 120);
+
+	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
 	//motion.scale = vec2(38*3, 54*3);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
+	registry.emplace<Eatable>(entity);
+
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;

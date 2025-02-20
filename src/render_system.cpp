@@ -6,6 +6,7 @@
 // internal
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem(entt::registry& reg) :
 	registry(reg)
@@ -13,9 +14,82 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	screen_state_entity = registry.create();
 }
 
+static std::vector<glm::vec2> generateCircleVertices(float centerX, float centerY, float radius, int segments = 32) {
+	std::vector<glm::vec2> vertices;
+	for (int i = 0; i < segments; i++) {
+		float theta = 2.0f * 3.14159f * float(i) / float(segments);
+		float x = centerX + radius * cos(theta);
+		float y = centerY + radius * sin(theta);
+		vertices.emplace_back(x, y);
+	}
+	return vertices;
+}
+
+std::vector<glm::vec2> generateRectVertices(float centerX, float centerY, float width, float height) {
+	float halfW = width / 2.0f;
+	float halfH = height / 2.0f;
+	return {
+		{centerX - halfW, centerY - halfH},
+		{centerX + halfW, centerY - halfH},
+		{centerX + halfW, centerY + halfH},
+		{centerX - halfW, centerY + halfH}
+	};
+}
+
+void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform) {
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
+	gl_has_errors();
+	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
+	//std::cout << projLoc << std::endl;
+	GLint transLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
+	//std::cout << transLoc << std::endl;
+	GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
+	//std::cout << colorLoc << std::endl;
+	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
+	glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f); // Draw in red
+	gl_has_errors();
+	auto view = registry.view<HitBox, Motion>(); //goes through every moving thing with a hitbox
+	for (auto entity : view) {
+		std::vector<glm::vec2> vertices;
+		float posX = registry.get<Motion>(entity).position.x;
+		float posY = registry.get<Motion>(entity).position.y;
+		if (registry.get<HitBox>(entity).type == HITBOX_CIRCLE) { //generates corresponding hitbox
+			vertices = generateCircleVertices(posX, posY, registry.get<HitBox>(entity).shape.circle.radius); 
+		}
+		else if (registry.get<HitBox>(entity).type == HITBOX_RECT) {
+			vertices = generateRectVertices(posX, posY,
+				registry.get<HitBox>(entity).shape.rect.width,
+				registry.get<HitBox>(entity).shape.rect.height);
+		}
+		GLuint debugVAO, debugVBO;
+		glGenVertexArrays(1, &debugVAO);
+		glGenBuffers(1, &debugVBO);
+
+		glBindVertexArray(debugVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, debugVBO);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec2), vertices.data(), GL_DYNAMIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+
+		glDrawArrays(GL_LINE_LOOP, 0, vertices.size());
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+
+		glDeleteBuffers(1, &debugVBO);
+		glDeleteVertexArrays(1, &debugVAO);
+	}
+
+	glBindVertexArray(defaultVAO);
+}
+
+
+
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
+	glBindVertexArray(defaultVAO);
 	auto& motion = registry.get<Motion>(entity);
 
 	auto camera_entity = registry.view<Camera>().front(); // TODO: make this more robust
@@ -41,11 +115,9 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	// Setting shaders
 	glUseProgram(program);
 	gl_has_errors();
-
 	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
 	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
 	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
-
 	// Setting vertex and index buffers
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -58,12 +130,11 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 		gl_has_errors();
 		assert(in_texcoord_loc >= 0);
-
 		glEnableVertexAttribArray(in_position_loc);
+		gl_has_errors();
 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
 							  sizeof(TexturedVertex), (void *)0);
 		gl_has_errors();
-
 		glEnableVertexAttribArray(in_texcoord_loc);
 		glVertexAttribPointer(
 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
@@ -73,11 +144,9 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 		// Enabling and binding texture to slot 0
 		glActiveTexture(GL_TEXTURE0);
 		gl_has_errors();
-
 		assert(registry.any_of<RenderRequest>(entity));
 		GLuint texture_id =
 			texture_gl_handles[(GLuint)registry.get<RenderRequest>(entity).used_texture];
-
 		glBindTexture(GL_TEXTURE_2D, texture_id);
 		gl_has_errors();
 	}
@@ -212,15 +281,12 @@ void RenderSystem::draw()
 	// Getting size of window
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
-
 	// First render to the custom framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
-	
 	// clear backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	
 	// white background
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -306,7 +372,13 @@ void RenderSystem::draw()
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
 	drawToScreen();
-
+	// DEBUG
+	auto debugView = registry.view<Debug>();
+	if (!debugView.empty()) {
+		glm::mat3 projection = createProjectionMatrix();
+		glm::mat3 transform = glm::mat3(1.0f);
+		drawDebugHitBoxes(projection, transform);
+	}
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();

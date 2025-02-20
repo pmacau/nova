@@ -10,8 +10,9 @@
 #include <glm/glm.hpp>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry(reg),
+	physics_system(physics_system),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
 	points(0)
@@ -157,7 +158,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
 		auto& motion = registry.get<Motion>(player_entity);
-		motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
+	    motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
 		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
 
 		if      (key_state[KeyboardState::UP]    && key_state[KeyboardState::DOWN])  motion.velocity.y = 0.0f;
@@ -167,7 +168,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
 	};
-	updatePlayerVelocity();
+	updatePlayerVelocity(); 
 
 
 	// TODO: move direction system
@@ -330,7 +331,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-
+	if (key == GLFW_KEY_P) {
+		auto debugView = registry.view<Debug>();
+		if (debugView.empty()) {
+			registry.emplace<Debug>(player_entity);
+		}
+		else {
+			for (auto entity : debugView) {
+				std::cout << "Removing debug" << std::endl;
+				registry.remove<Debug>(entity);
+			}
+		}
+	}
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
 	// 	if (action == GLFW_RELEASE) {

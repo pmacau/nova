@@ -56,6 +56,8 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
 
+	glGenVertexArrays(1, &defaultVAO);
+	glBindVertexArray(defaultVAO);
 
 	// Debug: depth buffer
 	glEnable(GL_DEPTH_TEST);

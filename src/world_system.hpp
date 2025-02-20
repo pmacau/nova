@@ -13,18 +13,17 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "physics_system.hpp"
 
 enum KeyboardState {
 	UP, DOWN, LEFT, RIGHT, NUM_STATES
 };
 
-// Container for all our entities and game logic.
-// Individual rendering / updates are deferred to the update() methods.
 class WorldSystem
 {
 public:
 
-	WorldSystem(entt::registry& reg);
+	WorldSystem(entt::registry& reg, PhysicsSystem& physics_system);
 
 	// creates main window
 	GLFWwindow* create_window();
@@ -53,6 +52,8 @@ public:
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
+	PhysicsSystem& physics_system;
+
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
 	

@@ -8,5 +8,5 @@
 #include <iostream>
 #include <sstream>
 
-Debug debugging;
+Debug debugging; //not sure if we need this i think its from the boilerplate
 float death_timer_counter_ms = 3000;
