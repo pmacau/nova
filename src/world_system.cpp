@@ -152,7 +152,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 	
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
-	auto updatePlayerVelocity = [this]() {
+	/*auto updatePlayerVelocity = [this]() {
 		auto& motion = registry.get<Motion>(player_entity);
 	    motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
 		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
@@ -164,7 +164,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
 	};
-	updatePlayerVelocity(); 
+	updatePlayerVelocity(); */
+	InputState i; 
+	if (key_state[KeyboardState::UP]) {
+		i.up = true;
+	}
+	if (key_state[KeyboardState::DOWN]) {
+		i.down = true;
+	}
+	if (key_state[KeyboardState::LEFT]) {
+		i.left = true;
+	}
+	if (key_state[KeyboardState::RIGHT]) {
+		i.right = true;
+	}
+	physics_system.updatePlayerVelocity(i);
 
 
 	// TODO: move direction system
@@ -265,7 +279,8 @@ void WorldSystem::player_respawn() {
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.position.x = WINDOW_WIDTH_PX / 2;
 	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
-
+	player_motion.acceleration = { 0, 0 };
+	player_motion.velocity = { 0, 0 };
 
 }
 
