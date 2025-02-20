@@ -249,12 +249,17 @@ void RenderSystem::draw()
 	// get all mob and player entities with motion and render request components
 	auto mobs = registry.view<Mob, Motion, RenderRequest>();
 	auto players = registry.view<Player, Motion, RenderRequest>();
+	auto ships = registry.view<Ship, Motion, RenderRequest>();
 
 	for (auto entity : mobs) {
 		PlayerMobsRenderEntities.push_back(entity);
 	}
 
 	for (auto entity : players) {
+		PlayerMobsRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : ships) {
 		PlayerMobsRenderEntities.push_back(entity);
 	}
 

@@ -2,11 +2,12 @@
 
 #include "common.hpp"
 #include <entt.hpp>
-// #include "tinyECS/tiny_ecs.hpp"
 #include "render_system.hpp"
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position);
+
+entt::entity createShip(entt::registry& registry, vec2 position);
 
 // invaders
 entt::entity createMob(entt::registry& registry, vec2 position);

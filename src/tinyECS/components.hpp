@@ -10,7 +10,14 @@
 struct Player
 {
 	int health;
-	int direction; // TODO: make this an enum; make compatible with enemies too...
+};
+
+// Ship component
+struct Ship
+{
+	int range;
+	int health;
+	int timer;
 };
 
 // All data relevant to the shape and motion of entities
@@ -129,6 +136,7 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
+	SHIP,
     MOB,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
@@ -160,6 +168,10 @@ struct Sprite
 	vec2 coord = {0.0f, 0.0f};
 	vec2 dims;
 	vec2 sheet_dims;
+
+	float up_row = 0.f;
+	float down_row = 0.f;
+	float right_row = 0.f;
 };
 
 struct Animation
@@ -167,7 +179,6 @@ struct Animation
 	float frameDuration;
 	float frameTime = 0.0f;
 };
-
 
 // Camera
 struct Camera
@@ -178,4 +189,8 @@ struct Camera
 	vec2 offset = vec2(0.f, 0.f); // offset from the player
 
 	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
+};
+
+const Sprite PLAYER_SPRITESHEET = {
+    {}, {19.f, 32.f}, {152.f, 96.f}, 3.f, 0.f, 1.f
 };

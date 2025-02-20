@@ -45,8 +45,9 @@ const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
 const int GRID_LINE_WIDTH_PX = 2;
 
-const int TOWER_TIMER_MS = 1000;	// number of milliseconds between tower shots
-const int MAX_TOWERS_START = 5;
+const int SHIP_TIMER_MS = 30;
+const int SHIP_HEALTH = 500;
+const int SHIP_RANGE = 250;
 
 const int INVADER_HEALTH = 50;
 const int INVADER_SPAWN_RATE_MS = 2 * 1000;
@@ -58,6 +59,7 @@ const int MOB_HEALTH = 50;
 const float PLAYER_SPEED = 200.0f;
 const float MOB_SPEED = 100.0f; 
 
+const float GAME_SCALE = 2.f;
 
 const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
