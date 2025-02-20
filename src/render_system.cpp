@@ -487,7 +487,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// Draw background first
+	// Draw background last (?????)
 	drawBackground(projection_2D);
 
 	// draw framebuffer to screen
