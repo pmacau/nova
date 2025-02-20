@@ -26,9 +26,6 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
 		motion.velocity = proposedVelocity;
 	} 
 
-	if (glm::length(proposedVelocity) == 0) {
-		motion.velocity = {0.0f, 0.0f };
-	}
 	
 }
 

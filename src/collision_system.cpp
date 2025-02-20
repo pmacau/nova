@@ -88,3 +88,19 @@ void CollisionSystem::step(float elapsed_ms)
 		return (dx * dx + dy * dy) <= (rSum * rSum); //avoiding sqrt 
 	}
 
+	bool CollisionSystem::circleRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon) {
+		float dx = m1.position.x - m2.position.x;
+		float dy = m1.position.y - m2.position.y;
+		float rSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
+		return (dx * dx + dy * dy) <= (rSum * rSum); //avoiding sqrt 
+	}
+
+	bool CollisionSystem::RectRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon) {
+		//float dx = m1.position.x - m2.position.x;
+		//float dy = m1.position.y - m2.position.y;
+		//float rectHeightSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
+		//float rectWidthSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
+		//return (dx * dx + dy * dy) <= (rSum * rSum); //avoiding sqrt 
+		return false; 
+	}
+

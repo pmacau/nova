@@ -26,4 +26,6 @@ private:
     WorldSystem& world;  
     // collision helpers
     static bool circlesCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon);
+    static bool circleRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon); 
+	static bool RectRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon);
 };

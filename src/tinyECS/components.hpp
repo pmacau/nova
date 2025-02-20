@@ -31,6 +31,14 @@ struct HitBox {
 	} shape;
 };
 
+struct Obstacle {
+	bool isPassable; 
+	bool isSlow; 
+	bool isDamage;
+	float slowFactor; 
+	float damage;
+};
+
 
 // Player component
 struct Player
