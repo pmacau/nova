@@ -10,6 +10,8 @@ std::vector<std::vector<uint8_t>> loadBinaryMap(const std::string& filename, int
         for (int y = 0; y < height; y++) {
             file.read(reinterpret_cast<char*>(game_map[y].data()), width);
         }
+    } else {
+        printf("File not found!\n");
     }
 
     return game_map;

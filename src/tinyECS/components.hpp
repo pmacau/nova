@@ -7,6 +7,8 @@
 #include <limits>
 #include <entt.hpp>
 
+struct Background{};
+
 enum HitBoxType {
 	HITBOX_CIRCLE,
 	HITBOX_RECT
@@ -165,6 +167,7 @@ enum class TEXTURE_ASSET_ID {
 	SHIP,
     MOB,
 	TILESET,
+	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };

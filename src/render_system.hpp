@@ -6,15 +6,15 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
-// TODO refactor this background render stuff...
-struct TileRender {
-	RenderRequest request = {
-		TEXTURE_ASSET_ID::TILESET,
-		EFFECT_ASSET_ID::TEXTURED,
-		GEOMETRY_BUFFER_ID::SPRITE
-	};
-	vec2 coord = {0.f, 0.f};
-};
+// // TODO refactor this background render stuff...
+// struct TileRender {
+// 	RenderRequest request = {
+// 		TEXTURE_ASSET_ID::TILESET,
+// 		EFFECT_ASSET_ID::TEXTURED,
+// 		GEOMETRY_BUFFER_ID::SPRITE
+// 	};
+// 	vec2 coord = {0.f, 0.f};
+// };
 
 
 // System responsible for setting up OpenGL and for rendering all the
@@ -44,6 +44,7 @@ class RenderSystem {
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
+		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png")
 	};
 
@@ -59,7 +60,7 @@ class RenderSystem {
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
 
-	std::vector<std::vector<TileRender>> tileMap;
+	// std::vector<std::vector<TileRender>> tileMap;
 
 public:
 	RenderSystem(entt::registry& reg);

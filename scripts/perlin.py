@@ -85,13 +85,9 @@ def game_map(width, height, spawn_radius=5, **perlin_kwargs):
         max_x, min_x = com_x + spawn_radius, com_x - spawn_radius
         max_y, min_y = com_y + spawn_radius, com_y - spawn_radius
 
-        if np.all(terrain[min_y : max_y + 1, min_x : max_x : 1] > 0):     
-            terrain[min_y: max_y + 1, min_x] = 3
-            terrain[min_y: max_y + 1, max_x] = 3
-            terrain[min_y, min_x : max_x + 1] = 3
-            terrain[max_y, min_x : max_x + 1] = 3
-
+        if np.all(terrain[min_y : max_y + 1, min_x : max_x : 1] > 0):
             terrain[com_y, com_x] = 3
+            print("Found valid spawnpoint; map generated!")
             break
 
         print("Generated invalid spawnpoint; retrying...")
