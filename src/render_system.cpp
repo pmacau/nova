@@ -24,17 +24,24 @@ void RenderSystem::drawBackground(const mat3& projection) {
 	int screen_tile_width = WINDOW_WIDTH_PX / 16;
 	int screen_tile_height = WINDOW_WIDTH_PX / 16;
 
-	int min_x = max(0, p_col - screen_tile_width / 2 - 1);
-	int max_x = min(199, p_col + screen_tile_width / 2 + 1);
-	int min_y = max(0, p_row - screen_tile_height / 2 - 1);
-	int max_y = min(199, p_row + screen_tile_height / 2 + 1);
+	int min_x = max(0, p_col - screen_tile_width);
+	int max_x = min(199, p_col + screen_tile_width);
+	int min_y = max(0, p_row - screen_tile_height);
+	int max_y = min(199, p_row + screen_tile_height);
 
+	auto camera_entity = registry.view<Camera>().front(); // TODO: make this more robust
+	auto& camera = registry.get<Camera>(camera_entity);
+
+	Transform camera_transform;
+	camera_transform.translate(- camera.offset);
 
 	for (int i = min_y; i < max_y; i++) {
 		for (int j = min_x; j < max_x; j++) {
-			Transform transform;
-			transform.translate(vec2(j * 16, i * 16));
-			transform.scale(vec2(16.f, 16.f));
+			
+			// Create transforms
+			Transform model_transform;
+			model_transform.translate(vec2(j * 16, i * 16));
+			model_transform.scale(vec2(16.f, 16.f));
 
 			RenderRequest render_request = tileMap[i][j].request;
 
@@ -96,9 +103,15 @@ void RenderSystem::drawBackground(const mat3& projection) {
 
 			GLint currProgram;
 			glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
 			// Setting uniform values to the currently bound program
-			GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
-			glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
+			GLuint model_transform_loc = glGetUniformLocation(currProgram, "model_transform");
+			glUniformMatrix3fv(model_transform_loc, 1, GL_FALSE, (float *)&model_transform.mat);
+			gl_has_errors();
+
+			// camera transform
+			GLuint camera_transform_loc = glGetUniformLocation(currProgram, "camera_transform");
+			glUniformMatrix3fv(camera_transform_loc, 1, GL_FALSE, (float *)&camera_transform.mat);
 			gl_has_errors();
 
 			GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
@@ -414,9 +427,6 @@ void RenderSystem::draw()
 	gl_has_errors();
 
 	mat3 projection_2D = createProjectionMatrix();
-  
-	// Draw background first
-	drawBackground(projection_2D);
 
 	// render players and mobs
 	std::vector<entt::entity> PlayerMobsRenderEntities;
@@ -476,6 +486,9 @@ void RenderSystem::draw()
 	for (auto entity : ProjectileRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
+
+	// Draw background first
+	drawBackground(projection_2D);
 
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
