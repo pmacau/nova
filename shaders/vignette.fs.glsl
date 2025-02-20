@@ -8,16 +8,17 @@ in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
+
+// M1 interpolation implementation
 vec4 vignette(vec4 in_color) 
 {
 	vec2 center = vec2(0.5, 0.5);
     float dist = distance(texcoord, center) * 1.75;
-
     float vignetteFactor = smoothstep(0.5, 1.2, dist);
 
     vec3 redTint = vec3(1.0, 0.0, 0.0);
-    vec3 finalColor = mix(in_color.rgb, redTint, darken_screen_factor * vignetteFactor);
 
+    vec3 finalColor = mix(in_color.rgb, redTint, darken_screen_factor * vignetteFactor);
 	in_color = vec4(finalColor, 1);
 
 	return in_color;

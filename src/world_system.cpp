@@ -296,6 +296,11 @@ void WorldSystem::restart_game() {
 	// Reset player position
 	auto motion = registry.get<Motion>(player_entity);
 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
+
+	// reset the screen
+	auto screens = registry.view<ScreenState>();
+	auto& screen = registry.get<ScreenState>(screens.front());
+	screen.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
