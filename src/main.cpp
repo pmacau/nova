@@ -13,6 +13,7 @@
 #include "ai_system.hpp"
 #include "collision_system.hpp"
 #include "physics_system.hpp"
+#include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
@@ -22,11 +23,11 @@ int main()
 
 	// global systems
 	// AISystem	  ai_system;
-	WorldSystem   world_system(reg);
+	PhysicsSystem physics_system(reg);
+	WorldSystem   world_system(reg, physics_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system);
-	PhysicsSystem physics_system(reg, collision_system);
+	CollisionSystem collision_system(reg, world_system, physics_system);
 	// PhysicsSystem physics_system;
 
 	// initialize window
@@ -62,6 +63,7 @@ int main()
 		float elapsed_ms =
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
+		// frame count for collision checks
 
 		num_s += elapsed_ms / 1000;
 		num_frames++;
@@ -83,7 +85,6 @@ int main()
 		collision_system.step(elapsed_ms);
 		renderer_system.draw();
 		ai_system.step(elapsed_ms); // AI system should be before physics system
-
 	}
 
 	return EXIT_SUCCESS;
