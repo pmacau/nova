@@ -31,7 +31,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	sprite.sheet_dims = {16.f * 199.f, 16.f * 199.f};
 
 	auto& motion = reg.emplace<Motion>(entity);
-	motion.position = {0.0f, 0.0f};
+	motion.position = {8.f * 199.f, 8.f * 199.f}; // make top-left corner of map at 0,0?
 	motion.scale = {16.f * 199.f, 16.f * 199.f};
 
 	auto& renderRequest = reg.emplace<RenderRequest>(entity);
@@ -48,10 +48,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 			}
 		}
 	}
-
-	// TODO: why are player coordinates not in world space?
-	spawnX = 41.431664;
-	spawnY = -13.849946;
 
 	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
 	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
