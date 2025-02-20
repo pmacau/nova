@@ -26,6 +26,7 @@ void CollisionSystem::step(float elapsed_ms)
 	}
 	auto entities = registry.view<Motion, HitBox>(); // only goes through motion objects with HitBox (should essentially be all of them)
 	auto playerCheck = registry.view<Player>();
+	auto screens = registry.view<ScreenState>();
 	for (auto entity : entities) { // does a for loop for projectiles and what not right, now this isn't necessary. 
 		// only check once so decide if checks on player or invader (player chosen)
 		// checks if ID is player
@@ -36,11 +37,20 @@ void CollisionSystem::step(float elapsed_ms)
 				if (isContact(mob, entity, registry, 10)) {
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
+					auto& screen = registry.get<ScreenState>(screens.front());
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE; // FOR DEBUGGING
 						physics.knockback(entity, mob, 400); 
+
+						// ScreenState &screen = registry.screenStates.components[0];
+						
+						if (screens.size() > 0) {
+							screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+						}
+
 						if (player_ref.health <= 0) {
+							screen.darken_screen_factor = 0;
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;

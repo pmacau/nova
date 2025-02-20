@@ -110,7 +110,7 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
-	float darken_screen_factor = -1;
+	float darken_screen_factor = 0;
 };
 
 // will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 

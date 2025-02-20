@@ -332,6 +332,11 @@ void WorldSystem::restart_game() {
 	// auto& motion = registry.get<Motion>(player_entity);
 	// motion.position = vec2(start_col * 16, start_row * 16);
 	player_respawn();
+
+	// reset the screen
+	auto screens = registry.view<ScreenState>();
+	auto& screen = registry.get<ScreenState>(screens.front());
+	screen.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
