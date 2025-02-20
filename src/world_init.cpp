@@ -85,7 +85,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = vec2(19 * 13, 35 * 7);
-	motion.offset_to_ground = {0, motion.scale.y / 2.f / 4.f};
+	motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
 
 	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
 
