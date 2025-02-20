@@ -1,5 +1,5 @@
 #include "common.hpp"
-
+#include "iostream"
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)
 {
@@ -24,7 +24,7 @@ void Transform::translate(vec2 offset)
 bool gl_has_errors()
 {
 	GLenum error = glGetError();
-
+	//std::cout << error << std::endl; 
 	if (error == GL_NO_ERROR) return false;
 
 	while (error != GL_NO_ERROR)

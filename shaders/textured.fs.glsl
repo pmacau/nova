@@ -12,5 +12,11 @@ layout(location = 0) out  vec4 color;
 
 void main()
 {
-	color = vec4(fcolor, 1.0) * texture(sampler0, vec2(texcoord.x, texcoord.y));
+	vec4 texColor = texture(sampler0, texcoord);
+	
+	// Discard fully transparent pixels
+    if (texColor.a < 0.1)
+        discard;
+
+	color = vec4(fcolor, 1.0) * texColor;
 }

@@ -10,15 +10,20 @@
 #include <glm/glm.hpp>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry(reg),
+	physics_system(physics_system),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
 	points(0)
 {
 	// seeding rng with random device
-	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2));
 	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 200));
+
+	// create camera
+	main_camera_entity = createCamera(registry, player_entity);
+
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
 	rng = std::default_random_engine(std::random_device()());
@@ -153,7 +158,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
 		auto& motion = registry.get<Motion>(player_entity);
-		motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
+	    motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
 		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
 
 		if      (key_state[KeyboardState::UP]    && key_state[KeyboardState::DOWN])  motion.velocity.y = 0.0f;
@@ -163,7 +168,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
 	};
-	updatePlayerVelocity();
+	updatePlayerVelocity(); 
 
 
 	// TODO: move direction system
@@ -288,7 +293,8 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship>);
 	registry.destroy(motions.begin(), motions.end());
-	createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	// createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	createMob(registry, vec2(0, WINDOW_HEIGHT_PX));
 	// Reset player health
 	auto player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
@@ -330,7 +336,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-
+	if (key == GLFW_KEY_P) {
+		auto debugView = registry.view<Debug>();
+		if (debugView.empty()) {
+			registry.emplace<Debug>(player_entity);
+		}
+		else {
+			for (auto entity : debugView) {
+				std::cout << "Removing debug" << std::endl;
+				registry.remove<Debug>(entity);
+			}
+		}
+	}
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
 	// 	if (action == GLFW_RELEASE) {
@@ -355,14 +372,13 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
-		// std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
-	
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-			// TODO: implement shooting logic
 
 			auto& player_motion = registry.get<Motion>(player_entity);
 
-			vec2 direction = normalize(vec2(mouse_pos_x, mouse_pos_y) - player_motion.position);
+			vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
+
+			vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
 
 			vec2 velocity = direction * PROJECTILE_SPEED;
 
