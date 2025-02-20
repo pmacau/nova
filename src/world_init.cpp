@@ -26,7 +26,9 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 2, 32 * 2);
+	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
+	// motion.scale = vec2(19 * 2, 32 * 2);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
 	registry.emplace<Eatable>(entity);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
@@ -34,6 +36,16 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	renderRequest.used_texture = TEXTURE_ASSET_ID::PLAYER;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createCamera(entt::registry& registry, entt::entity target)
+{
+	auto entity = registry.create();
+
+	auto& camera = registry.emplace<Camera>(entity);
+	camera.target = target;
 
 	return entity;
 }
@@ -58,11 +70,20 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
+	// motion.position = position;
+
 	motion.position.x = position.x + sprite.dims[0] / 2;
 	//std::cout << sprite.dims[0] << std::endl; 
 	motion.position.y = position.y + sprite.dims[1] / 2;
 	motion.scale = vec2(100, 120);
+
+	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
+	//motion.scale = vec2(38*3, 54*3);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
 	registry.emplace<Eatable>(entity);
+
+
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
@@ -85,6 +106,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = vec2(19 * 13, 35 * 7);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
 
 	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
 
@@ -118,6 +140,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::GOLD_PROJECTILE;

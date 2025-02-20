@@ -40,6 +40,7 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("textured"),
 		shader_path("vignette"),
+		shader_path("coloured"),
 		shader_path("debug")
 	};
 
@@ -81,7 +82,11 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
+
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
+
+	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
+	
 	// Window handle
 	GLFWwindow* window;
 	GLuint defaultVAO;

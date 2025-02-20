@@ -5,6 +5,7 @@
 #include "../ext/stb_image/stb_image.h"
 #include <cmath>
 #include <limits>
+#include <entt.hpp>
 
 enum HitBoxType {
 	HITBOX_CIRCLE,
@@ -52,6 +53,10 @@ struct Motion {
 	float angle    = 0;
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
+	float zValue   = 0.f;
+
+    vec2 offset_to_ground = { 0, 0 };  // Offset from top-left to ground position
+
 	vec2 acceleration = { 0, 0 }; 
 	vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for map obstacles
 };
@@ -173,12 +178,15 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, DEBUG, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	SPRITE, SCREEN_TRIANGLE, GEOMETRY_COUNT
+	SPRITE, 
+	SCREEN_TRIANGLE,
+	DEBUG_POINT,
+	GEOMETRY_COUNT
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
@@ -204,6 +212,17 @@ struct Animation
 {
 	float frameDuration;
 	float frameTime = 0.0f;
+};
+
+// Camera
+struct Camera
+{
+	entt::entity target; // the entity the camera follows
+	float distance_from_target = CAMERA_PLAYER_DIST; // position relative to (center of the screen)
+	float angle = CAMERA_ANGLE; // angle relative to the player
+	vec2 offset = vec2(0.f, 0.f); // offset from the player
+
+	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {

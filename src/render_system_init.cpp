@@ -55,8 +55,15 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
+
 	glGenVertexArrays(1, &defaultVAO);
 	glBindVertexArray(defaultVAO);
+
+	// Debug: depth buffer
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS); // Closer objects appear in front
+	glClearDepth(1.0f);
+
 	return true;
 }
 
@@ -149,6 +156,25 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> screen_indices = { 0, 1, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE, screen_vertices, screen_indices);
+
+	//////////////////////////////////
+	// Initialize debug point
+	/////////////////////////////////
+	std::vector<ColoredVertex> point_vertices(1);
+	std::vector<uint16_t> point_indices;
+
+	constexpr float debug_point_depth = 0.9f;
+
+
+	point_vertices = {
+		{{0.f, 0.f, debug_point_depth}, {1.f, 0.f, 0.f}}
+	};
+	point_indices = {0};
+
+	int geom_index = (int)GEOMETRY_BUFFER_ID::DEBUG_POINT;
+	// meshes[geom_index].vertices = point_vertices;
+	// meshes[geom_index].vertex_indices = point_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::DEBUG_POINT, point_vertices, point_indices);
 }
 
 RenderSystem::~RenderSystem()

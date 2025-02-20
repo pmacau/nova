@@ -1,5 +1,6 @@
 
 #include <SDL.h>
+#include <glm/gtc/matrix_transform.hpp> 
 #include <glm/trigonometric.hpp>
 #include <iostream>
 // internal
@@ -90,13 +91,21 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 {
 	glBindVertexArray(defaultVAO);
 	auto& motion = registry.get<Motion>(entity);
-	// Transformation code, see Rendering and Transformation in the template
-	// specification for more info Incrementally updates transformation matrix,
-	// thus ORDER IS IMPORTANT
-	Transform transform;
-	transform.translate(motion.position);
-	transform.scale(motion.scale);
-	transform.rotate(radians(motion.angle));
+
+	auto camera_entity = registry.view<Camera>().front(); // TODO: make this more robust
+	auto& camera = registry.get<Camera>(camera_entity);
+
+
+	vec2 centre_position = motion.position;
+	Transform model_transform;
+	model_transform.translate(centre_position);
+	model_transform.scale(motion.scale);
+	model_transform.rotate(radians(motion.angle));
+
+	Transform camera_transform;
+	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
+	camera_transform.translate(- camera.offset);
+
 	assert(registry.any_of<RenderRequest>(entity));
 	const auto& render_request = registry.get<RenderRequest>(entity);
 
@@ -162,9 +171,17 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
 	// Setting uniform values to the currently bound program
-	GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
-	glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
+
+	// model transform
+	GLuint model_transform_loc = glGetUniformLocation(currProgram, "model_transform");
+	glUniformMatrix3fv(model_transform_loc, 1, GL_FALSE, (float *)&model_transform.mat);
+	gl_has_errors();
+
+	// camera transform
+	GLuint camera_transform_loc = glGetUniformLocation(currProgram, "camera_transform");
+	glUniformMatrix3fv(camera_transform_loc, 1, GL_FALSE, (float *)&camera_transform.mat);
 	gl_has_errors();
 
 	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
@@ -185,6 +202,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	// Drawing of num_indices/3 triangles specified in the index buffer
 	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
+
 }
 
 // first draw to an intermediate texture,
@@ -210,7 +228,9 @@ void RenderSystem::drawToScreen()
 	// Enabling alpha channel for textures
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST); // Debug: disable depth test
+
+	glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -269,19 +289,83 @@ void RenderSystem::draw()
 	glDepthRange(0.00001, 10);
 	// white background
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClearDepth(10.f);
+
+	// Debug: claer depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+// Debug
+	// glClearDepth(10.f);
+	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+
+	// Debug
+	glEnable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
 
 	mat3 projection_2D = createProjectionMatrix();
-	auto motionRenders = registry.view<RenderRequest, Motion>();
-	for (auto entity : motionRenders) {
-		//entt::RenderRequest& renderRequest = registry.view< 
+
+	// render players and mobs
+	std::vector<entt::entity> PlayerMobsRenderEntities;
+	// get all mob and player entities with motion and render request components
+	auto mobs = registry.view<Mob, Motion, RenderRequest>();
+	auto players = registry.view<Player, Motion, RenderRequest>();
+	auto ships = registry.view<Ship, Motion, RenderRequest>();
+
+	for (auto entity : mobs) {
+		PlayerMobsRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : players) {
+		PlayerMobsRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : ships) {
+		PlayerMobsRenderEntities.push_back(entity);
+	}
+
+	// Sort entities based on Y position of the "ground offset"
+	std::sort(PlayerMobsRenderEntities.begin(), PlayerMobsRenderEntities.end(), [this](entt::entity a, entt::entity b) {
+		auto& motionA = registry.get<Motion>(a);
+		auto& motionB = registry.get<Motion>(b);
+		vec2 groundA = motionA.position + motionA.offset_to_ground;
+		vec2 groundB = motionB.position + motionB.offset_to_ground;
+
+		// if y vlue the same, check if either is a player
+		if (groundA.y == groundB.y) {
+			if (registry.any_of<Player>(a)) {
+				return true;
+			}
+			if (registry.any_of<Player>(b)) {
+				return false;
+			}
+
+			// else sort by x
+			return groundA.x > groundB.x;
+		}
+
+		return groundA.y > groundB.y; // Lower Y should render later (on top)
+	});
+
+	// Render entities in sorted order
+	for (auto entity : PlayerMobsRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	// render projectiles
+	std::vector<entt::entity> ProjectileRenderEntities;
+	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
+
+	for (auto entity : projectiles) {
+		ProjectileRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : ProjectileRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
@@ -308,14 +392,105 @@ mat3 RenderSystem::createProjectionMatrix()
 	float right  = (float) WINDOW_WIDTH_PX;
 	float bottom = (float) WINDOW_HEIGHT_PX;
 
-	float sx = 2.f / (right - left);
-	float sy = 2.f / (top - bottom);
-	float tx = -(right + left) / (right - left);
-	float ty = -(top + bottom) / (top - bottom);
+	// float sx = 2.f / (right - left);
+	// float sy = 2.f / (top - bottom);
+	// float tx = -(right + left) / (right - left);
+	// float ty = -(top + bottom) / (top - bottom);
 
-	return {
-		{ sx, 0.f, 0.f},
-		{0.f,  sy, 0.f},
-		{ tx,  ty, 1.f}
-	};
+	// return {
+	// 	{ sx, 0.f, 0.f},
+	// 	{0.f,  sy, 0.f},
+	// 	{ tx,  ty, 1.f}
+	// };
+
+	float near_plane = -1.0f; // Near clipping plane
+    float far_plane = 1.0f;   // Far clipping plane
+
+	return glm::ortho(left, right, bottom, top, near_plane, far_plane);
+}
+
+
+void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
+{
+	// vec3 transformedPos = projection * transform * vec3(0.0f, 0.0f, 1.0f);
+
+    // std::cout << "[DEBUG] Drawing point at screen position: (" 
+    //           << transformedPos.x << ", " << transformedPos.y << ")" << std::endl;
+
+	const GLuint program = (GLuint)effects[(GLuint)EFFECT_ASSET_ID::COLOURED];
+	glUseProgram(program);
+	gl_has_errors();
+
+	// std::cout << "Program: " << program << std::endl;	
+
+
+    const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
+	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	gl_has_errors();
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// position
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	gl_has_errors();
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		sizeof(ColoredVertex), (void*)0);
+	gl_has_errors();
+
+
+	// set uniform: color, transform, projection
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
+	// std::cout << "currProgram: " << currProgram << std::endl;	
+
+
+	GLint color_uloc = glGetUniformLocation(currProgram, "in_color");
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// std::cout << "color_uloc: " << color_uloc << std::endl;
+
+	GLint transform_uloc = glGetUniformLocation(currProgram, "transform");
+	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform);
+	gl_has_errors();
+
+	// std::cout << "transform_uloc: " << transform_uloc << std::endl;
+
+
+	GLint projection_uloc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);
+	gl_has_errors();
+
+	// std::cout << "projection_uloc: " << projection_uloc << std::endl;
+
+
+	// Temporarily disable depth test to check if it's blocking rendering
+    glDisable(GL_DEPTH_TEST);
+
+	// Check if OpenGL has errors before drawing
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error BEFORE drawing debug point: " << error << std::endl;
+    }
+
+	// draw
+	glPointSize(10.0f);
+	// std::cout << "Rendering Debug Point..." << std::endl;
+	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr);
+	gl_has_errors();
+
+	error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error AFTER drawing debug point: " << error << std::endl;
+    }
+
+
+	// Re-enable depth test
+    glEnable(GL_DEPTH_TEST);
 }
