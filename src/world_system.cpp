@@ -7,6 +7,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
 
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
@@ -14,11 +15,11 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	physics_system(physics_system),
 	next_invader_spawn(0),
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
-	max_towers(MAX_TOWERS_START),
 	points(0)
 {
 	// seeding rng with random device
 	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
+	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 200));
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
 	rng = std::default_random_engine(std::random_device()());
@@ -144,43 +145,12 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-
-	// Updating window title with points
-	std::stringstream title_ss;
-	title_ss << "Points: " << points;
-	glfwSetWindowTitle(window, title_ss.str().c_str());
-
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		printf("[GAME OVER] restarting game now...\n");
 		restart_game();
 	}
 	
-	// TODO: move player direction system
-	auto& p_motion = registry.get<Motion>(player_entity);
-	auto& p_sprite = registry.get<Sprite>(player_entity);
-
-	switch (player.direction) {
-		case KeyboardState::UP:
-			p_sprite.coord.x = 2.f;
-			p_motion.scale.x = abs(p_motion.scale.x);
-			break;
-		case KeyboardState::DOWN:
-			p_sprite.coord.x = 0.f;
-			p_motion.scale.x = abs(p_motion.scale.x);
-			break;
-		case KeyboardState::LEFT:
-			p_sprite.coord.x = 1.f;
-			p_motion.scale.x = -1.f * abs(p_motion.scale.x);
-			break;
-		case KeyboardState::RIGHT:
-			p_sprite.coord.x = 1.f;
-       
-			p_motion.scale.x = abs(p_motion.scale.x);
-			break;
-	}
-	
-
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
 		auto& motion = registry.get<Motion>(player_entity);
@@ -196,12 +166,46 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	};
 	updatePlayerVelocity(); 
 
-	/*InputState input;
-	input.up = key_state[KeyboardState::UP];
-	input.down = key_state[KeyboardState::DOWN];
-	input.left = key_state[KeyboardState::LEFT];
-	input.right = key_state[KeyboardState::RIGHT];
-	physics_system.updatePlayerVelocity(input);*/
+
+	// TODO: move direction system
+	auto dir_view = registry.view<Motion, Sprite>();
+	for (auto& entity : dir_view) {
+		auto& motion = registry.get<Motion>(entity);
+		auto& sprite = registry.get<Sprite>(entity);
+
+		if (length(motion.velocity) > 0.0f) {
+			vec2 velo = motion.velocity;
+			float x_scale = abs(motion.scale.x);
+
+			if (abs(velo.y) > 0) {
+				sprite.coord.x = (velo.y > 0) ? sprite.down_row : sprite.up_row;
+				motion.scale.x = x_scale;
+			}
+
+			if (abs(velo.x) > 0) {
+				sprite.coord.x = sprite.right_row;
+				motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
+			}
+		}
+	}
+
+	auto& p_motion = registry.get<Motion>(player_entity);
+	auto& p_sprite = registry.get<Sprite>(player_entity);
+
+	if (length(p_motion.velocity) > 0.0f) {
+		vec2 velo = p_motion.velocity;
+		float x_scale = abs(p_motion.scale.x);
+
+		if (abs(velo.x) > 0) {
+			p_sprite.coord.x = 1.f;
+			p_motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
+		}
+
+		if (abs(velo.y) > 0) {
+			p_sprite.coord.x = (velo.y > 0) ? 0.f : 2.f;
+			p_motion.scale.x = x_scale;
+		}
+	}
 
 	// TODO: move this animation system
 	auto animations = registry.view<Animation, Sprite, Motion>();
@@ -221,6 +225,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			animation.frameTime = 0.0f;
 		}
 	}
+
+	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
+	auto &ship = registry.get<Ship>(ship_entity);
+	auto mobs = registry.view<Mob>();
+
+	float elapsed_s = elapsed_ms_since_last_update / 1000;
+	ship.timer -= elapsed_s;
+
+	if (ship.timer <= 0) {
+		ship.timer = SHIP_TIMER_MS;
+		
+		for (auto entity : mobs) {
+			auto motion = registry.get<Motion>(entity);
+			auto shipMotion = registry.get<Motion>(ship_entity);
+
+			glm::vec2 shipPos = glm::vec2(shipMotion.position.x, shipMotion.position.y);
+			glm::vec2 enemyPos = glm::vec2(motion.position.x, motion.position.y);
+
+			if (glm::distance(shipPos, enemyPos) <= ship.range) {
+				vec2 direction = normalize(enemyPos - shipPos);
+				vec2 velocity = direction * PROJECTILE_SPEED;
+				createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			}
+		}
+	}
+
+	
 
 	return true;
 }
@@ -251,13 +282,12 @@ void WorldSystem::restart_game() {
 	current_speed = 1.f;
 
 	points = 0;
-	max_towers = MAX_TOWERS_START;
 	next_invader_spawn = 0;
 	invader_spawn_rate_ms = INVADER_SPAWN_RATE_MS;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship>);
 	registry.destroy(motions.begin(), motions.end());
 	createMob(registry, vec2(WINDOW_WIDTH_PX / 3, WINDOW_WIDTH_PX / 3));
 	// Reset player health
@@ -297,28 +327,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
 
-	if (action != GLFW_PRESS) return;
-
-	auto& player = registry.get<Player>(player_entity);
-	if (key == GLFW_KEY_UP    || key == GLFW_KEY_W) player.direction = KeyboardState::UP;
-	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) player.direction = KeyboardState::DOWN;
-	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) player.direction = KeyboardState::LEFT;
-	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) player.direction = KeyboardState::RIGHT;
-
-	//probably a better way of doing this... 
-	if (key == GLFW_KEY_P) {
-		auto debugView = registry.view<Debug>();
-		if (debugView.empty()) {
-			registry.emplace<Debug>(player_entity);
-		}
-		else {
-			for (auto entity : debugView) {
-				registry.remove<Debug>(entity);
-			}
-		}
-	}
-		  
-
 	// // Debugging - not used in A1, but left intact for the debug lines
 	// if (key == GLFW_KEY_D) {
 	// 	if (action == GLFW_RELEASE) {
@@ -343,7 +351,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
-		std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
+		// std::cout << "mouse position: " << mouse_pos_x << ", " << mouse_pos_y << std::endl;
 	
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			// TODO: implement shooting logic

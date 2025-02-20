@@ -15,9 +15,6 @@
 #include "render_system.hpp"
 #include "physics_system.hpp"
 
-// Container for all our entities and game logic.
-// Individual rendering / updates are deferred to the update() methods.
-
 enum KeyboardState {
 	UP, DOWN, LEFT, RIGHT, NUM_STATES
 };
@@ -57,6 +54,8 @@ private:
 	entt::entity player_entity;
 	PhysicsSystem& physics_system;
 
+	entt::entity ship_entity;
+	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
