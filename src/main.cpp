@@ -13,6 +13,7 @@
 #include "ai_system.hpp"
 #include "collision_system.hpp"
 #include "physics_system.hpp"
+#include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
