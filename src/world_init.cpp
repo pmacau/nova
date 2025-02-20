@@ -49,11 +49,11 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	sprite.sheet_dims = {43.f, 55.f};
 	// HITBOX
 	auto& hitBox = registry.emplace<HitBox>(entity); 
-	/*hitBox.type = HitBoxType::HITBOX_CIRCLE; 
-	hitBox.shape.circle.radius = 40.f; */
-	hitBox.type = HitBoxType::HITBOX_RECT;
+	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
+	hitBox.shape.circle.radius = 40.f; 
+	/*hitBox.type = HitBoxType::HITBOX_RECT;
 	hitBox.shape.rect.width = 43.f;
-	hitBox.shape.rect.height = 55.f;
+	hitBox.shape.rect.height = 55.f;*/
 
 	mob.health = MOB_HEALTH;
 	mob.hit_time = 1.f;
