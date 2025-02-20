@@ -418,8 +418,6 @@ void RenderSystem::draw()
 	// Draw background first
 	drawBackground(projection_2D);
 
-	auto motionRenders = registry.view<RenderRequest, Motion>();
-	for (auto entity : motionRenders) {
 	// render players and mobs
 	std::vector<entt::entity> PlayerMobsRenderEntities;
 	// get all mob and player entities with motion and render request components
