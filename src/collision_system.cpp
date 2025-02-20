@@ -29,6 +29,7 @@ void CollisionSystem::step(float elapsed_ms)
 	}
 	auto entities = registry.view<Motion>();
 	auto playerCheck = registry.view<Player>();
+	auto screens = registry.view<ScreenState>();
 	for (auto entity : entities) { // does a for loop for projectiles and what not right, now this isn't necessary. 
 		// only check once so decide if checks on player or invader (player chosen)
 		// checks if ID is player
@@ -39,10 +40,24 @@ void CollisionSystem::step(float elapsed_ms)
 					
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
+					auto& screen = registry.get<ScreenState>(screens.front());
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE;
+
+						// ScreenState &screen = registry.screenStates.components[0];
+						
+						if (screens.size() > 0) {
+							std::cout << "changing screen" << std::endl;
+							
+							
+							std::cout << "before: " << screen.darken_screen_factor << std::endl;
+							screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+							std::cout << "after: " << screen.darken_screen_factor << std::endl;
+						}
+
 						if (player_ref.health <= 0) {
+							screen.darken_screen_factor = 0;
 							world.player_respawn();
 						}
 						mob_ref.hit_time = 1.f;
