@@ -3,7 +3,6 @@
 #include <array>
 #include <utility>
 #include <entt.hpp>
-
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
@@ -40,7 +39,8 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("textured"),
-		shader_path("vignette")
+		shader_path("vignette"),
+		shader_path("debug")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -51,7 +51,7 @@ public:
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
-
+	bool debugModeEnabled;
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
 
@@ -81,15 +81,14 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
-
+	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 	// Window handle
 	GLFWwindow* window;
-
+	GLuint defaultVAO;
 	// Screen texture handles
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
-
 	entt::entity screen_state_entity;
 };
 
