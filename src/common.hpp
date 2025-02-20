@@ -34,12 +34,15 @@ inline std::string shader_path(const std::string& name) {return std::string(PROJ
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
 //inline std::string textures_path(const std::string& name) {return data_path() + "/retextures/" + std::string(name);};
 inline std::string audio_path(const std::string& name) {return data_path() + "/audio/" + std::string(name);};
+inline std::string map_path(const std::string& name)  {return data_path() + "/maps/" + std::string(name);};
 
 //
 // game constants
 //
-const int WINDOW_WIDTH_PX = 840;
-const int WINDOW_HEIGHT_PX = 600;
+// const int WINDOW_WIDTH_PX = 840;
+// const int WINDOW_HEIGHT_PX = 600;
+const int WINDOW_WIDTH_PX = 960;
+const int WINDOW_HEIGHT_PX = 540;
 
 const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;

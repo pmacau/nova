@@ -6,6 +6,17 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
+// // TODO refactor this background render stuff...
+// struct TileRender {
+// 	RenderRequest request = {
+// 		TEXTURE_ASSET_ID::TILESET,
+// 		EFFECT_ASSET_ID::TEXTURED,
+// 		GEOMETRY_BUFFER_ID::SPRITE
+// 	};
+// 	vec2 coord = {0.f, 0.f};
+// };
+
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -32,6 +43,8 @@ class RenderSystem {
 		textures_path("ship/Ship6.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
+		textures_path("tile/tileset.png"),
+		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png")
 	};
 
@@ -46,6 +59,8 @@ class RenderSystem {
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
+
+	// std::vector<std::vector<TileRender>> tileMap;
 
 public:
 	RenderSystem(entt::registry& reg);
@@ -83,10 +98,10 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
+	void drawBackground(const mat3& projection);
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
-	
 	// Window handle
 	GLFWwindow* window;
 	GLuint defaultVAO;
