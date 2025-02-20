@@ -5,6 +5,7 @@
 #include "../ext/stb_image/stb_image.h"
 #include <cmath>
 #include <limits>
+#include <entt.hpp>
 
 enum HitBoxType {
 	HITBOX_CIRCLE,
