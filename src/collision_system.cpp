@@ -46,12 +46,7 @@ void CollisionSystem::step(float elapsed_ms)
 						// ScreenState &screen = registry.screenStates.components[0];
 						
 						if (screens.size() > 0) {
-							std::cout << "changing screen" << std::endl;
-							
-							
-							std::cout << "before: " << screen.darken_screen_factor << std::endl;
 							screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
-							std::cout << "after: " << screen.darken_screen_factor << std::endl;
 						}
 
 						if (player_ref.health <= 0) {
