@@ -73,11 +73,20 @@ void CollisionSystem::step(float elapsed_ms)
 		const Motion& m2 = registry.get<Motion>(e2);
 		const HitBox& h1 = registry.get<HitBox>(e1); // can be a circle or a rectangle
 		const HitBox& h2 = registry.get<HitBox>(e2); 
-		
+		// can potentially due a epsilon check here 
 		// cases two circles
 		if (h1.type == HitBoxType::HITBOX_CIRCLE && h2.type == HitBoxType::HITBOX_CIRCLE) {
 			return circlesCollision(m1, h1, m2, h2, epsilon);
 		}
+		// case two rectangles
+		if (h1.type == HitBoxType::HITBOX_RECT && h2.type == HitBoxType::HITBOX_RECT) {
+			return RectRectCollision(m1, h1, m2, h2, epsilon);
+		}
+		// case one circle and two rectangles 
+		if ((h1.type == HitBoxType::HITBOX_RECT || h1.type == HitBoxType::HITBOX_CIRCLE) && (h2.type == HitBoxType::HITBOX_RECT || h2.type == HitBoxType::HITBOX_CIRCLE)) {
+			return circleRectCollision(m1, h1, m2, h2, epsilon);
+		}
+
 		return false; 
 	}
 
@@ -90,19 +99,50 @@ void CollisionSystem::step(float elapsed_ms)
 
 	// TODO
 	bool CollisionSystem::circleRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon) {
-		float dx = m1.position.x - m2.position.x;
-		float dy = m1.position.y - m2.position.y;
-		float rSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
-		return (dx * dx + dy * dy) <= (rSum * rSum); //avoiding sqrt 
-	}
-	// TODO
-	bool CollisionSystem::RectRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon) {
-		//float dx = m1.position.x - m2.position.x;
-		//float dy = m1.position.y - m2.position.y;
-		//float rectHeightSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
-		//float rectWidthSum = h1.shape.circle.radius + h2.shape.circle.radius + epsilon;
-		//return (dx * dx + dy * dy) <= (rSum * rSum); //avoiding sqrt 
+		bool h1IsCircle = false; // if true h1 is a circle, if false h1 is a rectangle, and h2 is circle. 
+		if (h1.type == HitBoxType::HITBOX_CIRCLE) {
+			h1IsCircle = true;
+		}
+		vec2 closestPoint; 
+		if (h1IsCircle) {
+			closestPoint = rectangleClamp(m2, h2, m1, h1);
+			if (glm::length(closestPoint - m1.position) < h1.shape.circle.radius) {
+				return true; 
+			}
+		}
+		else {
+			closestPoint = rectangleClamp(m1, h1, m2, h2);
+			if (glm::length(closestPoint - m2.position) < h2.shape.circle.radius) {
+				return true;
+			}
+		}
 		return false; 
+	}
+
+
+
+	bool CollisionSystem::RectRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon) {
+		float left1 = m1.position.x - h1.shape.rect.width / 2;
+		float right1 = m1.position.x + h1.shape.rect.width / 2;
+		float top1 = m1.position.y - h1.shape.rect.height / 2;
+		float bottom1 = m1.position.y + h1.shape.rect.height / 2;
+		float left2 = m2.position.x - h2.shape.rect.width / 2;
+		float right2 = m2.position.x + h2.shape.rect.width / 2;
+		float top2 = m2.position.y - h2.shape.rect.height / 2;
+		float bottom2 = m2.position.y + h2.shape.rect.height / 2;
+		bool overlapX = (left1 < right2 + epsilon) && (right1 + epsilon > left2);
+		bool overlapY = (top1 < bottom2 + epsilon) && (bottom1 + epsilon > top2);
+		return overlapX && overlapY;
+	}
+
+	vec2 CollisionSystem::rectangleClamp(const Motion& rect_motion, const HitBox& rect_hitbox, const Motion& circle_motion, const HitBox& circle_hitbox) {
+		float maxLeft = rect_motion.position.x - rect_hitbox.shape.rect.width / 2;
+		float maxRight = rect_motion.position.x + rect_hitbox.shape.rect.width / 2;
+		float maxTop = rect_motion.position.y - rect_hitbox.shape.rect.height / 2;
+		float maxBottom = rect_motion.position.y + rect_hitbox.shape.rect.height / 2;
+		float closestXPoint = glm::clamp(circle_motion.position.x, maxLeft, maxRight);
+		float closestYPoint = glm::clamp(circle_motion.position.y, maxTop, maxBottom);
+		return vec2(closestXPoint, closestYPoint);
 	}
 
 	// PLUS ADD OBSTACLE TYPE COLLISION IN PHYSICS 
