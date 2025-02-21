@@ -287,7 +287,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	
+	// TODO: move player out-of-bounds script
+	//       (probably to physics system, but only world system knows about gameMap)
+	auto& player_motion = registry.get<Motion>(player_entity);
+	int tile_x = std::round(player_motion.position.x / 16.f);
+	int tile_y = std::round(player_motion.position.y / 16.f);
+
+	if (tile_x < 0 || tile_y < 0 || tile_x > 198 || tile_y > 198 ||
+		(
+			gameMap[tile_y][tile_x] == 0 && gameMap[tile_y][tile_x + 1] == 0 &&
+			gameMap[tile_y + 1][tile_x] == 0 && gameMap[tile_y + 1][tile_x + 1] == 0
+		)
+	) {
+		player_motion.position = player_motion.formerPosition;
+	}
 
 	return true;
 }
@@ -300,6 +313,9 @@ void WorldSystem::player_respawn() {
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.position = vec2(spawnX, spawnY);
+	player_motion.velocity = {0.f, 0.f};
+	player_motion.acceleration = {0.f, 0.f};
+	player_motion.formerPosition = vec2(spawnX, spawnY);
 }
 
 
@@ -322,15 +338,8 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
 	registry.destroy(motions.begin(), motions.end());
-	// createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
-	createMob(registry, vec2(0, WINDOW_HEIGHT_PX));
-	// Reset player health
-	// auto& player = registry.get<Player>(player_entity);
-	// player.health = PLAYER_HEALTH;
 
-	// // Reset player position
-	// auto& motion = registry.get<Motion>(player_entity);
-	// motion.position = vec2(start_col * 16, start_row * 16);
+	createMob(registry, vec2(spawnX - (50 * 16.f), spawnY));
 	player_respawn();
 
 	// reset the screen
