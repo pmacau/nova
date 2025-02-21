@@ -24,21 +24,21 @@ void CollisionSystem::step(float elapsed_ms)
 			mob_ref.hit_time -= elapsed_s;
 		}
 	}
-	auto entities = registry.view<Motion, HitBox>(); // only goes through motion objects with HitBox (should essentially be all of them)
+	// views for all relevant components
+	auto entities = registry.view<Motion, HitBox>(); 
 	auto playerCheck = registry.view<Player>();
-	for (auto entity : entities) { // does a for loop for projectiles and what not right, now this isn't necessary. 
-		// only check once so decide if checks on player or invader (player chosen)
+	auto obstacles = registry.view<Obstacle>();
+
+	for (auto entity : entities) { 
 		// checks if ID is player
 		if ((uint32_t)entt::entt_traits<entt::entity>::to_entity(playerCheck.front()) == (uint32_t)entt::entt_traits<entt::entity>::to_entity(entity)) {
 			for (auto mob : mobs) {
-				//std::cout << "ENTERED" << std::endl;
-				
 				if (isContact(mob, entity, registry, 10)) {
 					auto& player_ref = registry.get<Player>(entity);
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
-						player_ref.health -= MOB_DAMAGE; // FOR DEBUGGING
+						player_ref.health -= MOB_DAMAGE; 
 						physics.knockback(entity, mob, 400);
 						if (player_ref.health <= 0) {
 							world.player_respawn();
@@ -52,36 +52,156 @@ void CollisionSystem::step(float elapsed_ms)
 					std::cout << "SUPRESS" << std::endl;
 					physics.suppress(entity, mob);
 				}
-				
-				
-				
-
-
 			}
 		}
-		auto obstacles = registry.view<Obstacle>(); 
-		//might want to refactor for performance but for now it's here. 
+
+
+		// OBSTACLE SECTION OF COLLISION
 		if (registry.all_of<Obstacle>(entity)) {
 			continue; // shouldnt deal with obstacles and obstacles
 		}
-		for (auto obstacle : obstacles) {
-			handleBlock(entity, obstacle); 
-		}
-
-
 		
+		for (auto obstacle : obstacles) {
+			handleBlock(entity, obstacle, registry);
+		}
 
 	}
 }
 
-	void CollisionSystem::handleblock(entt::entity e1, entt::entity e2) {
-		auto& motion = registry.get<Motion>(entity);
-		getNormal()
+	// e1 is entity, e2 is obstacle
+	void CollisionSystem::handleBlock(entt::entity e1, entt::entity e2, entt::registry& registry) {
+		if (!isContact(e1, e2, registry, 0)) {
+			return; //should do nothing
 		}
+		auto& m1 = registry.get<Motion>(e1);
+		auto& h1 = registry.get<HitBox>(e1);
+		auto& m2 = registry.get<Motion>(e2);
+		auto& h2 = registry.get<HitBox>(e2);
+		vec2 normal = getNormal(m1, h1, m2, h2);
+		float dot_product = dot(m1.velocity, normal);
+		if (dot_product > 0) { //since if it's positive we are facing away
+			return; 
+		}
+		// might want to refactor but for now here
+		//const float MAX_ALLOWED_PENETRATION = 0.f; // Threshold for penetration this is for clipping
+		//float overlapX = 0.f;
+		//float overlapY = 0.f;
+		//if (h1.type == HitBoxType::HITBOX_RECT && h2.type == HitBoxType::HITBOX_RECT) {
+		//	float halfWidth1 = h1.shape.rect.width / 2.0f;
+		//	float halfHeight1 = h1.shape.rect.height / 2.0f;
+		//	float halfWidth2 = h2.shape.rect.width / 2.0f;
+		//	float halfHeight2 = h2.shape.rect.height / 2.0f;
+		//	float cx1 = m1.position.x;
+		//	float cy1 = m1.position.y;
+		//	float cx2 = m2.position.x;
+		//	float cy2 = m2.position.y;
+		//	float deltaX = fabs(cx1 - cx2);
+		//	float deltaY = fabs(cy1 - cy2);
+		//	float combinedHalfWidth = halfWidth1 + halfWidth2;
+		//	float combinedHalfHeight = halfHeight1 + halfHeight2;
+		//	overlapX = combinedHalfWidth - deltaX;
+		//	overlapY = combinedHalfHeight - deltaY;
+		//}
+		//else if (h1.type == HitBoxType::HITBOX_CIRCLE && h2.type == HitBoxType::HITBOX_CIRCLE) {
+		//	float r1 = h1.shape.circle.radius;
+		//	float r2 = h2.shape.circle.radius;
+		//	glm::vec2 diff = m1.position - m2.position;
+		//	float distance = glm::length(diff);
+		//	float penetration = (r1 + r2) - distance;
+		//	overlapX = penetration;
+		//	overlapY = penetration;
+		//} else if ((h1.type == HitBoxType::HITBOX_CIRCLE && h2.type == HitBoxType::HITBOX_RECT) ||
+		//	(h1.type == HitBoxType::HITBOX_RECT && h2.type == HitBoxType::HITBOX_CIRCLE)) {
+		//	const HitBox* circle;
+		//	const Motion* circleMotion;
+		//	const HitBox* rect;
+		//	const Motion* rectMotion;
+		//	if (h1.type == HitBoxType::HITBOX_CIRCLE) {
+		//		circle = &h1;
+		//		circleMotion = &m1;
+		//		rect = &h2;
+		//		rectMotion = &m2;
+		//	}
+		//	else {
+		//		circle = &h2;
+		//		circleMotion = &m2;
+		//		rect = &h1;
+		//		rectMotion = &m1;
+		//	}
+		//	float halfWidth = rect->shape.rect.width / 2.0f;
+		//	float halfHeight = rect->shape.rect.height / 2.0f;
+		//	float left = rectMotion->position.x - halfWidth;
+		//	float right = rectMotion->position.x + halfWidth;
+		//	float top = rectMotion->position.y - halfHeight;
+		//	float bottom = rectMotion->position.y + halfHeight;
+		//	float closestX = glm::clamp(circleMotion->position.x, left, right);
+		//	float closestY = glm::clamp(circleMotion->position.y, top, bottom);
+		//	glm::vec2 closestPoint(closestX, closestY);
+		//	glm::vec2 diff = circleMotion->position - closestPoint;
+		//	float distance = glm::length(diff);
+		//	float penetration = circle->shape.circle.radius - distance;
+		//	overlapX = fabs(circleMotion->position.x - closestX);
+		//	overlapY = fabs(circleMotion->position.y - closestY);
+		//} 
+		//if (overlapX > MAX_ALLOWED_PENETRATION) {
+		//	m1.position.x = m1.formerPosition.x;
+		//}
+		//if (overlapY > MAX_ALLOWED_PENETRATION) {
+		//	m1.position.y = m1.formerPosition.y;
+		//}
+		vec2 velocity_Component = dot_product * normal;
+		std::cout << "X " << m1.velocity.x << "Y " << m1.velocity.y << std::endl;
+		std::cout << "X " << m2.velocity.x << "Y " << m2.velocity.y << std::endl;
+		m1.velocity -= velocity_Component;
+	}
+
+
+
+	
 
 	// gets the normal of either circle rect, or rect rect cannot handle complex shapes (plan to refactor later)
-	bool CollisionSystem::getNormal(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2) {
+	vec2 CollisionSystem::getNormal(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2) {
+		if (h1.type == HitBoxType::HITBOX_CIRCLE && h2.type == HitBoxType::HITBOX_CIRCLE) {
+			std::cout << "ENTERS" << std::endl;
+			return normalize(m1.position - m2.position); 
+		}
+		// both rectangles
+		if (h1.type == HitBoxType::HITBOX_RECT && h2.type == HitBoxType::HITBOX_RECT) {
+				float halfWidth1 = h1.shape.rect.width / 2.0f;
+				float halfHeight1 = h1.shape.rect.height / 2.0f;
+				float halfWidth2 = h2.shape.rect.width / 2.0f;
+				float halfHeight2 = h2.shape.rect.height / 2.0f;
+				float cx1 = m1.position.x;
+				float cy1 = m1.position.y;
+				float cx2 = m2.position.x;
+				float cy2 = m2.position.y;
+				float deltaX = cx1 - cx2;
+				float deltaY = cy1 - cy2;
+				float combinedHalfWidth = halfWidth1 + halfWidth2;
+				float combinedHalfHeight = halfHeight1 + halfHeight2;
+				float overlapX = combinedHalfWidth - fabs(deltaX);
+				float overlapY = combinedHalfHeight - fabs(deltaY);
+				if (overlapX < 0 || overlapY < 0)
+					return glm::vec2(0, 0);
+				if (overlapX < overlapY) {
+					return (deltaX < 0) ? glm::vec2(-1, 0) : glm::vec2(1, 0);
+				}
+				else {
+					return (deltaY < 0) ? glm::vec2(0, -1) : glm::vec2(0, 1);
+				}
+		}
+		// rectangle circle collision 
+		if ((h1.type == HitBoxType::HITBOX_RECT || h1.type == HitBoxType::HITBOX_CIRCLE) && (h2.type == HitBoxType::HITBOX_RECT || h2.type == HitBoxType::HITBOX_CIRCLE)) {
+			if (h1.type == HitBoxType::HITBOX_RECT) {
+				return normalize(rectangleClamp(m1, h1, m2, h2) - m1.position);
+			}
+			else {
+				return normalize(rectangleClamp(m2, h2, m1, h1) - m2.position);
+			}
+		}
 
+		// should never reach...
+		return {0,0};
 	}
 
 
@@ -167,5 +287,5 @@ void CollisionSystem::step(float elapsed_ms)
 		return vec2(closestXPoint, closestYPoint);
 	}
 
-	// PLUS ADD OBSTACLE TYPE COLLISION IN PHYSICS 
+
 

@@ -25,6 +25,8 @@ private:
     PhysicsSystem& physics; 
     WorldSystem& world;  
     // collision helpers
+    void handleBlock(entt::entity e1, entt::entity e2, entt::registry& registry);
+	static vec2 getNormal(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2);
     static bool circlesCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon);
     static bool circleRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon); 
 	static bool RectRectCollision(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2, float epsilon);

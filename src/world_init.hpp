@@ -17,3 +17,5 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 
 // terrain
 entt::entity createRockType1(entt::registry& registry, vec2 position);
+
+entt::entity createTreeType1(entt::registry& registry, vec2 position);

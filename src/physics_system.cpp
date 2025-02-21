@@ -22,7 +22,6 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
     else if (i.right && i.down)  proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
 
 	if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
-       // std::cout << "upfad" << std::endl;
 		motion.velocity = proposedVelocity;
 	} 
 

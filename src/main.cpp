@@ -79,10 +79,11 @@ int main()
 			num_s = 0.f;
 		}
 
-		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
+		
 		world_system.step(elapsed_ms);
-		physics_system.step(elapsed_ms);
 		collision_system.step(elapsed_ms);
+		physics_system.step(elapsed_ms);
+		//collision_system.step(elapsed_ms);
 		renderer_system.draw();
 		ai_system.step(elapsed_ms); // AI system should be before physics system
 	}
