@@ -22,7 +22,7 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
     else if (i.right && i.down)  proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
 
 	if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
-        std::cout << "upfad" << std::endl;
+       // std::cout << "upfad" << std::endl;
 		motion.velocity = proposedVelocity;
 	} 
 
@@ -82,9 +82,14 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     vec2 direction = getDirection(e1, e2); // gets e2 to e1 
     float repellentMagnitude = 0.15f; 
     m1.acceleration += direction * repellentMagnitude; 
-    m2.acceleration += -direction * repellentMagnitude;
+    //m2.acceleration += -direction * repellentMagnitude;
+}
 
-
+// blocks e1 by offsetting e1s velocity with e2's normal in respect to e1, I implemented this because even
+// if it seems a bit too simple it can be used to block entities differently in the future potentially. 
+void PhysicsSystem::block(Motion& motion) {
+    motion.position = motion.formerPosition;
+    //motion.velocity = { 0, 0 };
 }
 
 // knocks back e1 in respect to e2's position

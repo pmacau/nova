@@ -84,15 +84,20 @@ entt::entity createRockType1(entt::registry& registry, vec2 position) {
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 5.f, 5.f };
 	sprite.sheet_dims = { 144.f, 135.f };
-	/*auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = 40.f;*/
+	auto& hitBox = registry.emplace<HitBox>(entity);
+	hitBox.type = HitBoxType::HITBOX_RECT;
+	hitBox.shape.rect.width = 24.f;
+	hitBox.shape.rect.height = 24.f;
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = vec2(100, 120);
+	motion.scale = vec2(24, 24);
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
+
 	renderRequest.used_texture = TEXTURE_ASSET_ID::STONE_BLOCK_1;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;

@@ -18,6 +18,7 @@ public:
     void suppress(entt::entity& e1, entt::entity& e2);
     void knockback(entt::entity& e1, entt::entity& e2, float force);
     void updatePlayerVelocity(InputState i);
+    void block(Motion& motion);
 private:
     entt::registry& registry;
     

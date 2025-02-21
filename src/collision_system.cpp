@@ -39,7 +39,7 @@ void CollisionSystem::step(float elapsed_ms)
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE; // FOR DEBUGGING
-						physics.knockback(entity, mob, 400); 
+						physics.knockback(entity, mob, 400);
 						if (player_ref.health <= 0) {
 							world.player_respawn();
 						}
@@ -59,12 +59,32 @@ void CollisionSystem::step(float elapsed_ms)
 
 			}
 		}
+		auto obstacles = registry.view<Obstacle>(); 
+		//might want to refactor for performance but for now it's here. 
+		if (registry.all_of<Obstacle>(entity)) {
+			continue; // shouldnt deal with obstacles and obstacles
+		}
+		for (auto obstacle : obstacles) {
+			handleBlock(entity, obstacle); 
+		}
+
+
+		
 
 	}
 }
 
+	void CollisionSystem::handleblock(entt::entity e1, entt::entity e2) {
+		auto& motion = registry.get<Motion>(entity);
+		getNormal()
+		}
 
-	
+	// gets the normal of either circle rect, or rect rect cannot handle complex shapes (plan to refactor later)
+	bool CollisionSystem::getNormal(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2) {
+
+	}
+
+
 	// refactor this so it uses the hitboxes.
 	// ASSUMES ENTIT
 	// determines if should get hit or not maybe just refactor into hit box system after.
@@ -107,12 +127,14 @@ void CollisionSystem::step(float elapsed_ms)
 		if (h1IsCircle) {
 			closestPoint = rectangleClamp(m2, h2, m1, h1);
 			if (glm::length(closestPoint - m1.position) < h1.shape.circle.radius) {
+				std::cout << "Should det" << std::endl;
 				return true; 
 			}
 		}
 		else {
 			closestPoint = rectangleClamp(m1, h1, m2, h2);
 			if (glm::length(closestPoint - m2.position) < h2.shape.circle.radius) {
+				std::cout << "Should det" << std::endl;
 				return true;
 			}
 		}
