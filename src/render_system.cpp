@@ -488,6 +488,15 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
+	std::vector<entt::entity> UIRenderEntities;
+	auto ui = registry.view<UI, Motion, RenderRequest>();
+	for (auto entity : ui) {
+		UIRenderEntities.push_back(entity);
+	}
+	for (auto entity : UIRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
 	// Draw background last (?????)
 	// drawBackground(projection_2D);
 	// Render huge background texture

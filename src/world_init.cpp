@@ -41,6 +41,27 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
+entt::entity createPlayerHealthBar(entt::registry& registry, vec2 position) {
+	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<PlayerHealthBar>(entity);
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = { position.x + WINDOW_WIDTH_PX / 2 -  125.f - 50.f,
+						position.y - WINDOW_HEIGHT_PX / 2 + 50.f};
+	motion.angle = 0.f;
+	motion.velocity = vec2({ 0, 0 });
+	motion.scale = vec2({ 250.f, 15.f });
+	motion.offset_to_ground = vec2(0, motion.scale.y / 2.f);
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 1152.f, 648.f };
+	sprite.sheet_dims = { 1152.f, 648.f };
+	auto& render_request = registry.emplace<RenderRequest>(entity);
+	render_request.used_texture = TEXTURE_ASSET_ID::HEALTHBAR_GREEN;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	return entity;
+}
+
 entt::entity createCamera(entt::registry& registry, entt::entity target)
 {
 	auto entity = registry.create();
@@ -126,6 +147,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity)
 {
+	std::cout << "projectile created at " << pos.x << " " << pos.y << "\n";
 	auto entity = registry.create();
 
 	auto& sprite = registry.emplace<Sprite>(entity);

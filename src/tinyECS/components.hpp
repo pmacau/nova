@@ -92,6 +92,16 @@ struct Eatable
 
 };
 
+struct UI
+{
+
+};
+
+struct PlayerHealthBar
+{
+
+};
+
 // Stucture to store collision information
 // struct Collision
 // {
@@ -169,6 +179,7 @@ enum class TEXTURE_ASSET_ID {
 	TILESET,
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
+	HEALTHBAR_GREEN,
 	TEXTURE_COUNT
 };
 

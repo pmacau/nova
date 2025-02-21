@@ -38,4 +38,12 @@ void CameraSystem::step(float elapsed_ms) {
 
     // rotate camera around target
     camera.position = rotateX(camera.position, camera.angle, vec3(target_motion.position, 0));
+
+    for (auto entity : registry.view<UI>()) {
+        auto& ui_motion = registry.get<Motion>(entity);
+        if (registry.any_of<PlayerHealthBar>(entity)) {
+            ui_motion.position = { target_motion.position.x + WINDOW_WIDTH_PX / 2 - 125.f - 50.f,
+                                  target_motion.position.y - WINDOW_HEIGHT_PX / 2 + 50.f };
+        }
+    }
 }
