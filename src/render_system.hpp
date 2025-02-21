@@ -98,6 +98,9 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
+	void renderGamePlay();
+	void renderShipUI();
+
 	void drawBackground(const mat3& projection);
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
@@ -110,6 +113,7 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 	entt::entity screen_state_entity;
+	entt::entity screen_entity;
 };
 
 bool loadEffectFromFile(

@@ -16,7 +16,7 @@
 #include "physics_system.hpp"
 
 enum KeyboardState {
-	UP, DOWN, LEFT, RIGHT, NUM_STATES
+	UP, DOWN, LEFT, RIGHT, SHIP, NUM_STATES,
 };
 
 class WorldSystem
@@ -56,6 +56,7 @@ private:
 
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
+	entt::entity screen_entity;
 
 	std::vector<std::vector<uint8_t>> gameMap;
 	float spawnX, spawnY;

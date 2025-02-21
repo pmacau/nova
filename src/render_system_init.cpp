@@ -249,7 +249,8 @@ bool RenderSystem::initScreenTexture()
 {
 	// create a single entry
 	// registry.screenStates.emplace(screen_state_entity);
-	registry.emplace<ScreenState>(screen_state_entity, 0.0f);
+	// registry.emplace<ScreenState>(screen_state_entity, 0.0f);
+	registry.emplace<ScreenState>(screen_state_entity);
 
 	int framebuffer_width, framebuffer_height;
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &framebuffer_width, &framebuffer_height);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays

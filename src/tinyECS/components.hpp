@@ -110,6 +110,12 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
+	enum class ScreenType {
+        GAMEPLAY,
+        SHIP_UPGRADE_UI,
+    };
+
+    ScreenType current_screen;
 	float darken_screen_factor = 0;
 };
 

@@ -52,6 +52,11 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
 	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
 	main_camera_entity = createCamera(registry, player_entity);
+	std::cout << "init" << std::endl;
+	screen_entity = registry.create();
+	registry.emplace<ScreenState>(screen_entity);
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -178,6 +183,11 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	auto screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+		return true;
+	}
+
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		printf("[GAME OVER] restarting game now...\n");
@@ -287,6 +297,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: freeze everything if in ship_ui
+	
+	
 	
 
 	return true;
@@ -334,9 +347,8 @@ void WorldSystem::restart_game() {
 	player_respawn();
 
 	// reset the screen
-	auto screens = registry.view<ScreenState>();
-	auto& screen = registry.get<ScreenState>(screens.front());
-	screen.darken_screen_factor = 0;
+	auto screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
@@ -366,6 +378,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
+	if (key == GLFW_KEY_F) 							key_state[KeyboardState::SHIP] 	= (action != GLFW_RELEASE);
+
 	if (key == GLFW_KEY_P) {
 		auto debugView = registry.view<Debug>();
 		if (debugView.empty()) {
@@ -389,6 +403,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// 		}
 	// 	}
 	// }
+
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+        if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
+            auto& player_motion = registry.get<Motion>(player_entity);
+            auto& ship_motion = registry.get<Motion>(ship_entity);
+
+            float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
+            if (distance_to_ship < 100.0f) {
+                std::cout << "Opening Ship Upgrade UI" << std::endl;
+                screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
+            }
+        }
+    }
+
+    // Close ship upgrade UI with G
+    if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
+        if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+            std::cout << "Closing Ship Upgrade UI" << std::endl;
+            screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+        }
+    }
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

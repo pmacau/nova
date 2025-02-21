@@ -11,6 +11,7 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	registry(reg)
 {
 	screen_state_entity = registry.create();
+	screen_entity = registry.view<ScreenState>().front();
 }
 
 
@@ -392,9 +393,7 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-// Render our game world
-// http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw()
+void RenderSystem::renderGamePlay()
 {
 	// Getting size of window
 	int w, h;
@@ -426,6 +425,8 @@ void RenderSystem::draw()
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
 	gl_has_errors();
+
+
 
 	mat3 projection_2D = createProjectionMatrix();
 
@@ -507,6 +508,69 @@ void RenderSystem::draw()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+void RenderSystem::renderShipUI() 
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.00001, 10);
+
+	// black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+
+	// render ship
+	auto ship = registry.view<Ship, Motion, RenderRequest>().front();
+    auto& motion = registry.get<Motion>(ship);
+    glm::vec2 originalPosition = motion.position;
+    motion.position = glm::vec2(w / 2.0f, h / 2.0f);
+
+    // Render the ship
+	std::cout << "before render ship" << std::endl;
+    drawTexturedMesh(ship, createProjectionMatrix());
+	std::cout << "after render ship" << std::endl;
+
+
+    // Restore the ship's original position
+    motion.position = originalPosition;
+
+	drawToScreen();
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
+}
+
+// Render our game world
+// http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
+void RenderSystem::draw()
+{
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	// auto& screen_state = registry.get<ScreenState>(screens.front());
+
+    switch (screen_state.current_screen) {
+		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
+            renderShipUI();
+            break;
+        case ScreenState::ScreenType::GAMEPLAY:
+            renderGamePlay();
+            break;
+    }
 }
 
 mat3 RenderSystem::createProjectionMatrix()
