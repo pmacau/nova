@@ -305,8 +305,8 @@ void WorldSystem::restart_game() {
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship>);
 	registry.destroy(motions.begin(), motions.end());
 	createMob(registry, vec2(WINDOW_WIDTH_PX / 3, WINDOW_WIDTH_PX / 3));
-	createRockType1(registry, vec2(WINDOW_WIDTH_PX / 4, WINDOW_WIDTH_PX / 4));
-	createTreeType1(registry, vec2(WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 4));
+	/*createRockType1(registry, vec2(WINDOW_WIDTH_PX / 4, WINDOW_WIDTH_PX / 4));
+	createTreeType1(registry, vec2(WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 4));*/
 	// Reset player health
 	auto player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;

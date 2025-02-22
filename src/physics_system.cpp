@@ -75,7 +75,6 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     vec2 direction = getDirection(e1, e2); // gets e2 to e1 
     float repellentMagnitude = 0.15f; 
     m1.acceleration += direction * repellentMagnitude; 
-    //m2.acceleration += -direction * repellentMagnitude;
 }
 
 

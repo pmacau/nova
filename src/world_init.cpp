@@ -79,60 +79,60 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	return entity; 
 }
 
-entt::entity createRockType1(entt::registry& registry, vec2 position) {
-	auto entity = registry.create();
-	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 5.f, 5.f };
-	sprite.sheet_dims = { 144.f, 135.f };
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 54.f;
-	hitBox.shape.rect.height = 54.f;
-	/*hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = 12.f;*/
-	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-	motion.position = position;
-	motion.scale = vec2(54, 54);
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	auto& obstacle = registry.emplace<Obstacle>(entity);
-	obstacle.isPassable = false;
+//entt::entity createRockType1(entt::registry& registry, vec2 position) {
+//	auto entity = registry.create();
+//	auto& sprite = registry.emplace<Sprite>(entity);
+//	sprite.dims = { 5.f, 5.f };
+//	sprite.sheet_dims = { 144.f, 135.f };
+//	auto& hitBox = registry.emplace<HitBox>(entity);
+//	hitBox.type = HitBoxType::HITBOX_RECT;
+//	hitBox.shape.rect.width = 54.f;
+//	hitBox.shape.rect.height = 54.f;
+//	/*hitBox.type = HitBoxType::HITBOX_CIRCLE;
+//	hitBox.shape.circle.radius = 12.f;*/
+//	auto& motion = registry.emplace<Motion>(entity);
+//	motion.angle = 0.f;
+//	motion.velocity = { 0, 0 };
+//	motion.position = position;
+//	motion.scale = vec2(54, 54);
+//	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+//	auto& obstacle = registry.emplace<Obstacle>(entity);
+//	obstacle.isPassable = false;
+//
+//	renderRequest.used_texture = TEXTURE_ASSET_ID::STONE_BLOCK_1;
+//	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+//	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+//	return entity;
+//
+//}
 
-	renderRequest.used_texture = TEXTURE_ASSET_ID::STONE_BLOCK_1;
-	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-	return entity;
 
-}
-
-
-entt::entity createTreeType1(entt::registry& registry, vec2 position) {
-	auto entity = registry.create();
-	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 80.f, 80.f };
-	sprite.sheet_dims = { 800.f, 944.f };
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	/*hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 54.f;
-	hitBox.shape.rect.height = 54.f;*/
-	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = 115.f;
-	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-	motion.position = position;
-	motion.scale = vec2(250, 250);
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	auto& obstacle = registry.emplace<Obstacle>(entity);
-	obstacle.isPassable = false;
-
-	renderRequest.used_texture = TEXTURE_ASSET_ID::TREE;
-	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-	return entity;
-
-}
+//entt::entity createTreeType1(entt::registry& registry, vec2 position) {
+//	auto entity = registry.create();
+//	auto& sprite = registry.emplace<Sprite>(entity);
+//	sprite.dims = { 80.f, 80.f };
+//	sprite.sheet_dims = { 800.f, 944.f };
+//	auto& hitBox = registry.emplace<HitBox>(entity);
+//	/*hitBox.type = HitBoxType::HITBOX_RECT;
+//	hitBox.shape.rect.width = 54.f;
+//	hitBox.shape.rect.height = 54.f;*/
+//	hitBox.type = HitBoxType::HITBOX_CIRCLE;
+//	hitBox.shape.circle.radius = 115.f;
+//	auto& motion = registry.emplace<Motion>(entity);
+//	motion.angle = 0.f;
+//	motion.velocity = { 0, 0 };
+//	motion.position = position;
+//	motion.scale = vec2(250, 250);
+//	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+//	auto& obstacle = registry.emplace<Obstacle>(entity);
+//	obstacle.isPassable = false;
+//
+//	renderRequest.used_texture = TEXTURE_ASSET_ID::TREE;
+//	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+//	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+//	return entity;
+//
+//}
 
 entt::entity createShip(entt::registry& registry, vec2 position)
 {
