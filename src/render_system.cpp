@@ -222,7 +222,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 
 	Transform camera_transform;
 	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
-	camera_transform.translate(- camera.offset);
+	// Only apply camera transform for non-UI elements
+	if (!registry.any_of<FixedUI>(entity)) {
+		camera_transform.translate(-camera.offset);
+	}
 
 	assert(registry.any_of<RenderRequest>(entity));
 	const auto& render_request = registry.get<RenderRequest>(entity);
@@ -430,6 +433,21 @@ void RenderSystem::draw()
 	gl_has_errors();
 
 	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	std::vector<entt::entity> UIRenderEntities;
+	auto ui = registry.view<UI, Motion, RenderRequest>();
+	for (auto entity : ui) {
+		UIRenderEntities.push_back(entity);
+	}
+	for (auto entity : UIRenderEntities) {
+		if (registry.any_of<FixedUI>(entity)) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+		else {
+			drawTexturedMesh(entity, projection_2D);
+		}
+	}
 
 	// render projectiles
 	std::vector<entt::entity> ProjectileRenderEntities;
@@ -490,6 +508,20 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
+  // items
+	std::vector<entt::entity> ItemRenderEntities;
+	auto items = registry.view<Item, Motion, RenderRequest>();
+
+	for (auto entity : items) {
+		if (!registry.any_of<FixedUI>(entity)) {
+			ItemRenderEntities.push_back(entity);
+		}
+	}
+
+	for (auto entity : ItemRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+	
 	// Draw background last
 	// drawBackground(projection_2D);
 	// Render huge background texture
@@ -509,6 +541,33 @@ void RenderSystem::draw()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+mat3 RenderSystem::createUIProjectionMatrix() {
+	/*float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+
+	float near_plane = -1.0f;
+	float far_plane = 1.0f;
+
+	return glm::ortho(left, right, bottom, top, near_plane, far_plane);*/
+	float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left);
+	float ty = -(top + bottom) / (top - bottom);
+
+	return {
+		{ sx, 0.f, 0.f},
+		{0.f,  sy, 0.f},
+		{ tx,  ty, 1.f}
+	};
 }
 
 mat3 RenderSystem::createProjectionMatrix()

@@ -1,4 +1,5 @@
 #include "physics_system.hpp"
+#include "ui_system.hpp"
 
 PhysicsSystem::PhysicsSystem(entt::registry& reg):
 	registry(reg)
@@ -64,6 +65,12 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
 			motion.velocity = registry.get<MarkedCollision>(entity).velocity;
         } 
         motion.position += motion.velocity * elapsed_s;
+        if (registry.all_of<Player>(entity)) {
+            UISystem::equipItem(registry, motion);
+        }
+        if (registry.all_of<Mob>(entity)) {
+            UISystem::updateMobHealthBar(registry, entity, false);
+        }
     }
 }
 
@@ -77,8 +84,6 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     float repellentMagnitude = 0.15f; 
     m1.acceleration += direction * repellentMagnitude; 
 }
-
-
 
 // knocks back e1 in respect to e2's position
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {

@@ -40,13 +40,16 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
-		textures_path("ship/Ship6.png"),		
+		textures_path("ship/Ship6.png"),
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
-        textures_path("mob/demoMob.png"),
+		textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
-		textures_path("projectiles/gold_bubble.png")
-
+		textures_path("projectiles/gold_bubble.png"),
+		textures_path("healthbar/green.png"), 
+		textures_path("healthbar/red.png"), 
+		textures_path("items/potion.png"), 
+		textures_path("inventory/inventory-slot.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -89,6 +92,7 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
+	mat3 createUIProjectionMatrix();
 
 	entt::entity get_screen_state_entity() { return screen_state_entity; }
 
