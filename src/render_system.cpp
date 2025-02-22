@@ -488,8 +488,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// Draw background last (?????)
-	// drawBackground(projection_2D);
+	// Draw background last
 	// Render huge background texture
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
