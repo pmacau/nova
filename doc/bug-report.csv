@@ -1,0 +1,2 @@
+#, Reported Date, Reported By, Severity [P0-P5], Status, Assigned To, Short Description, Expected Results, Actual Results, Steps to Reproduce
+1, 02-21-2025, Philip, P5, Open, Philip, An entity can become lodged in a tight space between two barriers if pushed with enough force, Entity cannot fit into the tight corridor, Entity gets stuck in the corridor, Get knocked back by an enemy with a tight gap nearby (impossible given current obstacle landscape in the map; only seen in a debug setting)
