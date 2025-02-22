@@ -146,15 +146,22 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 13, 35 * 7);
+	motion.scale = vec2(19 * 14, 35 * 4.5);
+	auto& hitBox = registry.emplace<HitBox>(entity);
+	hitBox.type = HitBoxType::HITBOX_RECT;
+	hitBox.shape.rect.width = 19.f * 11.f;
+	hitBox.shape.rect.height = 35.f * 3.2;
+
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
 
 	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0.0f, 0.0f};
     // sprite.dims = {19 * 15, 35 * 7};
-	sprite.dims = {19 * 22, 35 * 7};
-    sprite.sheet_dims = position;
+	sprite.dims = {128, 75};
+    sprite.sheet_dims = { 128, 75 };
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP;

@@ -42,7 +42,7 @@ void CollisionSystem::step(float elapsed_ms)
 					auto& mob_ref = registry.get<Mob>(mob);
 					if (mob_ref.hit_time <= 0) {
 						//std::cout << "COLLISION" << std::endl;
-						//player_ref.health -= MOB_DAMAGE; 
+						player_ref.health -= MOB_DAMAGE; 
 						physics.knockback(entity, mob, 400);
 						if (player_ref.health <= 0) {
 							world.player_respawn();
@@ -66,7 +66,8 @@ void CollisionSystem::step(float elapsed_ms)
 		}
 		
 		for (auto obstacle : obstacles) {
-			handleBlock(entity, obstacle, registry);
+			auto& o = registry.get<Obstacle>(obstacle); 
+			if (!o.isPassable) handleBlock(entity, obstacle, registry);
 		}
 
 	}
@@ -166,12 +167,12 @@ void CollisionSystem::step(float elapsed_ms)
 
 				// if h1 is the rectangle (e.g. the circle is h2), reverse the direction.
 				if (h1.type == HitBoxType::HITBOX_RECT) {
-					mtv = -mtv;
+					mtv = -mtv * 1.02f;
 				}
 			}
 			else {
 				// if centers are with rectangle edge, choose arbitrary direction.
-				mtv = glm::vec2(1, 0) * penetration;
+				mtv = glm::vec2(1, 0) * (penetration + 0.05f);
 			}
 		} 
 		
@@ -185,8 +186,11 @@ void CollisionSystem::step(float elapsed_ms)
 		vec2 velocity_Component = dot_product * normal * 1.5f;
 		/*std::cout << "X " << m1.velocity.x << "Y " << m1.velocity.y << std::endl;
 		std::cout << "X " << m2.velocity.x << "Y " << m2.velocity.y << std::endl;*/
-		auto& mark = registry.emplace<MarkedCollision>(e1);
-		mark.velocity = m1.velocity - velocity_Component;
+		if (!registry.all_of<MarkedCollision>(e1)) {
+			auto& mark = registry.emplace<MarkedCollision>(e1);
+			mark.velocity = m1.velocity - velocity_Component;
+		}
+		
 	}
 
 
