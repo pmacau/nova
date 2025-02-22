@@ -19,6 +19,12 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);
 
+
+// terrain
+// entt::entity createRockType1(entt::registry& registry, vec2 position);
+
+// entt::entity createTreeType1(entt::registry& registry, vec2 position);
+
 // camera
 entt::entity createCamera(entt::registry& registry, entt::entity target);
 

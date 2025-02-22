@@ -341,7 +341,8 @@ void RenderSystem::drawToScreen()
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, w, h);
-	glDepthRange(0, 10);
+	// glDepthRange(0, 10);
+	glDepthRange(0.0, 1.0);
 	glClearColor(1.f, 0, 0, 1.0);
 	glClearDepth(1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -349,9 +350,9 @@ void RenderSystem::drawToScreen()
 	// Enabling alpha channel for textures
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// glDisable(GL_DEPTH_TEST); // Debug: disable depth test
+	glDisable(GL_DEPTH_TEST); // Debug: disable depth test
 
-	glEnable(GL_DEPTH_TEST);
+	// glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -407,7 +408,8 @@ void RenderSystem::draw()
 	gl_has_errors();
 	// clear backbuffer
 	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
+	// glDepthRange(0.00001, 10);
+	glDepthRange(0.0, 1.0);
 	// white background
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f);
@@ -445,6 +447,18 @@ void RenderSystem::draw()
 		else {
 			drawTexturedMesh(entity, projection_2D);
 		}
+	}
+
+	// render projectiles
+	std::vector<entt::entity> ProjectileRenderEntities;
+	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
+
+	for (auto entity : projectiles) {
+		ProjectileRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : ProjectileRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
 	}
 
 	// render players and mobs
@@ -494,18 +508,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// render projectiles
-	std::vector<entt::entity> ProjectileRenderEntities;
-	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
-
-	for (auto entity : projectiles) {
-		ProjectileRenderEntities.push_back(entity);
-	}
-
-	for (auto entity : ProjectileRenderEntities) {
-		drawTexturedMesh(entity, projection_2D);
-	}
-
+  // items
 	std::vector<entt::entity> ItemRenderEntities;
 	auto items = registry.view<Item, Motion, RenderRequest>();
 
@@ -519,8 +522,7 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
-
-	// Draw background last (?????)
+	// Draw background last
 	// drawBackground(projection_2D);
 	// Render huge background texture
 	auto background = registry.view<Background>().front();

@@ -15,10 +15,10 @@ enum HitBoxType {
 };
 
 struct InputState {
-	bool up;
-	bool down;
-	bool left;
-	bool right;
+	bool up = false;
+	bool down = false;
+	bool left = false;
+	bool right = false;
 };
 
 struct HitBox {
@@ -32,6 +32,14 @@ struct HitBox {
 			float height;
 		} rect;
 	} shape;
+};
+
+struct Obstacle {
+	bool isPassable; 
+	bool isSlow; 
+	bool isDamage;
+	float slowFactor; 
+	float damage;
 };
 
 
@@ -66,6 +74,10 @@ struct Motion {
 // Invader
 struct Invader {
 	int health;
+};
+
+struct MarkedCollision {
+	glm::vec2 velocity;
 };
 
 // Projectile
@@ -224,6 +236,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTHBAR_RED,
 	POTION,
 	INVENTORY_SLOT,
+	//STONE_BLOCK_1,
+	//TREE,
 	TEXTURE_COUNT
 };
 
