@@ -17,9 +17,9 @@ public:
 
     void step(float elapsed_ms);
 
-    std::set<entt::entity> collisionMarked; 
+    std::unordered_map<entt::entity, glm::vec2> collisionMarked; 
 
-
+   
 private:
     entt::registry& registry;
     PhysicsSystem& physics; 

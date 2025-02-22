@@ -58,19 +58,13 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     auto players = registry.view<Motion>();
     for (auto entity : players) {
         auto& motion = registry.get<Motion>(entity);
-        motion.formerPosition = motion.position; // incase of redirect. 
         motion.velocity += motion.acceleration; // acceleration change
+        if (registry.all_of<MarkedCollision>(entity)) {
+			motion.velocity = registry.get<MarkedCollision>(entity).velocity;
+        } 
         motion.position += motion.velocity * elapsed_s;
     }
 }
-
-// 
-// set accelerations based off positions, if very close then very high repellent. 
-   /*std::cout << m1.position.x - m2.position.x << std::endl;
-   std::cout << m1.position.y - m2.position.y << std::endl;*/
-   //direction = normalize(direction);
-// float repellentMagnitude = min(1 / exp(-glm::length(direction)), 1000.f);
-//
 
 
 // Should move both away. 
@@ -84,12 +78,7 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     //m2.acceleration += -direction * repellentMagnitude;
 }
 
-// blocks e1 by offsetting e1s velocity with e2's normal in respect to e1, I implemented this because even
-// if it seems a bit too simple it can be used to block entities differently in the future potentially. 
-void PhysicsSystem::block(Motion& motion) {
-    motion.position = motion.formerPosition;
-    //motion.velocity = { 0, 0 };
-}
+
 
 // knocks back e1 in respect to e2's position
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {

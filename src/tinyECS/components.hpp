@@ -61,12 +61,16 @@ struct Motion {
 	vec2  velocity = { 0, 0 };
 	vec2  scale    = { 10, 10 };
 	vec2 acceleration = { 0, 0 }; 
-	vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for map obstacles
+	//vec2 formerPosition = {std::numeric_limits<float>::quiet_NaN(), std::numeric_limits<float>::quiet_NaN()}; // used for map obstacles
 };
 
 // Invader
 struct Invader {
 	int health;
+};
+
+struct MarkedCollision {
+	glm::vec2 velocity;
 };
 
 // Projectile

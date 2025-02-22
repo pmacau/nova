@@ -21,8 +21,6 @@ public:
     void block(Motion& motion);
 private:
     entt::registry& registry;
-    
-    void checkMovement();
     void updateVelocity(float elapsed_s); 
     void stepAcceleration(float elapsed_s);
     vec2 getDirection(entt::entity e1, entt::entity e2); 

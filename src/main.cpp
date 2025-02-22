@@ -81,8 +81,9 @@ int main()
 
 		
 		world_system.step(elapsed_ms);
-		collision_system.step(elapsed_ms);
-		physics_system.step(elapsed_ms);
+		
+		physics_system.step(elapsed_ms); // binds
+		collision_system.step(elapsed_ms); // 
 		//collision_system.step(elapsed_ms);
 		renderer_system.draw();
 		ai_system.step(elapsed_ms); // AI system should be before physics system
