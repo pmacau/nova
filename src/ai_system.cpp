@@ -3,7 +3,7 @@
 #include "world_init.hpp"
 #include "world_system.hpp"
 #include "tinyECS/components.hpp"
-
+	
 AISystem::AISystem(entt::registry& reg) :
 	registry(reg)
 {

@@ -222,7 +222,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 
 	Transform camera_transform;
 	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
-	camera_transform.translate(- camera.offset);
+	// Only apply camera transform for non-UI elements
+	if (!registry.any_of<FixedUI>(entity)) {
+		camera_transform.translate(-camera.offset);
+	}
 
 	assert(registry.any_of<RenderRequest>(entity));
 	const auto& render_request = registry.get<RenderRequest>(entity);
@@ -338,7 +341,8 @@ void RenderSystem::drawToScreen()
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, w, h);
-	glDepthRange(0, 10);
+	// glDepthRange(0, 10);
+	glDepthRange(0.0, 1.0);
 	glClearColor(1.f, 0, 0, 1.0);
 	glClearDepth(1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -346,9 +350,9 @@ void RenderSystem::drawToScreen()
 	// Enabling alpha channel for textures
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// glDisable(GL_DEPTH_TEST); // Debug: disable depth test
+	glDisable(GL_DEPTH_TEST); // Debug: disable depth test
 
-	glEnable(GL_DEPTH_TEST);
+	// glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -404,7 +408,8 @@ void RenderSystem::draw()
 	gl_has_errors();
 	// clear backbuffer
 	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
+	// glDepthRange(0.00001, 10);
+	glDepthRange(0.0, 1.0);
 	// white background
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f);
@@ -428,6 +433,33 @@ void RenderSystem::draw()
 	gl_has_errors();
 
 	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	std::vector<entt::entity> UIRenderEntities;
+	auto ui = registry.view<UI, Motion, RenderRequest>();
+	for (auto entity : ui) {
+		UIRenderEntities.push_back(entity);
+	}
+	for (auto entity : UIRenderEntities) {
+		if (registry.any_of<FixedUI>(entity)) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+		else {
+			drawTexturedMesh(entity, projection_2D);
+		}
+	}
+
+	// render projectiles
+	std::vector<entt::entity> ProjectileRenderEntities;
+	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
+
+	for (auto entity : projectiles) {
+		ProjectileRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : ProjectileRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
 
 	// render players and mobs
 	std::vector<entt::entity> PlayerMobsRenderEntities;
@@ -476,19 +508,20 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// render projectiles
-	std::vector<entt::entity> ProjectileRenderEntities;
-	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
+  // items
+	std::vector<entt::entity> ItemRenderEntities;
+	auto items = registry.view<Item, Motion, RenderRequest>();
 
-	for (auto entity : projectiles) {
-		ProjectileRenderEntities.push_back(entity);
+	for (auto entity : items) {
+		if (!registry.any_of<FixedUI>(entity)) {
+			ItemRenderEntities.push_back(entity);
+		}
 	}
 
-	for (auto entity : ProjectileRenderEntities) {
+	for (auto entity : ItemRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// Draw background last
 	// Render huge background texture
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
@@ -506,6 +539,33 @@ void RenderSystem::draw()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+mat3 RenderSystem::createUIProjectionMatrix() {
+	/*float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+
+	float near_plane = -1.0f;
+	float far_plane = 1.0f;
+
+	return glm::ortho(left, right, bottom, top, near_plane, far_plane);*/
+	float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left);
+	float ty = -(top + bottom) / (top - bottom);
+
+	return {
+		{ sx, 0.f, 0.f},
+		{0.f,  sy, 0.f},
+		{ tx,  ty, 1.f}
+	};
 }
 
 mat3 RenderSystem::createProjectionMatrix()
