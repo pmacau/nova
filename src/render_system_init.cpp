@@ -103,6 +103,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 
 	// Debug: depth buffer
 	glEnable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); // Closer objects appear in front
 	glClearDepth(1.0f);
 
