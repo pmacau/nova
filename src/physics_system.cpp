@@ -47,7 +47,7 @@ void PhysicsSystem::stepAcceleration(float elapsed_s) {
         motion.acceleration *= dampingFactor;
 
         // if magnitude is small enough 0 it out
-        if (glm::length(motion.acceleration) < 0.02f) {
+        if (glm::length(motion.acceleration) < 2.f) {
             motion.acceleration = { 0.0f, 0.0f };
         }
     }
