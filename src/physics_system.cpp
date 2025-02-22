@@ -8,41 +8,25 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 
 
 
-//void PhysicsSystem::updatePlayerVelocity(InputState i) {
-//    auto& motion = registry.get<Motion>(registry.view<Player>().front());
-//
-//    glm::vec2 inputVelocity{ 0.0f, 0.0f };
-//    std::cout << i.up << std::endl;
-//    std::cout << i.down << std::endl;
-//    if (!i.up && i.down) {
-//		std::cout << "DOWN" << std::endl;
-//		inputVelocity.y -= PLAYER_SPEED;
-//    }
-//    if (!i.down && i.up) {
-//		std::cout << "UP" << std::endl;
-//		inputVelocity.y += PLAYER_SPEED;
-//    }
-//    if (i.left && !i.right) {
-//        inputVelocity.x -= PLAYER_SPEED;
-//    }
-//    if (i.right && !i.left) {
-//		inputVelocity.x += PLAYER_SPEED;
-//    }
-//    if ((i.up || i.down) &&
-//        (i.left || i.right)) {
-//        inputVelocity = PLAYER_SPEED * glm::normalize(inputVelocity);
-//    }
-//    vec2 proposedVelcoity = motion.velocity + inputVelocity;
-//	if (glm::length(proposedVelcoity) <= PLAYER_SPEED) {
-//        std::cout << "upfad" << std::endl;
-//		motion.velocity = proposedVelcoity;
-//	} 
-//
-//	if (glm::length(inputVelocity) == 0) {
-//		motion.velocity = {0.0f, 0.0f };
-//	}
-//	// no update if else. 
-//}
+void PhysicsSystem::updatePlayerVelocity(InputState i) {
+    auto& motion = registry.get<Motion>(registry.view<Player>().front());
+	vec2 proposedVelocity = { 0.0f, 0.0f };
+    proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
+    proposedVelocity.x = (!i.left) ? (i.right ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
+
+    if (i.up && i.down)  proposedVelocity.y = 0.0f;
+    else if (i.left && i.right) proposedVelocity.x = 0.0f;
+    else if (i.left && i.up)    proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
+    else if (i.left && i.down)  proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
+    else if (i.right && i.up)    proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
+    else if (i.right && i.down)  proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+
+	if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
+		motion.velocity = proposedVelocity;
+	} 
+
+	
+}
 
 // dash  
 
@@ -63,7 +47,7 @@ void PhysicsSystem::stepAcceleration(float elapsed_s) {
         motion.acceleration *= dampingFactor;
 
         // if magnitude is small enough 0 it out
-        if (glm::length(motion.acceleration) < 0.02f) {
+        if (glm::length(motion.acceleration) < 2.f) {
             motion.acceleration = { 0.0f, 0.0f };
         }
     }
@@ -74,19 +58,14 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     auto players = registry.view<Motion>();
     for (auto entity : players) {
         auto& motion = registry.get<Motion>(entity);
-        motion.formerPosition = motion.position; // incase of redirect. 
+        motion.formerPosition = motion.position;
         motion.velocity += motion.acceleration; // acceleration change
+        if (registry.all_of<MarkedCollision>(entity)) {
+			motion.velocity = registry.get<MarkedCollision>(entity).velocity;
+        } 
         motion.position += motion.velocity * elapsed_s;
     }
 }
-
-// 
-// set accelerations based off positions, if very close then very high repellent. 
-   /*std::cout << m1.position.x - m2.position.x << std::endl;
-   std::cout << m1.position.y - m2.position.y << std::endl;*/
-   //direction = normalize(direction);
-// float repellentMagnitude = min(1 / exp(-glm::length(direction)), 1000.f);
-//
 
 
 // Should move both away. 
@@ -97,10 +76,9 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     vec2 direction = getDirection(e1, e2); // gets e2 to e1 
     float repellentMagnitude = 0.15f; 
     m1.acceleration += direction * repellentMagnitude; 
-    m2.acceleration += -direction * repellentMagnitude;
-
-
 }
+
+
 
 // knocks back e1 in respect to e2's position
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {

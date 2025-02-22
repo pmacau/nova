@@ -46,6 +46,7 @@ class RenderSystem {
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png")
+
 	};
 
 	std::array<GLuint, effect_count> effects;
