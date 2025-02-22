@@ -1,4 +1,5 @@
 #include "physics_system.hpp"
+#include "ui_system.hpp"
 
 PhysicsSystem::PhysicsSystem(entt::registry& reg):
 	registry(reg)
@@ -77,6 +78,9 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
         motion.formerPosition = motion.position; // incase of redirect. 
         motion.velocity += motion.acceleration; // acceleration change
         motion.position += motion.velocity * elapsed_s;
+        if (registry.all_of<Player>(entity)) {
+            UISystem::equipItem(registry, motion);
+        }
     }
 }
 

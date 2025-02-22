@@ -1,4 +1,5 @@
 #include "collision_system.hpp"
+#include "ui_system.hpp"
 
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
@@ -14,6 +15,7 @@ void CollisionSystem::step(float elapsed_ms)
 {
 	// TODO: likely refactor this if our collision system becomes more complicated which it will if we decide we want obstacles to not be considered entities 
 	// between entities, also doesn't include projectiles yet. Also maybe implement a k-d tree to detect valid candidates.
+	std::vector<entt::entity> destroy_entities;
 	float elapsed_s = elapsed_ms / 1000.f;
 	// All mobs
 	auto mobs = registry.view<Mob>();
@@ -41,6 +43,7 @@ void CollisionSystem::step(float elapsed_ms)
 					if (mob_ref.hit_time <= 0) {
 						std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE; // FOR DEBUGGING
+						UISystem::updatePlayerHealthBar(registry, player_ref.health);
 						physics.knockback(entity, mob, 400); 
 
 						// ScreenState &screen = registry.screenStates.components[0];
@@ -62,14 +65,34 @@ void CollisionSystem::step(float elapsed_ms)
 					std::cout << "SUPRESS" << std::endl;
 					physics.suppress(entity, mob);
 				}
-				
-				
-				
-
-
 			}
 		}
-
+		if (registry.all_of<Projectile>(entity)) {
+			auto& projectile = registry.get<Projectile>(entity);
+			for (auto mob_entity : mobs) {
+				auto& mob = registry.get<Mob>(mob_entity);
+				if (isContact(entity, mob_entity, registry, 0.f)) {
+					registry.destroy(entity);
+					mob.health -= projectile.damage;
+					UISystem::updateMobHealthBar(registry, mob_entity);
+					if (mob.health <= 0) {
+						for (auto healthbar_entity : registry.view<MobHealthBar>()) {
+							auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);
+							std::cout << (healthbar.entity == mob_entity) << "\n";
+							if (healthbar.entity == mob_entity) {
+								destroy_entities.push_back(healthbar_entity);
+								break;
+							}
+						}
+						UISystem::renderItem(registry, mob_entity);
+						destroy_entities.push_back(mob_entity);
+					}
+				}
+			}
+		}
+	}
+	for (auto entity : destroy_entities) {
+		registry.destroy(entity);
 	}
 }
 

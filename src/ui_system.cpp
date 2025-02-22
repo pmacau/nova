@@ -1,0 +1,126 @@
+#include "tinyECS/components.hpp"
+#include "ui_system.hpp"
+#include <iostream>
+
+void UISystem::updateMobHealthBarMotion(entt::registry& registry, vec2 direction) {
+	for (auto entity : registry.view<MobHealthBar>()) {
+		auto& motion = registry.get<Motion>(entity);
+		motion.velocity = direction;
+	}
+}
+
+void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
+	for (auto entity : registry.view<PlayerHealthBar>()) {
+		auto& playerhealth_motion = registry.get<Motion>(entity);
+		float left = playerhealth_motion.position.x - playerhealth_motion.scale.x / 2.f;
+		playerhealth_motion.scale = vec2({ health * (250.f / PLAYER_HEALTH), 15.f });
+		playerhealth_motion.position.x = left + playerhealth_motion.scale.x / 2.f;
+		break; 
+	}
+}
+
+void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_entity) {
+	auto& mob = registry.get<Mob>(mob_entity);
+	auto& mob_motion = registry.get<Motion>(mob_entity);
+	for (auto entity : registry.view<MobHealthBar>()) {
+		auto& healthbar = registry.get<MobHealthBar>(entity);
+		if (healthbar.entity == mob_entity) {
+			auto& mobhealth_motion = registry.get<Motion>(entity);
+			float left = mobhealth_motion.position.x - abs(mobhealth_motion.scale.x) / 2.f;
+			mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / MOB_HEALTH, 8.f });
+			mobhealth_motion.position.x = left + abs(mobhealth_motion.scale.x) / 2.f;
+			break;
+		}
+	}
+}
+
+void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
+	if (registry.all_of<Drop>(mob_entity)) {
+		auto& drop = registry.get<Drop>(mob_entity);
+		auto entity = registry.create();
+		if (drop.item_type == ITEM_TYPE::POTION) {
+			auto& item = registry.emplace<Item>(entity);
+			item.item_type = drop.item_type;
+			auto& potion = registry.emplace<Potion>(entity);
+			potion.heal = 20;
+			auto& mob_motion = registry.get<Motion>(mob_entity);
+			auto& motion = registry.emplace<Motion>(entity);
+			motion.angle = 0.f;
+			motion.position = mob_motion.position;
+			motion.scale = { 265.f / (265.f + 401.f) * 40, 401.f / (265.f + 401.f) * 40 };
+			motion.velocity = { 0.f, 0.f };
+			auto& sprite = registry.emplace<Sprite>(entity);
+			sprite.coord = { 56.f / 401.f, 124.f / 265.f };
+			sprite.dims = { 265.f, 401.f };
+			sprite.sheet_dims = { 512.f, 508.f };
+			auto& render_request = registry.emplace<RenderRequest>(entity);
+			render_request.used_texture = TEXTURE_ASSET_ID::POTION;
+			render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+			render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+		}
+	}
+}
+
+void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
+	auto& item = registry.get<Item>(entity);
+	if (item.item_type == ITEM_TYPE::POTION) {
+		auto& potion = registry.get<Potion>(entity);
+		for (auto player_entity : registry.view<Player>()) {
+			auto& player = registry.get<Player>(player_entity);
+			player.health = min(player.health + potion.heal, PLAYER_HEALTH);
+			updatePlayerHealthBar(registry, player.health);
+			auto screens = registry.view<ScreenState>();
+			auto& screen = registry.get<ScreenState>(screens.front());
+			if (screens.size() > 0) {
+				screen.darken_screen_factor = std::max(screen.darken_screen_factor - 0.33f, 0.0f);
+			}
+			break;
+		}
+	}
+}
+
+
+bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
+		std::cout << mouse_pos_x << "\n";
+		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
+		if (i >= 0 && i < inventory.slots.size()) {
+			auto& inventory_entity = inventory.slots[i];
+			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
+			if (inventory_slot.hasItem) {
+				useItem(registry, inventory_slot.item);
+				inventory_slot.hasItem = false;
+				registry.destroy(inventory_slot.item);
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	for (int i = 0; i < inventory.slots.size(); i++) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+		if (!inventory_slot.hasItem) {
+			inventory_slot.hasItem = true;
+			inventory_slot.item = item_entity;
+			registry.emplace<UI>(item_entity);
+			registry.emplace<FixedUI>(item_entity);
+			auto& motion = registry.get<Motion>(item_entity);
+			motion.position = { 50.f + 45.f * i, 50.f };
+			break;
+		}
+	}
+}
+
+void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
+	for (auto entity : registry.view<Motion, Item>()) {
+		auto& motion = registry.get<Motion>(entity);
+		if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
+			addToInventory(registry, entity);
+			break;
+		}
+	}
+}

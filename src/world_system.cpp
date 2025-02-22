@@ -3,6 +3,7 @@
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
 #include "util/file_loader.hpp"
+#include "ui_system.hpp"
 
 // stlib
 #include <cassert>
@@ -316,6 +317,8 @@ void WorldSystem::player_respawn() {
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
 	player_motion.formerPosition = vec2(spawnX, spawnY);
+
+	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
 
@@ -341,7 +344,8 @@ void WorldSystem::restart_game() {
 
 	createMob(registry, vec2(spawnX - (50 * 16.f), spawnY));
 	player_respawn();
-	createPlayerHealthBar(registry, vec2(spawnX, spawnY));
+	createPlayerHealthBar(registry, {spawnX, spawnY});
+	createInventory(registry);
 
 	// reset the screen
 	auto screens = registry.view<ScreenState>();
@@ -424,7 +428,9 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 
 			vec2 velocity = direction * PROJECTILE_SPEED;
 
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			if (!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+				createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			}
 			
 		}
 	
