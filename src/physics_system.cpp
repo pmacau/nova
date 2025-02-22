@@ -58,6 +58,7 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     auto players = registry.view<Motion>();
     for (auto entity : players) {
         auto& motion = registry.get<Motion>(entity);
+        motion.formerPosition = motion.position;
         motion.velocity += motion.acceleration; // acceleration change
         if (registry.all_of<MarkedCollision>(entity)) {
 			motion.velocity = registry.get<MarkedCollision>(entity).velocity;
