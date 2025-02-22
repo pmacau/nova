@@ -2,13 +2,6 @@
 #include "ui_system.hpp"
 #include <iostream>
 
-void UISystem::updateMobHealthBarMotion(entt::registry& registry, vec2 direction) {
-	for (auto entity : registry.view<MobHealthBar>()) {
-		auto& motion = registry.get<Motion>(entity);
-		motion.velocity = direction;
-	}
-}
-
 void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
 		auto& playerhealth_motion = registry.get<Motion>(entity);
@@ -19,16 +12,20 @@ void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 	}
 }
 
-void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_entity) {
+void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_entity, bool hit) {
 	auto& mob = registry.get<Mob>(mob_entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	for (auto entity : registry.view<MobHealthBar>()) {
 		auto& healthbar = registry.get<MobHealthBar>(entity);
 		if (healthbar.entity == mob_entity) {
 			auto& mobhealth_motion = registry.get<Motion>(entity);
-			float left = mobhealth_motion.position.x - abs(mobhealth_motion.scale.x) / 2.f;
-			mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / MOB_HEALTH, 8.f });
-			mobhealth_motion.position.x = left + abs(mobhealth_motion.scale.x) / 2.f;
+			if (hit) {
+				float left_adjust = abs(mobhealth_motion.scale.x) / 2.f;
+				mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / MOB_HEALTH, 8.f });
+				healthbar.left_adjust = left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
+			}
+			mobhealth_motion.position.x = mob_motion.position.x - healthbar.left_adjust;
+			mobhealth_motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2.f - 15.f;
 			break;
 		}
 	}

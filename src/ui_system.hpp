@@ -3,9 +3,8 @@
 
 class UISystem {
 	public:
-		static void updateMobHealthBarMotion(entt::registry&, vec2 direction);
 		static void updatePlayerHealthBar(entt::registry& registry, int health);
-		static void updateMobHealthBar(entt::registry& registry, entt::entity& mob_entity);
+		static void updateMobHealthBar(entt::registry& registry, entt::entity& mob_entity, bool hit);
 		static void renderItem(entt::registry& registry, entt::entity& mob_entity);
 		static void equipItem(entt::registry& registry, Motion& player_motion);
 		static void addToInventory(entt::registry& registry, entt::entity& item_entity);

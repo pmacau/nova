@@ -109,6 +109,7 @@ struct PlayerHealthBar
 struct MobHealthBar
 {
 	entt::entity entity;
+	float left_adjust = 0.f;
 };
 
 enum class ITEM_TYPE {
