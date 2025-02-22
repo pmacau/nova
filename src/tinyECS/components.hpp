@@ -15,10 +15,10 @@ enum HitBoxType {
 };
 
 struct InputState {
-	bool up;
-	bool down;
-	bool left;
-	bool right;
+	bool up = false;
+	bool down = false;
+	bool left = false;
+	bool right = false;
 };
 
 struct HitBox {
@@ -32,6 +32,14 @@ struct HitBox {
 			float height;
 		} rect;
 	} shape;
+};
+
+struct Obstacle {
+	bool isPassable; 
+	bool isSlow; 
+	bool isDamage;
+	float slowFactor; 
+	float damage;
 };
 
 
@@ -68,6 +76,10 @@ struct Invader {
 	int health;
 };
 
+struct MarkedCollision {
+	glm::vec2 velocity;
+};
+
 // Projectile
 struct Projectile {
 	int damage;
@@ -90,6 +102,57 @@ struct Deadly
 struct Eatable
 {
 
+};
+
+struct FixedUI
+{
+
+};
+
+struct UI
+{
+
+};
+
+struct PlayerHealthBar
+{
+};
+
+struct MobHealthBar
+{
+	entt::entity entity;
+	float left_adjust = 0.f;
+};
+
+enum class ITEM_TYPE {
+	POTION
+};
+
+// used for entities which when killed will drop items (usually bosses)
+struct Drop
+{
+	ITEM_TYPE item_type;
+};
+
+struct Item
+{
+	ITEM_TYPE item_type;
+};
+
+struct Potion
+{
+	int heal;
+};
+
+struct InventorySlot
+{
+	bool hasItem = false;
+	entt::entity item;
+};
+
+struct Inventory
+{
+	std::vector<entt::entity> slots;
 };
 
 // Stucture to store collision information
@@ -169,6 +232,12 @@ enum class TEXTURE_ASSET_ID {
 	TILESET,
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
+	HEALTHBAR_GREEN,
+	HEALTHBAR_RED,
+	POTION,
+	INVENTORY_SLOT,
+	//STONE_BLOCK_1,
+	//TREE,
 	TEXTURE_COUNT
 };
 

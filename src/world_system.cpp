@@ -3,6 +3,7 @@
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
 #include "util/file_loader.hpp"
+#include "ui_system.hpp"
 
 // stlib
 #include <cassert>
@@ -188,7 +189,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// printf("The player position is: (%f, %f)\n", player_motion_debug.position.x, player_motion_debug.position.y);
 	
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
-	auto updatePlayerVelocity = [this]() {
+	/*auto updatePlayerVelocity = [this]() {
 		auto& motion = registry.get<Motion>(player_entity);
 	    motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
 		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
@@ -200,7 +201,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
 		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
 	};
-	updatePlayerVelocity(); 
+	updatePlayerVelocity(); */
+	InputState i; 
+	if (key_state[KeyboardState::UP]) {
+		i.up = true;
+	}
+	if (key_state[KeyboardState::DOWN]) {
+		i.down = true;
+	}
+	if (key_state[KeyboardState::LEFT]) {
+		i.left = true;
+	}
+	if (key_state[KeyboardState::RIGHT]) {
+		i.right = true;
+	}
+	physics_system.updatePlayerVelocity(i);
 
 
 	// TODO: move direction system
@@ -312,10 +327,18 @@ void WorldSystem::player_respawn() {
 	player.health = PLAYER_HEALTH;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
+
+// 	player_motion.position.x = WINDOW_WIDTH_PX / 2;
+// 	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
+// 	player_motion.acceleration = { 0, 0 };
+// 	player_motion.velocity = { 0, 0 };
+
+
 	player_motion.position = vec2(spawnX, spawnY);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
 	player_motion.formerPosition = vec2(spawnX, spawnY);
+	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
 
@@ -339,13 +362,28 @@ void WorldSystem::restart_game() {
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
 	registry.destroy(motions.begin(), motions.end());
 
+	// createMob(registry, vec2(WINDOW_WIDTH_PX / 3, WINDOW_WIDTH_PX / 3));
+	/*createRockType1(registry, vec2(WINDOW_WIDTH_PX / 4, WINDOW_WIDTH_PX / 4));
+	createTreeType1(registry, vec2(WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 4));*/
+	// Reset player health
+// 	auto player = registry.get<Player>(player_entity);
+// 	player.health = PLAYER_HEALTH;
+	
+// 	// Reset player position
+// 	auto motion = registry.get<Motion>(player_entity);
+// 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
+
+
 	createMob(registry, vec2(spawnX - (50 * 16.f), spawnY));
 	player_respawn();
+	createPlayerHealthBar(registry, {spawnX, spawnY});
+	createInventory(registry);
 
 	// reset the screen
 	auto screens = registry.view<ScreenState>();
 	auto& screen = registry.get<ScreenState>(screens.front());
 	screen.darken_screen_factor = 0;
+
 }
 
 // Should the game be over ?
@@ -423,7 +461,9 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 
 			vec2 velocity = direction * PROJECTILE_SPEED;
 
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			if (!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+				createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			}
 			
 		}
 	
