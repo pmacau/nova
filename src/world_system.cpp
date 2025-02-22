@@ -2,6 +2,7 @@
 #include "world_system.hpp"
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
+#include "util/file_loader.hpp"
 
 // stlib
 #include <cassert>
@@ -17,15 +18,42 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
 	points(0)
 {
-	// seeding rng with random device
-	player_entity = createPlayer(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2));
-	ship_entity = createShip(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2 - 200));
-
-	// create camera
-	main_camera_entity = createCamera(registry, player_entity);
 
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
+	// Create background map entity
+	auto entity = reg.create();
+	reg.emplace<Background>(entity);
+	
+	auto& sprite = reg.emplace<Sprite>(entity);
+	sprite.coord = {0.0f, 0.0f};
+	sprite.dims = {16.f * 199.f, 16.f * 199.f};
+	sprite.sheet_dims = {16.f * 199.f, 16.f * 199.f};
+
+	auto& motion = reg.emplace<Motion>(entity);
+	motion.position = {8.f * 199.f, 8.f * 199.f}; // make top-left corner of map at 0,0?
+	motion.scale = {16.f * 199.f, 16.f * 199.f};
+
+	auto& renderRequest = reg.emplace<RenderRequest>(entity);
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	renderRequest.used_texture = TEXTURE_ASSET_ID::MAP_BACKGROUND;
+
+	gameMap = loadBinaryMap(map_path("map.bin"), 200, 200);
+	for (int i = 0; i < 200; i++) {
+		for (int j = 0; j < 200; j++) {
+			if (gameMap[i][j] == 3) {
+				spawnX = j * 16;
+				spawnY = i * 16;
+			}
+		}
+	}
+
+	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
+	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
+	main_camera_entity = createCamera(registry, player_entity);
+
+	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
 
@@ -155,6 +183,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		printf("[GAME OVER] restarting game now...\n");
 		restart_game();
 	}
+
+	auto& player_motion_debug = registry.get<Motion>(player_entity);
+	// printf("The player position is: (%f, %f)\n", player_motion_debug.position.x, player_motion_debug.position.y);
 	
 	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
 	auto updatePlayerVelocity = [this]() {
@@ -256,20 +287,35 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	
+	// TODO: move player out-of-bounds script
+	//       (probably to physics system, but only world system knows about gameMap)
+	auto& player_motion = registry.get<Motion>(player_entity);
+	int tile_x = std::round(player_motion.position.x / 16.f);
+	int tile_y = std::round(player_motion.position.y / 16.f);
+
+	if (tile_x < 0 || tile_y < 0 || tile_x > 198 || tile_y > 198 ||
+		(
+			gameMap[tile_y][tile_x] == 0 && gameMap[tile_y][tile_x + 1] == 0 &&
+			gameMap[tile_y + 1][tile_x] == 0 && gameMap[tile_y + 1][tile_x + 1] == 0
+		)
+	) {
+		player_motion.position = player_motion.formerPosition;
+	}
 
 	return true;
 }
 
 void WorldSystem::player_respawn() {
-	// reset player health
+	printf("Respawning player\n");
+
 	Player& player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
 
-	// reset player position
-	// Motion& player_motion = registry.get<Motion>(player_entity);
-	// player_motion.position.x = WINDOW_WIDTH_PX / 2;
-	// player_motion.position.y = WINDOW_HEIGHT_PX / 2;
+	Motion& player_motion = registry.get<Motion>(player_entity);
+	player_motion.position = vec2(spawnX, spawnY);
+	player_motion.velocity = {0.f, 0.f};
+	player_motion.acceleration = {0.f, 0.f};
+	player_motion.formerPosition = vec2(spawnX, spawnY);
 }
 
 
@@ -290,22 +336,16 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
 	registry.destroy(motions.begin(), motions.end());
-	// createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
-	createMob(registry, vec2(0, WINDOW_HEIGHT_PX));
-	// Reset player health
-	auto player = registry.get<Player>(player_entity);
-	player.health = PLAYER_HEALTH;
-	
-	// Reset player health
-	// auto& player = registry.get<Player>(player_entity);
-	// player.health = PLAYER_HEALTH;
 
-	// // Reset player position
-	// auto& motion = registry.get<Motion>(player_entity);
-	// motion.position = vec2(start_col * 16, start_row * 16);
+	createMob(registry, vec2(spawnX - (50 * 16.f), spawnY));
 	player_respawn();
+
+	// reset the screen
+	auto screens = registry.view<ScreenState>();
+	auto& screen = registry.get<ScreenState>(screens.front());
+	screen.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
@@ -372,6 +412,8 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+
+			printf("Mouse clicked at: (%f, %f)\n", mouse_pos_x, mouse_pos_y);
 
 			auto& player_motion = registry.get<Motion>(player_entity);
 

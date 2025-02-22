@@ -26,6 +26,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
+	motion.formerPosition = position;
 	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
 	// motion.scale = vec2(19 * 2, 32 * 2);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
@@ -105,16 +106,15 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 13, 35 * 7);
+	motion.scale = GAME_SCALE * vec2(128.f, 128.f);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
 
 	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0.0f, 0.0f};
-    // sprite.dims = {19 * 15, 35 * 7};
-	sprite.dims = {19 * 22, 35 * 7};
-    sprite.sheet_dims = position;
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP;

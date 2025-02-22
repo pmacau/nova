@@ -56,6 +56,9 @@ private:
 
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
+
+	std::vector<std::vector<uint8_t>> gameMap;
+	float spawnX, spawnY;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;

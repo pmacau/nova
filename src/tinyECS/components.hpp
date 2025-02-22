@@ -7,6 +7,8 @@
 #include <limits>
 #include <entt.hpp>
 
+struct Background{};
+
 enum HitBoxType {
 	HITBOX_CIRCLE,
 	HITBOX_RECT
@@ -108,7 +110,7 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
-	float darken_screen_factor = -1;
+	float darken_screen_factor = 0;
 };
 
 // will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 
@@ -165,6 +167,7 @@ enum class TEXTURE_ASSET_ID {
 	SHIP,
     MOB,
 	TILESET,
+	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
 	TEXTURE_COUNT
 };
