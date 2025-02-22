@@ -88,7 +88,7 @@ void CollisionSystem::step(float elapsed_ms)
 			for (auto mob_entity : mobs) {
 				auto& mob = registry.get<Mob>(mob_entity);
 				if (isContact(entity, mob_entity, registry, 0.f)) {
-					registry.destroy(entity);
+					destroy_entities.push_back(entity);
 					mob.health -= projectile.damage;
 					UISystem::updateMobHealthBar(registry, mob_entity, true);
 					if (mob.health <= 0) {
