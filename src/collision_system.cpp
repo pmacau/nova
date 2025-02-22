@@ -32,6 +32,7 @@ void CollisionSystem::step(float elapsed_ms)
 	auto entities = registry.view<Motion, HitBox>(); 
 	auto playerCheck = registry.view<Player>();
 	auto obstacles = registry.view<Obstacle>();
+	auto screens = registry.view<ScreenState>();
 
 	for (auto entity : entities) { 
 		// checks if ID is player
@@ -47,10 +48,16 @@ void CollisionSystem::step(float elapsed_ms)
 						player_ref.health -= MOB_DAMAGE; 
 						physics.knockback(entity, mob, 400);
 
+						if (screens.size() > 0) {
+							screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+						}
+
 						if (player_ref.health <= 0) {
 							screen.darken_screen_factor = 0;
 							world.player_respawn();
 						}
+
+
 						mob_ref.hit_time = 1.f;
 						
 					}
