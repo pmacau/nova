@@ -22,7 +22,7 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 			if (hit) {
 				float left_adjust = abs(mobhealth_motion.scale.x) / 2.f;
 				mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / MOB_HEALTH, 8.f });
-				healthbar.left_adjust = left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
+				healthbar.left_adjust += left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
 			}
 			mobhealth_motion.position.x = mob_motion.position.x - healthbar.left_adjust;
 			mobhealth_motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2.f - 15.f;
