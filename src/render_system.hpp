@@ -6,6 +6,17 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
+// // TODO refactor this background render stuff...
+// struct TileRender {
+// 	RenderRequest request = {
+// 		TEXTURE_ASSET_ID::TILESET,
+// 		EFFECT_ASSET_ID::TEXTURED,
+// 		GEOMETRY_BUFFER_ID::SPRITE
+// 	};
+// 	vec2 coord = {0.f, 0.f};
+// };
+
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {
@@ -32,9 +43,10 @@ class RenderSystem {
 		textures_path("ship/Ship6.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
-		textures_path("projectiles/gold_bubble.png"),
-		textures_path("terrain/stoneBlocks.png"),
-		textures_path("terrain/Trees+.png")
+		    textures_path("tile/tileset.png"),
+		    map_path("textured_map.png"),
+		    textures_path("projectiles/gold_bubble.png")
+
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -42,11 +54,14 @@ class RenderSystem {
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("textured"),
 		shader_path("vignette"),
+		shader_path("coloured"),
 		shader_path("debug")
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
+
+	// std::vector<std::vector<TileRender>> tileMap;
 
 public:
 	RenderSystem(entt::registry& reg);
@@ -83,7 +98,11 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
+
+	void drawBackground(const mat3& projection);
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
+
+	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
 	// Window handle
 	GLFWwindow* window;
 	GLuint defaultVAO;

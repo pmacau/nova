@@ -1,3 +1,5 @@
+#version 330
+
 layout (location = 0) in vec2 position;
 uniform mat3 transform;
 uniform mat3 projection;

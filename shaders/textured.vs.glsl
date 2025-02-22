@@ -8,8 +8,10 @@ in vec2 in_texcoord;
 out vec2 texcoord;
 
 // Application data
-uniform mat3 transform;
 uniform mat3 projection;
+
+uniform mat3 model_transform;
+uniform mat3 camera_transform;
 
 uniform vec4 spriteData; // row, col, spriteW, spriteH
 uniform vec2 sheetDims; // width, height
@@ -32,6 +34,8 @@ vec2 center_texcoord(vec2 in_tex) {
 void main()
 {
 	texcoord = center_texcoord(in_texcoord);
-	vec3 pos = projection * transform * vec3(in_position.xy, 1.0);
-	gl_Position = vec4(pos.xy, in_position.z, 1.0);
+
+	vec3 pos2D_clip = projection * camera_transform * model_transform * vec3(in_position.xy, 1.0);
+
+	gl_Position = vec4(pos2D_clip.xy, in_position.z, 1.0);
 }
