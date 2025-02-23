@@ -299,5 +299,5 @@ struct Camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 32.f}, {152.f, 96.f}, 3.f, 0.f, 1.f
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3.f, 0.f, 1.f
 };
