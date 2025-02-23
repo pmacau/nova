@@ -85,7 +85,7 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& mob = registry.emplace<Mob>(entity);
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 43.f, 55.f };
+	sprite.dims = { 43.f, 55.f };	
 	sprite.sheet_dims = {43.f, 55.f};
 
 	// HITBOX
