@@ -313,8 +313,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	auto valid_tile = [this](int tile_x, int tile_y) {
 		bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < 200 && tile_y < 200);
-		bool in_water = gameMap[tile_y][tile_x] == 0;
-		return in_bounds && !in_water;
+		if (in_bounds) {
+			bool in_water = gameMap[tile_y][tile_x] == 0;
+			return !in_water;
+		}
+		return false;
 	};
 
 	if (!valid_tile(tile_x, tile_y)) {
