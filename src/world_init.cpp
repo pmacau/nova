@@ -85,7 +85,7 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	auto& mob = registry.emplace<Mob>(entity);
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 43.f, 55.f };
+	sprite.dims = { 43.f, 55.f };	
 	sprite.sheet_dims = {43.f, 55.f};
 
 	// HITBOX
@@ -256,6 +256,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 
 	auto& projectile = registry.emplace<Projectile>(entity);
 	projectile.damage = PROJECTILE_DAMAGE;
+	projectile.timer = PROJECTILE_TIMER;
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = velocity;

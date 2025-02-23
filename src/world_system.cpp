@@ -326,6 +326,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			player_motion.position = player_motion.formerPosition;
 		}
 	}
+  
+	for (auto entity : registry.view<Projectile>()) {
+		auto& projectile = registry.get<Projectile>(entity);
+		projectile.timer -= elapsed_ms_since_last_update;
+		if (projectile.timer <= 0) {
+			registry.destroy(entity);
+		}
+	}
+
 	return true;
 }
 

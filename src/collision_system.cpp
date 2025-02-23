@@ -72,23 +72,12 @@ void CollisionSystem::step(float elapsed_ms)
 			}
 		}
 
-
-		// OBSTACLE SECTION OF COLLISION
-		if (registry.all_of<Obstacle>(entity)) {
-			continue; // shouldnt deal with obstacles and obstacles
-		}
-		
-		for (auto obstacle : obstacles) {
-			auto& o = registry.get<Obstacle>(obstacle); 
-			if (!o.isPassable) handleBlock(entity, obstacle, registry);
-		}
-    
 		if (registry.all_of<Projectile>(entity)) {
 			auto& projectile = registry.get<Projectile>(entity);
 			for (auto mob_entity : mobs) {
 				auto& mob = registry.get<Mob>(mob_entity);
 				if (isContact(entity, mob_entity, registry, 0.f)) {
-					registry.destroy(entity);
+					destroy_entities.push_back(entity);
 					mob.health -= projectile.damage;
 					UISystem::updateMobHealthBar(registry, mob_entity, true);
 					if (mob.health <= 0) {
@@ -105,6 +94,19 @@ void CollisionSystem::step(float elapsed_ms)
 					}
 				}
 			}
+		}
+
+		// OBSTACLE SECTION OF COLLISION
+		if (registry.all_of<Obstacle>(entity)) {
+			continue; // shouldnt deal with obstacles and obstacles
+		}
+		
+		for (auto obstacle : obstacles) {
+			auto& o = registry.get<Obstacle>(obstacle); 
+			if (registry.all_of<Ship>(obstacle) && registry.all_of<Projectile>(entity)) {
+				continue;
+			}
+			if (!o.isPassable) handleBlock(entity, obstacle, registry);
 		}
 	}
 	for (auto entity : destroy_entities) {
