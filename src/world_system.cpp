@@ -304,19 +304,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// TODO: move player out-of-bounds script
 	//       (probably to physics system, but only world system knows about gameMap)
+
 	auto& player_motion = registry.get<Motion>(player_entity);
-	int tile_x = std::round(player_motion.position.x / 16.f);
-	int tile_y = std::round(player_motion.position.y / 16.f);
+	int tile_x = std::round((player_motion.position.x) / 16.f);
+	int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
+	int former_x = std::round((player_motion.formerPosition.x) / 16.f);
+	int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
 
-	if (tile_x < 0 || tile_y < 0 || tile_x > 198 || tile_y > 198 ||
-		(
-			gameMap[tile_y][tile_x] == 0 && gameMap[tile_y][tile_x + 1] == 0 &&
-			gameMap[tile_y + 1][tile_x] == 0 && gameMap[tile_y + 1][tile_x + 1] == 0
-		)
-	) {
-		player_motion.position = player_motion.formerPosition;
+	auto valid_tile = [this](int tile_x, int tile_y) {
+		bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < 200 && tile_y < 200);
+		if (in_bounds) {
+			bool in_water = gameMap[tile_y][tile_x] == 0;
+			return !in_water;
+		}
+		return false;
+	};
+
+	if (!valid_tile(tile_x, tile_y)) {
+		if (valid_tile(tile_x, former_y)) {
+			player_motion.position = {player_motion.position.x, player_motion.formerPosition.y};
+		} else if (valid_tile(former_x, tile_y)) {
+			player_motion.position = {player_motion.formerPosition.x, player_motion.position.y};
+		} else {
+			player_motion.position = player_motion.formerPosition;
+		}
 	}
-
+  
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
 		projectile.timer -= elapsed_ms_since_last_update;
