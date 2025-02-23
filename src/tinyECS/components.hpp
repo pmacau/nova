@@ -83,6 +83,7 @@ struct MarkedCollision {
 // Projectile
 struct Projectile {
 	int damage;
+	int timer;
 };
 
 

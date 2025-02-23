@@ -256,6 +256,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 
 	auto& projectile = registry.emplace<Projectile>(entity);
 	projectile.damage = PROJECTILE_DAMAGE;
+	projectile.timer = PROJECTILE_TIMER;
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = velocity;

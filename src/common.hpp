@@ -67,7 +67,7 @@ const float GAME_SCALE = 2.f;
 const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
 const float PROJECTILE_SIZE = 20.0f;
-const int PROJECTILE_TIMER = 1000;
+const int PROJECTILE_TIMER = 5000;
 
 const int MAX_INVENTORY_SLOTS = 5;
 
