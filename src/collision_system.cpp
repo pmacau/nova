@@ -82,30 +82,30 @@ void CollisionSystem::step(float elapsed_ms)
 			auto& o = registry.get<Obstacle>(obstacle); 
 			if (!o.isPassable) handleBlock(entity, obstacle, registry);
 		}
-    
-		if (registry.all_of<Projectile>(entity)) {
-			auto& projectile = registry.get<Projectile>(entity);
-			for (auto mob_entity : mobs) {
-				auto& mob = registry.get<Mob>(mob_entity);
-				if (isContact(entity, mob_entity, registry, 0.f)) {
-					registry.destroy(entity);
-					mob.health -= projectile.damage;
-					UISystem::updateMobHealthBar(registry, mob_entity, true);
-					if (mob.health <= 0) {
-						for (auto healthbar_entity : registry.view<MobHealthBar>()) {
-							auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);
-							std::cout << (healthbar.entity == mob_entity) << "\n";
-							if (healthbar.entity == mob_entity) {
-								destroy_entities.push_back(healthbar_entity);
-								break;
+		
+			if (registry.all_of<Projectile>(entity)) {
+				auto& projectile = registry.get<Projectile>(entity);
+				for (auto mob_entity : mobs) {
+					auto& mob = registry.get<Mob>(mob_entity);
+					if (isContact(entity, mob_entity, registry, 0.f)) {
+						registry.destroy(entity);
+						mob.health -= projectile.damage;
+						UISystem::updateMobHealthBar(registry, mob_entity, true);
+						if (mob.health <= 0) {
+							for (auto healthbar_entity : registry.view<MobHealthBar>()) {
+								auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);
+								std::cout << (healthbar.entity == mob_entity) << "\n";
+								if (healthbar.entity == mob_entity) {
+									destroy_entities.push_back(healthbar_entity);
+									break;
+								}
 							}
+							UISystem::renderItem(registry, mob_entity);
+							destroy_entities.push_back(mob_entity);
 						}
-						UISystem::renderItem(registry, mob_entity);
-						destroy_entities.push_back(mob_entity);
 					}
-				}
+				}	
 			}
-		}
 	}
 	for (auto entity : destroy_entities) {
 		registry.destroy(entity);

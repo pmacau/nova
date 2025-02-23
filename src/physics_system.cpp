@@ -87,6 +87,7 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
 
 // knocks back e1 in respect to e2's position
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
+   // std::cout << "SUPPRESSED" << std::endl;
     Motion& m1 = registry.get<Motion>(e1);
     vec2 direction = normalize(getDirection(e1, e2));
     m1.acceleration += direction * force;
