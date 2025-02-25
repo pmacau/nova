@@ -1,3 +1,4 @@
 DATA_PATH = "../../data"
 TILE_DIM = 16
 WATER, SAND, GRASS, SPAWN = 0, 1, 2, 3
+

@@ -2,9 +2,12 @@ import generate as gen
 import visualize as viz
 import biome
 
+WIDTH = 200
+HEIGHT = 200
+
 if __name__ == "__main__":
     terrain, spawn = gen.game_map(
-        1000, 1000,
+        WIDTH, HEIGHT,
         **{
             "scale": 150.0,
             "octaves":6,
