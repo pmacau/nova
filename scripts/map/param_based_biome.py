@@ -1,6 +1,7 @@
 import numpy as np
 from enum import Enum
 from constants import *
+from biome_constants import Biome
 
 # Define categories for noise levels
 class Temperature(Enum):
@@ -40,26 +41,28 @@ def classify_weirdness(value):
     return Weirdness.EXTREME
 
 BIOME_IDS = {
-    "Default": 0,
-    "Rainforest": 1,
-    "Desert": 2,
-    "Forest": 3,
-    "Ice Biome": 4,
-    "Volcano": 5,
-    "Mushroom Biome": 6,
-    "Crimson Biome": 7,
-    "Graveyard": 8,
+    Biome.DEFAULT: 0,
+    Biome.RAINFOREST: 1,
+    Biome.DESERT: 2,
+    Biome.FOREST: 3,
+    Biome.ICE: 4,
+    Biome.VOLCANO: 5,
+    Biome.MUSHROOM: 6,
+    Biome.CRIMSON: 7,
+    Biome.GRAVEYARD: 8,
 }
 
+ID_TO_BIOME = {v: k for k, v in BIOME_IDS.items()}
+
 BIOME_RULES = [
-    {"name": "Rainforest", "temp": Temperature.HIGH, "hum": Humidity.HIGH, "weird": Weirdness.NORMAL},
-    {"name": "Desert", "temp": Temperature.HIGH, "hum": Humidity.LOW, "weird": Weirdness.NORMAL},
-    {"name": "Forest", "temp": Temperature.MID, "hum": Humidity.MID, "weird": Weirdness.NORMAL},
-    {"name": "Ice Biome", "temp": Temperature.LOW, "hum": Humidity.LOW, "weird": Weirdness.NORMAL},
-    {"name": "Volcano", "temp": Temperature.HIGH, "hum": Humidity.LOW, "weird": Weirdness.UNUSUAL},
-    {"name": "Mushroom Biome", "temp": Temperature.MID, "hum": Humidity.HIGH, "weird": Weirdness.UNUSUAL},
-    {"name": "Crimson Biome", "temp": Temperature.MID, "hum": Humidity.MID, "weird": Weirdness.UNUSUAL},
-    {"name": "Graveyard", "temp": Temperature.LOW, "hum": Humidity.LOW, "weird": Weirdness.UNUSUAL},
+    {"type": Biome.RAINFOREST, "temp": Temperature.HIGH, "hum": Humidity.HIGH, "weird": Weirdness.NORMAL},
+    {"type": Biome.DESERT, "temp": Temperature.HIGH, "hum": Humidity.LOW, "weird": Weirdness.NORMAL},
+    {"type": Biome.FOREST, "temp": Temperature.MID, "hum": Humidity.MID, "weird": Weirdness.NORMAL},
+    {"type": Biome.ICE, "temp": Temperature.LOW, "hum": Humidity.LOW, "weird": Weirdness.NORMAL},
+    {"type": Biome.VOLCANO, "temp": Temperature.HIGH, "hum": Humidity.LOW, "weird": Weirdness.UNUSUAL},
+    {"type": Biome.MUSHROOM, "temp": Temperature.MID, "hum": Humidity.HIGH, "weird": Weirdness.UNUSUAL},
+    {"type": Biome.CRIMSON, "temp": Temperature.MID, "hum": Humidity.MID, "weird": Weirdness.UNUSUAL},
+    {"type": Biome.GRAVEYARD, "temp": Temperature.LOW, "hum": Humidity.LOW, "weird": Weirdness.UNUSUAL},
 ]
 
 def classify_biome(temp, hum, weird):
@@ -76,9 +79,9 @@ def classify_biome(temp, hum, weird):
             biome["hum"] == hum_category and
             biome["weird"] == weird_category
         ):
-            return BIOME_IDS[biome["name"]]
+            return BIOME_IDS[biome["type"]]
 
-    return 0  # Default biome (unassigned)
+    return BIOME_IDS[Biome.DEFAULT]  # Default biome (unassigned)
 
 def generate_biomes(width, height, temp_map, hum_map, weird_map):
     """

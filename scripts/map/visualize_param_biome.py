@@ -2,19 +2,20 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 from constants import *
-from param_based_biome import BIOME_IDS
+from param_based_biome import BIOME_IDS, ID_TO_BIOME
+from biome_constants import Biome
 
 # BIOme colors
 BIOME_COLORS = {
-    1: (34, 139, 34, 255),   # Rainforest (Green)
-    2: (210, 180, 140, 255),  # Desert (Tan)
-    3: (60, 179, 113, 255),   # Forest (Dark Green)
-    4: (173, 216, 230, 255),  # Ice Biome (Light Blue)
-    5: (255, 69, 0, 255),     # Volcano (Red-Orange)
-    6: (147, 112, 219, 255),  # Mushroom Biome (Purple)
-    7: (220, 20, 60, 255),    # Crimson Biome (Dark Red)
-    8: (105, 105, 105, 255),  # Graveyard (Dark Gray)
-    0: (255, 255, 255, 255),  # Default/Unassigned (White)
+    Biome.RAINFOREST: (34, 139, 34, 255),  
+    Biome.DESERT: (210, 180, 140, 255),
+    Biome.FOREST: (60, 179, 113, 255),
+    Biome.ICE: (173, 216, 230, 255),
+    Biome.VOLCANO: (255, 69, 0, 255),
+    Biome.MUSHROOM: (147, 112, 219, 255),
+    Biome.CRIMSON: (220, 20, 60, 255),
+    Biome.GRAVEYARD: (105, 105, 105, 255),
+    Biome.DEFAULT: (255, 255, 255, 255),
 }
 
 TERRAIN_COLORS = {
@@ -41,7 +42,8 @@ def visualize_biome_with_terrain(biome_map, terrain_map, filename="biome_terrain
                 img.putpixel((x, y), TERRAIN_COLORS[terrain_type])  # Water/Sand coloring
             else:
                 biome_id = biome_map[y, x]
-                img.putpixel((x, y), BIOME_COLORS.get(biome_id, (255, 255, 255, 255)))  # Land gets biome color
+                biome_type = ID_TO_BIOME.get(biome_id, Biome.DEFAULT)
+                img.putpixel((x, y), BIOME_COLORS.get(biome_type, (255, 255, 255, 255)))  # Land gets biome color
 
     img.save(f"{DATA_PATH}/maps/{filename}")
     if show:
