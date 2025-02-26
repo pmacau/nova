@@ -60,12 +60,11 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 WorldSystem::~WorldSystem() {
 	// Destroy music components
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (chicken_dead_sound != nullptr)
-		Mix_FreeChunk(chicken_dead_sound);
-	if (chicken_eat_sound != nullptr)
-		Mix_FreeChunk(chicken_eat_sound);
+	if (forest_background != nullptr) Mix_FreeMusic(forest_background);
+	if (shoot_sound != nullptr) Mix_FreeChunk(shoot_sound);
+	if (hit_sound != nullptr) Mix_FreeChunk(hit_sound);
+	if (potion_sound != nullptr) Mix_FreeChunk(potion_sound);
+	
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -153,15 +152,23 @@ bool WorldSystem::start_and_load_sounds() {
 		return false;
 	}
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
-	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
-	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
+	forest_background = Mix_LoadMUS(audio_path("forest.wav").c_str());
+	shoot_sound = Mix_LoadWAV(audio_path("shoot.wav").c_str());
+	hit_sound = Mix_LoadWAV(audio_path("hit.wav").c_str());
+	potion_sound = Mix_LoadWAV(audio_path("potion.wav").c_str());
 
-	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr) {
+	if (
+		forest_background == nullptr ||
+		shoot_sound == nullptr ||
+		hit_sound == nullptr ||
+		potion_sound == nullptr
+	) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
-			audio_path("chicken_dead.wav").c_str(),
-			audio_path("chicken_eat.wav").c_str());
+			audio_path("forest_background.wav").c_str(),
+			audio_path("shoot.wav").c_str(),
+			audio_path("hit.wav").c_str(),
+			audio_path("potion.wav").c_str()
+		);
 		return false;
 	}
 
@@ -171,7 +178,7 @@ bool WorldSystem::start_and_load_sounds() {
 void WorldSystem::init() {
 	// start playing background music indefinitely
 	std::cout << "Starting music..." << std::endl;
-	Mix_PlayMusic(background_music, -1);
+	Mix_PlayMusic(forest_background, -1);
 	// Set all states to default
 
     restart_game();
@@ -338,6 +345,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	auto& player_comp = registry.get<Player>(player_entity);
+	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
+
 	return true;
 }
 
@@ -482,10 +492,19 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 
 			vec2 velocity = direction * PROJECTILE_SPEED;
 
-			if (!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
-				createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
-			}
+			auto& player_comp = registry.get<Player>(player_entity);
+
 			
+			if (!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+				if (player_comp.weapon_cooldown <= 0) {
+					createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+					Mix_PlayChannel(-1, shoot_sound, 0);
+					player_comp.weapon_cooldown = WEAPON_COOLDOWN;
+				}
+			} else {
+				// TODO: move this to UI system, maybe can keep a global state of all sound effects so all systems can access
+				Mix_PlayChannel(-1, potion_sound, 0);
+			}
 		}
 	
 	}

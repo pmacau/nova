@@ -46,7 +46,9 @@ void CollisionSystem::step(float elapsed_ms)
 					auto& screen = registry.get<ScreenState>(screens.front());
 					if (mob_ref.hit_time <= 0) {
 						//std::cout << "COLLISION" << std::endl;
-						player_ref.health -= MOB_DAMAGE; 
+						player_ref.health -= MOB_DAMAGE;
+						Mix_PlayChannel(-1, world.hit_sound, 0);
+
             UISystem::updatePlayerHealthBar(registry, player_ref.health);
 						physics.knockback(entity, mob, 400);
 
@@ -79,6 +81,8 @@ void CollisionSystem::step(float elapsed_ms)
 				if (isContact(entity, mob_entity, registry, 0.f)) {
 					destroy_entities.push_back(entity);
 					mob.health -= projectile.damage;
+					Mix_PlayChannel(-1, world.hit_sound, 0);
+
 					UISystem::updateMobHealthBar(registry, mob_entity, true);
 					if (mob.health <= 0) {
 						for (auto healthbar_entity : registry.view<MobHealthBar>()) {

@@ -49,6 +49,13 @@ public:
 	// player respawn
 	void player_respawn();
 
+	// music references
+	Mix_Music* forest_background;
+
+	Mix_Chunk* shoot_sound;
+	Mix_Chunk* hit_sound;
+	Mix_Chunk* potion_sound;
+
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
@@ -89,10 +96,6 @@ private:
 	// grid
 	std::vector<entt::entity> grid_lines;
 
-	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* chicken_dead_sound;
-	Mix_Chunk* chicken_eat_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;

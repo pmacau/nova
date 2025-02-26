@@ -47,6 +47,7 @@ struct Obstacle {
 struct Player
 {
 	int health;
+	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
 };
 
 // Ship component
