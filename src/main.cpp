@@ -74,8 +74,9 @@ int main()
 		// Display new frame rate every half-second
 		if (num_s > 0.5) {
 			std::stringstream title_ss;
-			title_ss << "FPS: ";
+			title_ss << "Nova (FPS: ";
 			title_ss << std::fixed << std::setprecision(3) << (num_frames / num_s);
+			title_ss << ")";
 			glfwSetWindowTitle(window, title_ss.str().c_str());
 
 			num_frames = 0;
