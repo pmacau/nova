@@ -98,6 +98,7 @@ void CollisionSystem::step(float elapsed_ms)
 						UISystem::renderItem(registry, mob_entity);
 						destroy_entities.push_back(mob_entity);
 					}
+					break;
 				}
 			}
 		}
@@ -116,6 +117,7 @@ void CollisionSystem::step(float elapsed_ms)
 		}
 	}
 	for (auto entity : destroy_entities) {
+		std::cout << "destroying entity\n";
 		registry.destroy(entity);
 	}
 }

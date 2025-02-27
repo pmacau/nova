@@ -359,6 +359,8 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, {spawnX, spawnY});
 	createInventory(registry);
+	createMob(registry, { spawnX + 500, spawnY + 500 }, MOB_HEALTH);
+	createMob(registry, { spawnX + 600, spawnY + 600 }, MOB_HEALTH);
 
 	// reset the screen
 	auto screens = registry.view<ScreenState>();

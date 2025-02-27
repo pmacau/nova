@@ -17,7 +17,6 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	for (auto entity : registry.view<MobHealthBar>()) {
 		auto& healthbar = registry.get<MobHealthBar>(entity);
-		std::cout << healthbar.initial_health << "\n";
 		if (healthbar.entity == mob_entity) {
 			auto& mobhealth_motion = registry.get<Motion>(entity);
 			if (hit) {
