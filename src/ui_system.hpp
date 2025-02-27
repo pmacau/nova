@@ -1,5 +1,6 @@
 #pragma once
 #include <entt.hpp>
+#include "music_system.hpp"
 
 class UISystem {
 	public:

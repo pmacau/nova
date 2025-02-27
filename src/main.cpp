@@ -14,6 +14,7 @@
 #include "ai_system.hpp"
 #include "collision_system.hpp"
 #include "physics_system.hpp"
+#include "music_system.hpp"
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
@@ -42,7 +43,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	if (!world_system.start_and_load_sounds()) {
+	if (!MusicSystem::init()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
 
