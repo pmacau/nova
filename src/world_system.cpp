@@ -48,6 +48,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 				spawnX = j * 16;
 				spawnY = i * 16;
 			}
+
 		}
 	}
 	player_entity = createPlayer(registry, vec2(spawnX, spawnY));

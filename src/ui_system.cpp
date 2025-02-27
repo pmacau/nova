@@ -17,11 +17,12 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	for (auto entity : registry.view<MobHealthBar>()) {
 		auto& healthbar = registry.get<MobHealthBar>(entity);
+		std::cout << healthbar.initial_health << "\n";
 		if (healthbar.entity == mob_entity) {
 			auto& mobhealth_motion = registry.get<Motion>(entity);
 			if (hit) {
 				float left_adjust = abs(mobhealth_motion.scale.x) / 2.f;
-				mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / MOB_HEALTH, 8.f });
+				mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / healthbar.initial_health, 8.f });
 				healthbar.left_adjust += left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
 			}
 			mobhealth_motion.position.x = mob_motion.position.x - healthbar.left_adjust;
@@ -66,7 +67,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 			auto& player = registry.get<Player>(player_entity);
 			player.health = min(player.health + potion.heal, PLAYER_HEALTH);
 			MusicSystem::playSoundEffect(SFX::POTION);
-			updatePlayerHealthBar(registry, player.health);
+			updatePlayerHealthBar(registry, player.health);	
 			auto screens = registry.view<ScreenState>();
 			auto& screen = registry.get<ScreenState>(screens.front());
 			if (screens.size() > 0) {

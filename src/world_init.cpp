@@ -132,7 +132,9 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	registry.emplace<UI>(entity);
 	registry.emplace<MobHealthBar>(entity);
 	auto& healthbar = registry.get<MobHealthBar>(entity);
+	auto& mob = registry.get<Mob>(mob_entity);
 	healthbar.entity = mob_entity;
+	healthbar.initial_health = mob.health;
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;

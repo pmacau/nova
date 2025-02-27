@@ -128,6 +128,7 @@ struct PlayerHealthBar
 struct MobHealthBar
 {
 	entt::entity entity;
+	int initial_health;
 	float left_adjust = 0.f;
 };
 
