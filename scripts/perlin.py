@@ -3,27 +3,25 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from noise import pnoise2
 from PIL import Image
+from collections import deque
 
-num_to_tile_char = {
-    0: "W", 1: "S", 2: "G", 3: "R"
+tile_char = {
+    0: "W", 1: "S", 2: "G"
 }
 
 keys = [
-    "GGGG", "GGGW", "GGWG", "GWGG", "WGGG", "SSGG", "SGSG",
-    "WWWW", "WWWG", "WWGW", "WGWW", "GWWW", "WWSS", "SSWW",
-    "SSSS", "SSSW", "SSWS", "SWSS", "WSSS", "WGWG", "GWGW",
-    "GGGS", "GGSG", "GSGG", "SGGG", "GGSS", "WSWS", "SWSW",
-    "WWWS", "WWSW", "WSWW", "SWWW", "WWGG", "GSGS", "GGWW",
-    "SSSG", "SSGS", "SGSS", "GSSS", "WSSW", "SWWS", "GSSG",
-    "SGGS", "GSSW", "SGWS", "SWGS", "WSSG", "RRRR"
+    ["GGGG", "GGGW", "GGWG", "GWGG", "WGGG", "SSGG", "SGSG", "WWGS"],
+    ["WWWW", "WWWG", "WWGW", "WGWW", "GWWW", "WWSS", "SSWW", "WWSG"],
+    ["SSSS", "SSSW", "SSWS", "SWSS", "WSSS", "WGWG", "GWGW", "SWGW"],
+    ["GGGS", "GGSG", "GSGG", "SGGG", "GGSS", "WSWS", "SWSW", "GWSW"],
+    ["WWWS", "WWSW", "WSWW", "SWWW", "WWGG", "GSGS", "GGWW", "WSWG"],
+    ["SSSG", "SSGS", "SGSS", "GSSS", "WSSW", "SWWS", "GSSG", "WGWS"],
+    ["SGGS", "GSSW", "SGWS", "SWGS", "WSSG", "SGWW", "GSWW", "RRRR"]
 ]
-texture_map = {}
-for row in range(7):
-    for col in range(7):
-        idx = row * 7 + col
-        if idx >= len(keys):
-            continue
-        texture_map[keys[idx]] = (row, col)
+h, w = len(keys), len(keys[0])
+texture_map = {
+    keys[r][c] : (r, c) for r in range(h) for c in range(w)
+}
 
 def island_colormap():
     colors = [(0, 0, 1), (1, 1, 0), (0, 1, 0), (0, 0, 0)]
@@ -92,7 +90,49 @@ def game_map(width, height, spawn_radius=5, **perlin_kwargs):
 
         print("Generated invalid spawnpoint; retrying...")
     
-    return terrain
+    return np.pad(terrain, 1, mode="constant", constant_values=0), (com_y, com_x)
+
+
+def find_mainland(terrain, spawn):
+    height, width = terrain.shape
+
+    mainland = np.zeros_like(terrain)
+    mainland[*spawn] = 1
+
+    queue = deque([spawn])
+    dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+    while queue:
+        y, x = queue.popleft()
+       
+        for dx, dy in dirs:
+            nx, ny = x + dx, y + dy
+
+            if (
+                0 <= nx < width and
+                0 <= ny < height and
+                mainland[ny, nx] == 0 and
+                terrain[ny, nx] != 0
+            ):
+                mainland[ny, nx] = 1
+                queue.append((ny, nx))
+
+    return mainland
+
+
+def get_boss_spawns(mainland, spawn, num_bosses):
+    valid_indices = np.argwhere(mainland == 1)
+    selected = [spawn]
+
+    for _ in range(num_bosses):
+        farthest = max(
+            valid_indices,
+            key=lambda x: min(np.linalg.norm(x - s) for s in selected)
+        )
+        selected.append(farthest)
+
+    return selected[1:]
+
 
 
 def create_textured_map(terrain):
@@ -102,11 +142,13 @@ def create_textured_map(terrain):
     texture_atlas = Image.open("../data/textures/tile/tileset.png")
     for row in range(height - 1):
         for col in range(width - 1):
-            tile_str = num_to_tile_char.get(terrain[row][col]) + \
-                       num_to_tile_char.get(terrain[row][col + 1]) + \
-                       num_to_tile_char.get(terrain[row + 1][col]) + \
-                       num_to_tile_char.get(terrain[row + 1][col + 1])
-            tile_row, tile_col = texture_map.get(tile_str, (6, 5))
+            tile_str = (
+                tile_char.get(terrain[row][col], "R") +
+                tile_char.get(terrain[row][col + 1], "R") +
+                tile_char.get(terrain[row + 1][col], "R") + 
+                tile_char.get(terrain[row + 1][col + 1], "R")
+            )
+            tile_row, tile_col = texture_map.get(tile_str, (h-1, w-1))
             
             subimage = texture_atlas.crop(
                 (tile_col * 16, tile_row * 16, (tile_col + 1) * 16, (tile_row + 1) * 16)
@@ -116,13 +158,21 @@ def create_textured_map(terrain):
 
 
 if __name__ == "__main__":
-    terrain = game_map(200, 200)
+    terrain, spawn = game_map(
+        198, 198,
+        **{"scale": 50.0}
+    )
+    mainland = find_mainland(terrain, spawn)
+    boss_spawns = get_boss_spawns(mainland, spawn, 4)
+    for boss in boss_spawns:
+        terrain[*boss] = 4
 
-    plt.imshow(terrain, cmap=island_colormap())
+    print(terrain.shape)
+
+    plt.imshow(terrain, cmap="magma")
     plt.axis("off")
     plt.savefig("../data/maps/map.png", bbox_inches='tight', pad_inches=0, dpi=300)
     terrain.tofile("../data/maps/map.bin")
-
     create_textured_map(terrain)
 
 

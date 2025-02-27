@@ -199,8 +199,6 @@ RenderSystem::~RenderSystem()
 	// remove all entities created by the render system
 	auto view = registry.view<RenderRequest>();
 	registry.destroy(view.begin(), view.end());
-	// while (registry.renderRequests.entities.size() > 0)
-	//     registry.remove_all_components_of(registry.renderRequests.entities.back());
 }
 
 // Initialize the screen texture from a standard sprite

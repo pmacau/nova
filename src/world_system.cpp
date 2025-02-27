@@ -23,7 +23,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
-	// Create background map entity
+	// TODO: move background creation
 	auto entity = reg.create();
 	reg.emplace<Background>(entity);
 	
@@ -50,10 +50,11 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 			}
 		}
 	}
-
 	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
 	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
 	main_camera_entity = createCamera(registry, player_entity);
+
+	printf("Spawning player at: (%f, %f)\n", spawnX, spawnY);
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -65,7 +66,6 @@ WorldSystem::~WorldSystem() {
 
 	// Destroy all created components
 	registry.clear();
-	// registry.clear_all_components();
 
 	// Close the window
 	glfwDestroyWindow(window);
@@ -303,6 +303,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: move attack cooldown system
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
 
@@ -316,12 +317,6 @@ void WorldSystem::player_respawn() {
 	player.health = PLAYER_HEALTH;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
-
-// 	player_motion.position.x = WINDOW_WIDTH_PX / 2;
-// 	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
-// 	player_motion.acceleration = { 0, 0 };
-// 	player_motion.velocity = { 0, 0 };
-
 
 	player_motion.position = vec2(spawnX, spawnY);
 	player_motion.velocity = {0.f, 0.f};
@@ -351,19 +346,15 @@ void WorldSystem::restart_game() {
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
 	registry.destroy(motions.begin(), motions.end());
 
-	// createMob(registry, vec2(WINDOW_WIDTH_PX / 3, WINDOW_WIDTH_PX / 3));
-	/*createRockType1(registry, vec2(WINDOW_WIDTH_PX / 4, WINDOW_WIDTH_PX / 4));
-	createTreeType1(registry, vec2(WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 4));*/
-	// Reset player health
-// 	auto player = registry.get<Player>(player_entity);
-// 	player.health = PLAYER_HEALTH;
-	
-// 	// Reset player position
-// 	auto motion = registry.get<Motion>(player_entity);
-// 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
+	// TODO: move boss spawning system... less magic numbers too
+	for (int i = 0; i < 200; i++) {
+		for (int j = 0; j < 200; j++) {
+			if (gameMap[i][j] == 4) {
+				createBoss(registry, vec2(j * 16, i * 16));
+			}
+		}
+	}
 
-
-	createMob(registry, vec2(spawnX - (50 * 16.f), spawnY));
 	player_respawn();
 	createPlayerHealthBar(registry, {spawnX, spawnY});
 	createInventory(registry);
@@ -372,7 +363,6 @@ void WorldSystem::restart_game() {
 	auto screens = registry.view<ScreenState>();
 	auto& screen = registry.get<ScreenState>(screens.front());
 	screen.darken_screen_factor = 0;
-
 }
 
 // Should the game be over ?

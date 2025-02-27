@@ -9,6 +9,11 @@
 
 struct Background{};
 
+struct Boss{
+	float agro_range;
+	vec2 spawn;
+};
+
 enum HitBoxType {
 	HITBOX_CIRCLE,
 	HITBOX_RECT
