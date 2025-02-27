@@ -4,6 +4,7 @@
 #include "tinyECS/components.hpp"
 #include "util/file_loader.hpp"
 #include "ui_system.hpp"
+#include "music_system.hpp"
 
 // stlib
 #include <cassert>
@@ -60,12 +61,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 WorldSystem::~WorldSystem() {
 	// Destroy music components
-	if (forest_background != nullptr) Mix_FreeMusic(forest_background);
-	if (shoot_sound != nullptr) Mix_FreeChunk(shoot_sound);
-	if (hit_sound != nullptr) Mix_FreeChunk(hit_sound);
-	if (potion_sound != nullptr) Mix_FreeChunk(potion_sound);
-	
-	Mix_CloseAudio();
+	MusicSystem::clear();
 
 	// Destroy all created components
 	registry.clear();
@@ -137,48 +133,10 @@ GLFWwindow* WorldSystem::create_window() {
 	return window;
 }
 
-bool WorldSystem::start_and_load_sounds() {
-	
-	//////////////////////////////////////
-	// Loading music and sounds with SDL
-
-	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
-		fprintf(stderr, "Failed to initialize SDL Audio");
-		return false;
-	}
-
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1) {
-		fprintf(stderr, "Failed to open audio device");
-		return false;
-	}
-
-	forest_background = Mix_LoadMUS(audio_path("forest.wav").c_str());
-	shoot_sound = Mix_LoadWAV(audio_path("shoot.wav").c_str());
-	hit_sound = Mix_LoadWAV(audio_path("hit.wav").c_str());
-	potion_sound = Mix_LoadWAV(audio_path("potion.wav").c_str());
-
-	if (
-		forest_background == nullptr ||
-		shoot_sound == nullptr ||
-		hit_sound == nullptr ||
-		potion_sound == nullptr
-	) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("forest_background.wav").c_str(),
-			audio_path("shoot.wav").c_str(),
-			audio_path("hit.wav").c_str(),
-			audio_path("potion.wav").c_str()
-		);
-		return false;
-	}
-
-	return true;
-}
-
 void WorldSystem::init() {
 	// start playing background music indefinitely
 	std::cout << "Starting music..." << std::endl;
-	Mix_PlayMusic(forest_background, -1);
+	MusicSystem::playMusic(Music::FOREST);
 	// Set all states to default
 
     restart_game();
@@ -495,15 +453,13 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 			auto& player_comp = registry.get<Player>(player_entity);
 
 			
-			if (!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
-				if (player_comp.weapon_cooldown <= 0) {
+			if (
+				!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
+				player_comp.weapon_cooldown <= 0
+			) {
 					createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
-					Mix_PlayChannel(-1, shoot_sound, 0);
+					MusicSystem::playSoundEffect(SFX::SHOOT);
 					player_comp.weapon_cooldown = WEAPON_COOLDOWN;
-				}
-			} else {
-				// TODO: move this to UI system, maybe can keep a global state of all sound effects so all systems can access
-				Mix_PlayChannel(-1, potion_sound, 0);
 			}
 		}
 	

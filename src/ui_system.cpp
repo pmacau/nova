@@ -65,6 +65,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 		for (auto player_entity : registry.view<Player>()) {
 			auto& player = registry.get<Player>(player_entity);
 			player.health = min(player.health + potion.heal, PLAYER_HEALTH);
+			MusicSystem::playSoundEffect(SFX::POTION);
 			updatePlayerHealthBar(registry, player.health);
 			auto screens = registry.view<ScreenState>();
 			auto& screen = registry.get<ScreenState>(screens.front());
@@ -117,6 +118,7 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 		auto& motion = registry.get<Motion>(entity);
 		if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 			addToInventory(registry, entity);
+			MusicSystem::playSoundEffect(SFX::PICKUP);
 			break;
 		}
 	}

@@ -8,10 +8,6 @@
 #include <random>
 #include <entt.hpp>
 
-#define SDL_MAIN_HANDLED
-#include <SDL.h>
-#include <SDL_mixer.h>
-
 #include "render_system.hpp"
 #include "physics_system.hpp"
 
@@ -27,9 +23,6 @@ public:
 
 	// creates main window
 	GLFWwindow* create_window();
-
-	// starts and loads music and sound effects
-	bool start_and_load_sounds();
 
 	// call to close the window
 	void close_window();
@@ -48,13 +41,6 @@ public:
 
 	// player respawn
 	void player_respawn();
-
-	// music references
-	Mix_Music* forest_background;
-
-	Mix_Chunk* shoot_sound;
-	Mix_Chunk* hit_sound;
-	Mix_Chunk* potion_sound;
 
 private:
 	entt::registry& registry;

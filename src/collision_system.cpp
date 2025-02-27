@@ -1,5 +1,6 @@
 #include "collision_system.hpp"
 #include "ui_system.hpp"
+#include "music_system.hpp"
 
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
@@ -47,7 +48,8 @@ void CollisionSystem::step(float elapsed_ms)
 					if (mob_ref.hit_time <= 0) {
 						//std::cout << "COLLISION" << std::endl;
 						player_ref.health -= MOB_DAMAGE;
-						Mix_PlayChannel(-1, world.hit_sound, 0);
+						MusicSystem::playSoundEffect(SFX::HIT);
+
 
             UISystem::updatePlayerHealthBar(registry, player_ref.health);
 						physics.knockback(entity, mob, 400);
@@ -81,7 +83,7 @@ void CollisionSystem::step(float elapsed_ms)
 				if (isContact(entity, mob_entity, registry, 0.f)) {
 					destroy_entities.push_back(entity);
 					mob.health -= projectile.damage;
-					Mix_PlayChannel(-1, world.hit_sound, 0);
+					MusicSystem::playSoundEffect(SFX::HIT);
 
 					UISystem::updateMobHealthBar(registry, mob_entity, true);
 					if (mob.health <= 0) {
