@@ -81,7 +81,6 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
-		std::cout << mouse_pos_x << "\n";
 		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
 		if (i >= 0 && i < inventory.slots.size()) {
 			auto& inventory_entity = inventory.slots[i];

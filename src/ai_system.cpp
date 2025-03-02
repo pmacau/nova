@@ -3,6 +3,7 @@
 #include "world_init.hpp"
 #include "world_system.hpp"
 #include "tinyECS/components.hpp"
+#include "music_system.hpp"
 	
 AISystem::AISystem(entt::registry& reg) :
 	registry(reg)
@@ -41,13 +42,18 @@ void AISystem::step(float elapsed_ms)
 				boss.spawn - (mob_motion.position + mob_motion.offset_to_ground)
 			);
 			float player_dist = distance(mob_motion.position, player_motion.position);
-			mob_motion.velocity = (player_dist <= boss.agro_range) ? velo_to_player : velo_to_home;
+			float home_dist = distance(mob_motion.position, boss.spawn);
+
+			if (player_dist <= boss.agro_range) {
+				mob_motion.velocity = velo_to_player;
+			} else if (home_dist <= 32) {
+				mob_motion.velocity = {0.f, 0.f};
+			} else {
+				mob_motion.velocity = velo_to_home;
+			}
 		} else {
 			mob_motion.velocity = velo_to_player;
 		}
-		// sets velocity of mob to be towards player
-		//std::cout << "mob velocity" << mob_motion.velocity.x << " " << mob_motion.velocity.y << std::endl;
-
 	}
 
 }

@@ -151,36 +151,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		restart_game();
 	}
 
-	auto& player_motion_debug = registry.get<Motion>(player_entity);
-	// printf("The player position is: (%f, %f)\n", player_motion_debug.position.x, player_motion_debug.position.y);
-	
-	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
-	/*auto updatePlayerVelocity = [this]() {
-		auto& motion = registry.get<Motion>(player_entity);
-	    motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
-		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
-
-		if      (key_state[KeyboardState::UP]    && key_state[KeyboardState::DOWN])  motion.velocity.y = 0.0f;
-		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::RIGHT]) motion.velocity.x = 0.0f;
-		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
-		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2(-0.7071f,  0.7071f);
-		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
-		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
-	};
-	updatePlayerVelocity(); */
 	InputState i; 
-	if (key_state[KeyboardState::UP]) {
-		i.up = true;
-	}
-	if (key_state[KeyboardState::DOWN]) {
-		i.down = true;
-	}
-	if (key_state[KeyboardState::LEFT]) {
-		i.left = true;
-	}
-	if (key_state[KeyboardState::RIGHT]) {
-		i.right = true;
-	}
+	if (key_state[KeyboardState::UP]) i.up = true;
+	if (key_state[KeyboardState::DOWN]) i.down = true;
+	if (key_state[KeyboardState::LEFT]) i.left = true;
+	if (key_state[KeyboardState::RIGHT]) i.right = true;
 	physics_system.updatePlayerVelocity(i);
 
 
@@ -329,11 +304,7 @@ void WorldSystem::player_respawn() {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
-
 	std::cout << "Restarting..." << std::endl;
-
-	// Debugging for memory/component leaks
-	// registry.list_all_components();
 
 	// Reset the game speed
 	current_speed = 1.f;
@@ -359,8 +330,8 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, {spawnX, spawnY});
 	createInventory(registry);
-	createMob(registry, { spawnX + 500, spawnY + 500 }, MOB_HEALTH);
-	createMob(registry, { spawnX + 600, spawnY + 600 }, MOB_HEALTH);
+	// createMob(registry, { spawnX + 500, spawnY + 500 }, MOB_HEALTH);
+	// createMob(registry, { spawnX + 600, spawnY + 600 }, MOB_HEALTH);
 
 	// reset the screen
 	auto screens = registry.view<ScreenState>();
@@ -407,17 +378,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-	// // Debugging - not used in A1, but left intact for the debug lines
-	// if (key == GLFW_KEY_D) {
-	// 	if (action == GLFW_RELEASE) {
-	// 		if (debugging.in_debug_mode) {
-	// 			debugging.in_debug_mode = false;
-	// 		}
-	// 		else {
-	// 			debugging.in_debug_mode = true;
-	// 		}
-	// 	}
-	// }
+
+	// TODO: testing sound system. remove this later
+	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
+	if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
+	if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
+	if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
+	if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
+	if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -432,20 +400,15 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-
 			printf("Mouse clicked at: (%f, %f)\n", mouse_pos_x, mouse_pos_y);
-
 			auto& player_motion = registry.get<Motion>(player_entity);
 
 			vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
-
 			vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
-
 			vec2 velocity = direction * PROJECTILE_SPEED;
 
 			auto& player_comp = registry.get<Player>(player_entity);
 
-			
 			if (
 				!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
 				player_comp.weapon_cooldown <= 0
@@ -455,7 +418,6 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 					player_comp.weapon_cooldown = WEAPON_COOLDOWN;
 			}
 		}
-	
 	}
 }
 
