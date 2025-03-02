@@ -158,6 +158,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (key_state[KeyboardState::RIGHT]) i.right = true;
 	physics_system.updatePlayerVelocity(i);
 
+	// TODO: move left-mouse-click polling logic
+	mouse_click_poll -= elapsed_ms_since_last_update;
+	if (mouse_click_poll < 0) {
+		int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		if (state == GLFW_PRESS) left_mouse_click();
+		mouse_click_poll = MOUSE_POLL_RATE;
+	}
+
 
 	// TODO: move direction system
 	auto dir_view = registry.view<Motion, Sprite>();
@@ -395,29 +403,33 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	mouse_pos_y = mouse_position.y;
 }
 
+void WorldSystem::left_mouse_click() {
+	auto& player_motion = registry.get<Motion>(player_entity);
+	vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
+	vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
+	vec2 velocity = direction * PROJECTILE_SPEED;
+
+	auto& player_comp = registry.get<Player>(player_entity);
+
+	if (
+		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
+		player_comp.weapon_cooldown <= 0
+	) {
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			MusicSystem::playSoundEffect(SFX::SHOOT);
+			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
+	}
+}
+
 
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			printf("Mouse clicked at: (%f, %f)\n", mouse_pos_x, mouse_pos_y);
-			auto& player_motion = registry.get<Motion>(player_entity);
-
-			vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
-			vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
-			vec2 velocity = direction * PROJECTILE_SPEED;
-
-			auto& player_comp = registry.get<Player>(player_entity);
-
-			if (
-				!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-				player_comp.weapon_cooldown <= 0
-			) {
-					createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
-					MusicSystem::playSoundEffect(SFX::SHOOT);
-					player_comp.weapon_cooldown = WEAPON_COOLDOWN;
-			}
+			left_mouse_click();
 		}
 	}
 }
+
 
