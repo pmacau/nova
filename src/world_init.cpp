@@ -1,5 +1,5 @@
 #include "world_init.hpp"
-// #include "tinyECS/registry.hpp"
+#include "util/debug.hpp"
 #include <iostream>
 
 
@@ -105,7 +105,6 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	// motion.position = position;
 
 	motion.position.x = position.x + sprite.dims[0] / 2;
-	//std::cout << sprite.dims[0] << std::endl; 
 	motion.position.y = position.y + sprite.dims[1] / 2;
 	motion.scale = vec2(100, 120);
 
@@ -230,7 +229,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
 
-	std::cout << "Ship position: " << position.x << ", " << position.y << std::endl;
+	debug_printf(DebugType::WORLD_INIT, "Ship position (%d, %d)\n", position.x, position.y);
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0.0f, 0.0f};
@@ -248,7 +247,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity)
 {
-	std::cout << "projectile created at " << pos.x << " " << pos.y << "\n";
+	debug_printf(DebugType::WORLD_INIT, "Projectile created: (%.1f, %.1f)\n", pos.x, pos.y);
 	auto entity = registry.create();
 
 	auto& sprite = registry.emplace<Sprite>(entity);
@@ -283,7 +282,7 @@ entt::entity createBoss(entt::registry& registry, vec2 pos) {
 	boss.agro_range = 500.f;
 	boss.spawn = pos;
 
-	printf("Boss created at: (%f, %f)\n", pos.x, pos.y);
+	debug_printf(DebugType::WORLD_INIT, "Boss created at: (%.1f, %.1f)\n", pos.x, pos.y);
 	return entity;
 }
 

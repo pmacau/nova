@@ -103,3 +103,4 @@ struct Transform {
 };
 
 bool gl_has_errors();
+

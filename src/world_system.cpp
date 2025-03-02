@@ -5,6 +5,7 @@
 #include "util/file_loader.hpp"
 #include "ui_system.hpp"
 #include "music_system.hpp"
+#include "util/debug.hpp"
 
 // stlib
 #include <cassert>
@@ -55,7 +56,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
 	main_camera_entity = createCamera(registry, player_entity);
 
-	printf("Spawning player at: (%f, %f)\n", spawnX, spawnY);
+	debug_printf(DebugType::WORLD_INIT, "Player spawn: (%.1f, %.1f)\n", spawnX, spawnY);
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -136,7 +137,7 @@ GLFWwindow* WorldSystem::create_window() {
 
 void WorldSystem::init() {
 	// start playing background music indefinitely
-	std::cout << "Starting music..." << std::endl;
+	debug_printf(DebugType::GAME_INIT, "Starting music...\n");
 	MusicSystem::playMusic(Music::FOREST);
 	// Set all states to default
 
@@ -147,7 +148,7 @@ void WorldSystem::init() {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
-		printf("[GAME OVER] restarting game now...\n");
+		debug_printf(DebugType::WORLD, "Game over; restarting game now...\n");
 		restart_game();
 	}
 
@@ -295,8 +296,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 }
 
 void WorldSystem::player_respawn() {
-	printf("Respawning player\n");
-
 	Player& player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
 
@@ -312,7 +311,7 @@ void WorldSystem::player_respawn() {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
-	std::cout << "Restarting..." << std::endl;
+	debug_printf(DebugType::WORLD, "Restarting...\n");
 
 	// Reset the game speed
 	current_speed = 1.f;
@@ -374,18 +373,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-	if (key == GLFW_KEY_P) {
-		auto debugView = registry.view<Debug>();
-		if (debugView.empty()) {
-			registry.emplace<Debug>(player_entity);
-		}
-		else {
-			for (auto entity : debugView) {
-				std::cout << "Removing debug" << std::endl;
-				registry.remove<Debug>(entity);
-			}
-		}
-	}
+	// if (key == GLFW_KEY_P) {
+	// 	auto debugView = registry.view<Debug>();
+	// 	if (debugView.empty()) {
+	// 		registry.emplace<Debug>(player_entity);
+	// 	}
+	// 	else {
+	// 		for (auto entity : debugView) {
+	// 			std::cout << "Removing debug" << std::endl;
+	// 			registry.remove<Debug>(entity);
+	// 		}
+	// 	}
+	// }
 
 	// TODO: testing sound system. remove this later
 	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
@@ -426,7 +425,7 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-			printf("Mouse clicked at: (%f, %f)\n", mouse_pos_x, mouse_pos_y);
+			debug_printf(DebugType::INPUT, "Mouse clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
 			left_mouse_click();
 		}
 	}
