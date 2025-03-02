@@ -59,7 +59,7 @@ public:
         }
 
         static void playMusic(Music music, int loops = -1, int fade_time = 0) {
-            if (music_map.find(music) != music_map.end() && music != currentTrack) {
+            if (music != currentTrack && music_map.find(music) != music_map.end()) {
                 std::thread(fade_to_track, music, loops, fade_time).detach();
             };
         }
