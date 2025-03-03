@@ -89,6 +89,7 @@ private:
                 val.sound = load_func(audio_path(val.filename).c_str());
                 if (val.sound == nullptr) {
                     fprintf(stderr, "Failed to load sound: %s\n", val.filename.c_str());
+                    std::cerr << "Error: " << Mix_GetError() << std::endl;
                     return false;
                 }
             }
