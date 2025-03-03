@@ -75,16 +75,6 @@ const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
 
-// These are hard coded to the dimensions of the entity's texture
-
-// invaders are 64x64 px, but cells are 60x60
-const float INVADER_BB_WIDTH = (float)GRID_CELL_WIDTH_PX;
-const float INVADER_BB_HEIGHT = (float)GRID_CELL_HEIGHT_PX;
-
-// towers are 64x64 px, but cells are 60x60
-const float TOWER_BB_WIDTH = (float)GRID_CELL_WIDTH_PX;
-const float TOWER_BB_HEIGHT = (float)GRID_CELL_HEIGHT_PX;
-
 // Camera system
 const float CAMERA_SPEED = 0.2f;
 const float CAMERA_ZOOM_SPEED = 0.1f;

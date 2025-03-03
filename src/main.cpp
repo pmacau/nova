@@ -15,6 +15,8 @@
 #include "collision_system.hpp"
 #include "physics_system.hpp"
 #include "music_system.hpp"
+#include "map/map_system.hpp"
+
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
@@ -45,6 +47,7 @@ int main()
 	}
 
 	// initialize the main systems
+	MapSystem::init(reg);
 	renderer_system.init(window);
 	world_system.init();
 
