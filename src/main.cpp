@@ -48,6 +48,7 @@ int main()
 
 	// initialize the main systems
 	renderer_system.init(window);
+	renderer_system.initFreetype();
 	world_system.init();
 
 	// variable timestep loop

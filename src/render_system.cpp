@@ -6,6 +6,12 @@
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
 #include <glm/gtc/type_ptr.hpp>
+// for the text rendering
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <map>
+#include <string>
+#include <sstream>
 
 RenderSystem::RenderSystem(entt::registry& reg) :
 	registry(reg)
@@ -14,6 +20,237 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	screen_entity = registry.view<ScreenState>().front();
 }
 
+
+// GLuint RenderSystem::createShader(const std::string& vertexPath, const std::string& fragmentPath) {
+// 	std::cout << "made it here ---------" << std::endl;
+//     std::string vertexCode, fragmentCode;
+//     std::ifstream vShaderFile(vertexPath), fShaderFile(fragmentPath);
+//     std::stringstream vShaderStream, fShaderStream;
+
+// 	// Check if files exist
+//     if (!vShaderFile.is_open()) {
+//         std::cerr << "ERROR: Could not open vertex shader file: " << vertexPath << std::endl;
+//         return 0;
+//     }
+
+//     if (!fShaderFile.is_open()) {
+//         std::cerr << "ERROR: Could not open fragment shader file: " << fragmentPath << std::endl;
+//         return 0;
+//     }
+
+//     vShaderStream << vShaderFile.rdbuf();
+//     fShaderStream << fShaderFile.rdbuf();
+//     vertexCode = vShaderStream.str();
+//     fragmentCode = fShaderStream.str();
+
+//     const char* vShaderCode = vertexCode.c_str();
+//     const char* fShaderCode = fragmentCode.c_str();
+
+//     GLuint vertex, fragment;
+//     vertex = glCreateShader(GL_VERTEX_SHADER);
+//     glShaderSource(vertex, 1, &vShaderCode, NULL);
+//     glCompileShader(vertex);
+//     // checkShaderCompileErrors(vertex, "VERTEX");
+
+//     fragment = glCreateShader(GL_FRAGMENT_SHADER);
+//     glShaderSource(fragment, 1, &fShaderCode, NULL);
+//     glCompileShader(fragment);
+//     // checkShaderCompileErrors(fragment, "FRAGMENT");
+
+//     GLuint program = glCreateProgram();
+//     glAttachShader(program, vertex);
+//     glAttachShader(program, fragment);
+//     glLinkProgram(program);
+//     // checkShaderCompileErrors(program, "PROGRAM");
+
+//     glDeleteShader(vertex);
+//     glDeleteShader(fragment);
+
+//     return program;
+// }
+
+bool RenderSystem::initFreetype() {
+    // Initialize FreeType library
+    FT_Library ft;
+    if (FT_Init_FreeType(&ft)) {
+        std::cerr << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+        return false;
+    }
+
+    // Load font
+    FT_Face face;
+    // Modify this path to point to your font file
+    if (FT_New_Face(ft, "fonts/Oxanium.ttf", 0, &face)) {
+        std::cerr << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        return false;
+    }
+
+    // Set size to load glyphs
+    FT_Set_Pixel_Sizes(face, 0, 48);
+
+    // Disable byte-alignment restriction
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    // Load first 128 characters of ASCII set
+    for (unsigned char c = 0; c < 128; c++) {
+        // Load character glyph 
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+            std::cerr << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+            continue;
+        }
+
+        // Generate texture
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RED,
+            face->glyph->bitmap.width,
+            face->glyph->bitmap.rows,
+            0,
+            GL_RED,
+            GL_UNSIGNED_BYTE,
+            face->glyph->bitmap.buffer
+        );
+
+        // Set texture options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Store character for later use
+        Character character = {
+            texture,
+            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+            static_cast<GLuint>(face->glyph->advance.x)
+        };
+        Characters.insert(std::pair<char, Character>(c, character));
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Free FreeType resources
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
+
+    // Configure VAO/VBO for text quads
+    glGenVertexArrays(1, &textVAO);
+    glGenBuffers(1, &textVBO);
+
+	if (textVAO == 0) {
+        std::cerr << "ERROR: Failed to generate text VAO" << std::endl;
+        return false;
+    }
+    if (textVBO == 0) {
+        std::cerr << "ERROR: Failed to generate text VBO" << std::endl;
+        return false;
+    }
+
+    glBindVertexArray(textVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+	std::cout << "made it here" << std::endl;
+
+    // Create text shader program (add this to your init code)
+    // You'll need to create text.vs and text.fs shader files
+    // textShaderProgram = createShader("shaders/text.vs.glsl", "shaders/text.fs.glsl");
+    
+    // For now, add it to your EFFECT_ASSET_ID enum and load it with your other shaders
+    // EFFECT_ASSET_ID::TEXT
+
+    return true;
+}
+
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
+    // Activate corresponding render state	
+    glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
+    gl_has_errors();
+
+    // Validate VAO and VBO
+    if (textVAO == 0 || textVBO == 0) {
+        std::cerr << "ERROR: Text VAO or VBO not initialized" << std::endl;
+        return;
+    }
+
+	glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Set projection
+    GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
+    glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Set text color
+    GLuint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "textColor");
+    glUniform3f(colorLoc, color.x, color.y, color.z);
+    gl_has_errors();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(textVAO);
+
+    // Iterate through all characters
+    for (char c : text) {
+        if (Characters.find(c) == Characters.end()) {
+            std::cerr << "Character not found in font map: " << c << std::endl;
+            continue;
+        }
+
+        Character ch = Characters[c];
+
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
+        
+        // Update VBO for each character
+        float vertices[6][4] = {
+            { xpos,     ypos + h,   0.0f, 0.0f },            
+            { xpos,     ypos,       0.0f, 1.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+
+            { xpos,     ypos + h,   0.0f, 0.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+            { xpos + w, ypos + h,   1.0f, 0.0f }           
+        };
+        
+        // Render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+        if (gl_has_errors()) {
+            std::cerr << "Error binding texture for character" << std::endl;
+            continue;
+        }
+        
+        // Update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        if (gl_has_errors()) {
+            std::cerr << "Error updating VBO data" << std::endl;
+            continue;
+        }
+
+        // Render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        if (gl_has_errors()) {
+            std::cerr << "Error drawing text quad" << std::endl;
+        }
+
+        // Advance cursor for next glyph
+        x += (ch.Advance >> 6) * scale;
+    }
+    
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    gl_has_errors();
+}
 
 // TODO: can refactor this, and possibly speed it up by not binding the same texture again and again
 void RenderSystem::drawBackground(const mat3& projection) {
@@ -429,7 +666,6 @@ void RenderSystem::renderGamePlay()
 
 
 	mat3 projection_2D = createProjectionMatrix();
-
 	// render players and mobs
 	std::vector<entt::entity> PlayerMobsRenderEntities;
 	// get all mob and player entities with motion and render request components
@@ -533,7 +769,7 @@ void RenderSystem::renderShipUI()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+	mat3 projection_2D = createProjectionMatrix();
 
 	// render ship
 	auto ship = registry.view<Ship, Motion, RenderRequest>().front();
@@ -542,15 +778,16 @@ void RenderSystem::renderShipUI()
     motion.position = glm::vec2(w / 2.0f, h / 2.0f);
 
     // Render the ship
-	std::cout << "before render ship" << std::endl;
-    drawTexturedMesh(ship, createProjectionMatrix());
-	std::cout << "after render ship" << std::endl;
-
+    drawTexturedMesh(ship, projection_2D);
 
     // Restore the ship's original position
     motion.position = originalPosition;
 
 	drawToScreen();
+
+	mat3 flippedProjection = projection_2D;
+	flippedProjection[1][1] *= -1.0f; 
+	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -682,4 +919,4 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 
 	// Re-enable depth test
     glEnable(GL_DEPTH_TEST);
-}
+} 

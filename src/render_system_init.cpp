@@ -300,12 +300,15 @@ bool gl_compile_shader(GLuint shader)
 bool loadEffectFromFile(
 	const std::string& vs_path, const std::string& fs_path, GLuint& out_program)
 {
+	std::cout << "Attempting to load Vertex Shader from: " << vs_path << std::endl;
+    std::cout << "Attempting to load Fragment Shader from: " << fs_path << std::endl;
+
 	// Opening files
 	std::ifstream vs_is(vs_path);
 	std::ifstream fs_is(fs_path);
 	if (!vs_is.good() || !fs_is.good())
 	{
-		fprintf(stderr, "Failed to load shader files %s, %s", vs_path.c_str(), fs_path.c_str());
+		fprintf(stderr, "Failed to load shader files %s, %s ", vs_path.c_str(), fs_path.c_str());
 		assert(false);
 		return false;
 	}

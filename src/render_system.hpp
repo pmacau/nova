@@ -54,7 +54,8 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("vignette"),
 		shader_path("coloured"),
-		shader_path("debug")
+		shader_path("debug"),
+		shader_path("text"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -62,11 +63,20 @@ class RenderSystem {
 
 	// std::vector<std::vector<TileRender>> tileMap;
 
+	// for texts
+	struct Character {
+		GLuint     TextureID;  // ID handle of the glyph texture
+		glm::ivec2 Size;       // Size of glyph
+		glm::ivec2 Bearing;    // Offset from baseline to left/top of glyph
+		GLuint     Advance;    // Horizontal offset to advance to next glyph
+	};
+
 public:
 	RenderSystem(entt::registry& reg);
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
+	bool initFreetype();
 	bool debugModeEnabled;
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
@@ -114,6 +124,16 @@ private:
 	GLuint off_screen_render_buffer_depth;
 	entt::entity screen_state_entity;
 	entt::entity screen_entity;
+
+	// text based stuff
+	std::map<char, Character> Characters;
+	GLuint textShaderProgram;
+	GLuint textVAO = 0;
+	GLuint textVBO = 0;
+
+	GLuint createShader(const std::string& vertexPath, const std::string& fragmentPath);
+	
+	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
 };
 
 bool loadEffectFromFile(
