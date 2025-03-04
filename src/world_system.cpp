@@ -23,7 +23,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 
-	// Create background map entity
+	// TODO: move background creation
 	auto entity = reg.create();
 	reg.emplace<Background>(entity);
 	
@@ -48,12 +48,14 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 				spawnX = j * 16;
 				spawnY = i * 16;
 			}
+
 		}
 	}
-
 	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
 	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
 	main_camera_entity = createCamera(registry, player_entity);
+
+	printf("Spawning player at: (%f, %f)\n", spawnX, spawnY);
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -65,7 +67,6 @@ WorldSystem::~WorldSystem() {
 
 	// Destroy all created components
 	registry.clear();
-	// registry.clear_all_components();
 
 	// Close the window
 	glfwDestroyWindow(window);
@@ -150,37 +151,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		restart_game();
 	}
 
-	auto& player_motion_debug = registry.get<Motion>(player_entity);
-	// printf("The player position is: (%f, %f)\n", player_motion_debug.position.x, player_motion_debug.position.y);
-	
-	// TODO: refactor this logic to be more reusable/modular i.e. make a helper to update player speed based on key state
-	/*auto updatePlayerVelocity = [this]() {
-		auto& motion = registry.get<Motion>(player_entity);
-	    motion.velocity.y = (!key_state[KeyboardState::UP]) ? (key_state[KeyboardState::DOWN] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
-		motion.velocity.x = (!key_state[KeyboardState::LEFT]) ? (key_state[KeyboardState::RIGHT] ? PLAYER_SPEED: 0.0f) : -PLAYER_SPEED;
-
-		if      (key_state[KeyboardState::UP]    && key_state[KeyboardState::DOWN])  motion.velocity.y = 0.0f;
-		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::RIGHT]) motion.velocity.x = 0.0f;
-		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
-		else if (key_state[KeyboardState::LEFT]  && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2(-0.7071f,  0.7071f);
-		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::UP])    motion.velocity = PLAYER_SPEED * vec2( 0.7071f, -0.7071f);
-		else if (key_state[KeyboardState::RIGHT] && key_state[KeyboardState::DOWN])  motion.velocity = PLAYER_SPEED * vec2( 0.7071f,  0.7071f);
-	};
-	updatePlayerVelocity(); */
 	InputState i; 
-	if (key_state[KeyboardState::UP]) {
-		i.up = true;
-	}
-	if (key_state[KeyboardState::DOWN]) {
-		i.down = true;
-	}
-	if (key_state[KeyboardState::LEFT]) {
-		i.left = true;
-	}
-	if (key_state[KeyboardState::RIGHT]) {
-		i.right = true;
-	}
+	if (key_state[KeyboardState::UP]) i.up = true;
+	if (key_state[KeyboardState::DOWN]) i.down = true;
+	if (key_state[KeyboardState::LEFT]) i.left = true;
+	if (key_state[KeyboardState::RIGHT]) i.right = true;
 	physics_system.updatePlayerVelocity(i);
+
+	// TODO: move left-mouse-click polling logic
+	mouse_click_poll -= elapsed_ms_since_last_update;
+	if (mouse_click_poll < 0) {
+		int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+		if (state == GLFW_PRESS) left_mouse_click();
+		mouse_click_poll = MOUSE_POLL_RATE;
+	}
 
 
 	// TODO: move direction system
@@ -303,6 +287,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: move attack cooldown system
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
 
@@ -317,12 +302,6 @@ void WorldSystem::player_respawn() {
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 
-// 	player_motion.position.x = WINDOW_WIDTH_PX / 2;
-// 	player_motion.position.y = WINDOW_HEIGHT_PX / 2;
-// 	player_motion.acceleration = { 0, 0 };
-// 	player_motion.velocity = { 0, 0 };
-
-
 	player_motion.position = vec2(spawnX, spawnY);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
@@ -333,11 +312,7 @@ void WorldSystem::player_respawn() {
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
-
 	std::cout << "Restarting..." << std::endl;
-
-	// Debugging for memory/component leaks
-	// registry.list_all_components();
 
 	// Reset the game speed
 	current_speed = 1.f;
@@ -351,28 +326,25 @@ void WorldSystem::restart_game() {
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
 	registry.destroy(motions.begin(), motions.end());
 
-	// createMob(registry, vec2(WINDOW_WIDTH_PX / 3, WINDOW_WIDTH_PX / 3));
-	/*createRockType1(registry, vec2(WINDOW_WIDTH_PX / 4, WINDOW_WIDTH_PX / 4));
-	createTreeType1(registry, vec2(WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 4 + WINDOW_WIDTH_PX / 4));*/
-	// Reset player health
-// 	auto player = registry.get<Player>(player_entity);
-// 	player.health = PLAYER_HEALTH;
-	
-// 	// Reset player position
-// 	auto motion = registry.get<Motion>(player_entity);
-// 	motion.position = vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2); 
+	// TODO: move boss spawning system... less magic numbers too
+	for (int i = 0; i < 200; i++) {
+		for (int j = 0; j < 200; j++) {
+			if (gameMap[i][j] == 4) {
+				createBoss(registry, vec2(j * 16, i * 16));
+			}
+		}
+	}
 
-
-	createMob(registry, vec2(spawnX - (50 * 16.f), spawnY));
 	player_respawn();
 	createPlayerHealthBar(registry, {spawnX, spawnY});
 	createInventory(registry);
+	// createMob(registry, { spawnX + 500, spawnY + 500 }, MOB_HEALTH);
+	// createMob(registry, { spawnX + 600, spawnY + 600 }, MOB_HEALTH);
 
 	// reset the screen
 	auto screens = registry.view<ScreenState>();
 	auto& screen = registry.get<ScreenState>(screens.front());
 	screen.darken_screen_factor = 0;
-
 }
 
 // Should the game be over ?
@@ -414,17 +386,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-	// // Debugging - not used in A1, but left intact for the debug lines
-	// if (key == GLFW_KEY_D) {
-	// 	if (action == GLFW_RELEASE) {
-	// 		if (debugging.in_debug_mode) {
-	// 			debugging.in_debug_mode = false;
-	// 		}
-	// 		else {
-	// 			debugging.in_debug_mode = true;
-	// 		}
-	// 	}
-	// }
+
+	// TODO: testing sound system. remove this later
+	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
+	if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
+	if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
+	if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
+	if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
+	if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -434,35 +403,33 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	mouse_pos_y = mouse_position.y;
 }
 
+void WorldSystem::left_mouse_click() {
+	auto& player_motion = registry.get<Motion>(player_entity);
+	vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
+	vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
+	vec2 velocity = direction * PROJECTILE_SPEED;
+
+	auto& player_comp = registry.get<Player>(player_entity);
+
+	if (
+		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
+		player_comp.weapon_cooldown <= 0
+	) {
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			MusicSystem::playSoundEffect(SFX::SHOOT);
+			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
+	}
+}
+
 
 void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	// on button press
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-
 			printf("Mouse clicked at: (%f, %f)\n", mouse_pos_x, mouse_pos_y);
-
-			auto& player_motion = registry.get<Motion>(player_entity);
-
-			vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
-
-			vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
-
-			vec2 velocity = direction * PROJECTILE_SPEED;
-
-			auto& player_comp = registry.get<Player>(player_entity);
-
-			
-			if (
-				!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-				player_comp.weapon_cooldown <= 0
-			) {
-					createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
-					MusicSystem::playSoundEffect(SFX::SHOOT);
-					player_comp.weapon_cooldown = WEAPON_COOLDOWN;
-			}
+			left_mouse_click();
 		}
-	
 	}
 }
+
 

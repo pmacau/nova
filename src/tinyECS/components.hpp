@@ -9,6 +9,11 @@
 
 struct Background{};
 
+struct Boss{
+	float agro_range;
+	vec2 spawn;
+};
+
 enum HitBoxType {
 	HITBOX_CIRCLE,
 	HITBOX_RECT
@@ -123,6 +128,7 @@ struct PlayerHealthBar
 struct MobHealthBar
 {
 	entt::entity entity;
+	int initial_health;
 	float left_adjust = 0.f;
 };
 

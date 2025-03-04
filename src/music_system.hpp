@@ -4,6 +4,9 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <chrono>
+#include <mutex>
+#include <thread>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -23,7 +26,7 @@ enum SFX {
 const int sfx_count = (int) SFX_COUNT;
 
 enum Music {
-    FOREST,
+    FOREST, BEACH, JUNGLE, OCEAN, SAVANNA, SNOWLANDS,
     MUSIC_COUNT
 };
 const int music_count = (int) MUSIC_COUNT;
@@ -33,12 +36,12 @@ class MusicSystem {
 public:
         static bool init() {
             return (
-                SDL_Init(SDL_INIT_AUDIO) < 0
-                || Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == -1
-                || !load_sounds<SFX, Mix_Chunk>(
+                SDL_Init(SDL_INIT_AUDIO) == 0 &&
+                Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0 &&
+                load_sounds<SFX, Mix_Chunk>(
                     sfx_map, [](const char* name) -> Mix_Chunk* {return Mix_LoadWAV(name);}
-                )
-                || !load_sounds<Music, Mix_Music>(music_map, Mix_LoadMUS)
+                ) &&
+                load_sounds<Music, Mix_Music>(music_map, Mix_LoadMUS)
             );
         }
 
@@ -55,10 +58,9 @@ public:
             };
         }
 
-        static void playMusic(Music music, int loops = -1) {
-            if (music_map.find(music) != music_map.end()) {
-                SoundData<Mix_Music>& data = music_map[music];
-                Mix_PlayMusic(data.sound, loops);
+        static void playMusic(Music music, int loops = -1, int fade_time = 0) {
+            if (music != currentTrack && music_map.find(music) != music_map.end()) {
+                std::thread(fade_to_track, music, loops, fade_time).detach();
             };
         }
 private:
@@ -70,7 +72,12 @@ private:
             {PICKUP, {"sfx/pickup.wav"}}
         };
         inline static std::unordered_map<Music, SoundData<Mix_Music>> music_map = {
-            {FOREST, {"forest.wav"}}
+            {FOREST,    {"music/forest.wav"}},
+            {BEACH,     {"music/beach.wav"}},
+            {JUNGLE,    {"music/jungle.wav"}},
+            {OCEAN,     {"music/ocean.wav"}},
+            {SAVANNA,   {"music/savanna.wav"}},
+            {SNOWLANDS, {"music/snowlands.wav"}}
         };
 
         template <typename EnumT, typename SoundT>
@@ -96,5 +103,22 @@ private:
             for (auto& [key, val] : audio_map) {
                 if (val.sound != nullptr) clear_func(val.sound);
             }
+        }
+
+
+        inline static std::mutex musicMutex;
+        inline static Music currentTrack = MUSIC_COUNT;
+
+        static void fade_to_track(Music music, int loops = -1, int fade_time = 0) {
+            std::lock_guard<std::mutex> lock(musicMutex);
+
+            if (Mix_PlayingMusic()) {
+                Mix_FadeOutMusic(fade_time);
+                std::this_thread::sleep_for(std::chrono::milliseconds(fade_time));
+            }
+
+            SoundData<Mix_Music>& data = music_map[music];
+            Mix_FadeInMusic(data.sound, loops, fade_time);
+            currentTrack = music;
         }
 };

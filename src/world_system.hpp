@@ -51,16 +51,20 @@ private:
 	entt::entity main_camera_entity;
 
 	std::vector<std::vector<uint8_t>> gameMap;
-	float spawnX, spawnY;
+	float spawnX = 0.f;
+	float spawnY = 0.f;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
 
+	float mouse_click_poll = MOUSE_POLL_RATE;
+
 	// input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button_pressed(int button, int action, int mods);
+	void left_mouse_click();
 
 	// restart level
 	void restart_game();

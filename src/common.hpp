@@ -72,6 +72,7 @@ const int PROJECTILE_TIMER = 5000;
 const int MAX_INVENTORY_SLOTS = 5;
 
 const float WEAPON_COOLDOWN = 0.5;
+const float MOUSE_POLL_RATE = 100;
 
 
 // These are hard coded to the dimensions of the entity's texture

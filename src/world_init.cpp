@@ -78,7 +78,7 @@ entt::entity createCamera(entt::registry& registry, entt::entity target)
 	return entity;
 }
 
-entt::entity createMob(entt::registry& registry, vec2 position) {
+entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	// ENTITY CREATION
 	auto entity = registry.create();
 
@@ -96,7 +96,7 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	hitBox.shape.rect.width = 43.f;
 	hitBox.shape.rect.height = 55.f;*/
 
-	mob.health = MOB_HEALTH;
+	mob.health = health;
 	mob.hit_time = 1.f;
 	
 	auto& motion = registry.emplace<Motion>(entity);
@@ -123,7 +123,6 @@ entt::entity createMob(entt::registry& registry, vec2 position) {
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
-	std::cout << "Created mob" << std::endl; 
 	createMobHealthBar(registry, entity);
 	return entity; 
 }
@@ -133,7 +132,9 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	registry.emplace<UI>(entity);
 	registry.emplace<MobHealthBar>(entity);
 	auto& healthbar = registry.get<MobHealthBar>(entity);
+	auto& mob = registry.get<Mob>(mob_entity);
 	healthbar.entity = mob_entity;
+	healthbar.initial_health = mob.health;
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;
@@ -273,6 +274,16 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
+	return entity;
+}
+
+entt::entity createBoss(entt::registry& registry, vec2 pos) {
+	auto entity = createMob(registry, pos, MOB_HEALTH * 10);
+	Boss& boss = registry.emplace<Boss>(entity);
+	boss.agro_range = 500.f;
+	boss.spawn = pos;
+
+	printf("Boss created at: (%f, %f)\n", pos.x, pos.y);
 	return entity;
 }
 
