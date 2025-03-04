@@ -22,3 +22,6 @@ project_path.hpp
 
 # exclude executables
 nova
+
+# python env
+scripts/env/
