@@ -52,9 +52,6 @@ const int SHIP_TIMER_MS = 500;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 
-const int INVADER_HEALTH = 50;
-const int INVADER_SPAWN_RATE_MS = 2 * 1000;
-
 const int PROJECTILE_DAMAGE = 10;
 
 const int PLAYER_HEALTH = 100;

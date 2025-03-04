@@ -47,6 +47,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/entt/include/)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/noise/include/)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)

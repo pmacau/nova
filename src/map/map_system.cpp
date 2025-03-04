@@ -42,7 +42,7 @@ void MapSystem::init(entt::registry& reg) {
 
 void MapSystem::generate_new_map() {
     // TODO: port python map generator to cpp
-};
+}
 
 vec2 MapSystem::populate_ecs(entt::registry& reg) {
     vec2 spawn_pos = {0.f, 0.f};
@@ -60,11 +60,7 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
                     spawn_pos = map_pos;
                     break;
                 case Tile::TREE:
-                    // TODO: add tree spawning here
-                    debug_printf(
-                        DebugType::WORLD_INIT,
-                        "Creating tree at: (%.1f, %.1f)\n", map_pos.x, map_pos.y
-                    );
+                    createTree(reg, map_pos);
                     break;
                 default:
                     break;
@@ -128,7 +124,6 @@ Tile MapSystem::get_tile(vec2 pos) {
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
-        tile != Tile::WATER &&
-        tile != Tile::TREE
+        tile != Tile::WATER && tile != Tile::TREE
     );
 };

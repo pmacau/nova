@@ -17,6 +17,8 @@
 #include "music_system.hpp"
 #include "map/map_system.hpp"
 
+#include "map/map_gen.hpp"
+
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
@@ -32,6 +34,10 @@ int main()
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
+
+	// debug_printf(DebugType::GAME_INIT, "Generatring game map...?\n");
+	// auto generated_map = perlin_map(200, 200);
+	// save_double_map_as_binary(generated_map, map_path("cpp_map.txt").c_str());
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
