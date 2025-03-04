@@ -299,7 +299,7 @@ void RenderSystem::draw()
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
 
-	// Draw main entities
+	// Render main entities
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
 		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
 	});
@@ -309,12 +309,12 @@ void RenderSystem::draw()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// Draw projectiles
+	// Render projectiles
 	for (auto entity : registry.view<Projectile, RenderRequest>()) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// Draw UI
+	// Render UI
 	for (auto entity: registry.view<UI, RenderRequest>(entt::exclude<Item>)) {
 		if (registry.any_of<FixedUI>(entity)) {
 			drawTexturedMesh(entity, ui_projection_2D);
@@ -323,7 +323,7 @@ void RenderSystem::draw()
 			drawTexturedMesh(entity, projection_2D);
 		}
 	}
-	for (auto entity: registry.view<Item, RenderRequest>()) {
+	for (auto entity: registry.view<Item, FixedUI, RenderRequest>()) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 

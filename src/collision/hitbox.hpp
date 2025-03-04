@@ -7,23 +7,20 @@
 
 #include "common.hpp"
 
+// TODO: handle circles (should be relatively trivial)
+// optimizations:
+// - precompute normals and store 1 "mesh" for each shape type
+// - remove collinear axes (this might be slower due to O(n^2) check
+
 struct Hitbox {
     Vector centre;
     bool isRigid;
     float baseY;
     float depth;
 
-    virtual ~Hitbox() = default;
+    Polygon polygon;
 };
-
-struct CircleHitbox : public Hitbox {
-    float radius;
-};
-struct PolygonHitbox : public Hitbox {
-    Points pts;
-    std::vector<Vector> normals = getNormals(pts);
-};
-using Points = std::vector<Vector>;
+using Polygon = std::vector<Vector>;
 
 struct Vector {
     float x, y;
@@ -41,7 +38,7 @@ struct Vector {
     }
 };
 
-std::vector<Vector> getNormals(const Points& poly) {
+std::vector<Vector> getNormals(const Polygon& poly) {
     std::vector<Vector> normals;
     int size = poly.size();
     for (int i = 0; i < size; ++i) {
@@ -51,7 +48,7 @@ std::vector<Vector> getNormals(const Points& poly) {
     return normals;
 }
 
-void projectPolygon(const Points& poly, const Vector& axis, float& minProj, float& maxProj) {
+void projectPolygon(const Polygon& poly, const Vector& axis, float& minProj, float& maxProj) {
     minProj = std::numeric_limits<float>::infinity();
     maxProj = -std::numeric_limits<float>::infinity();
 
@@ -66,15 +63,12 @@ bool isOverlapping(float minA, float maxA, float minB, float maxB) {
     return !(maxA < minB || maxB < minA);
 }
 
-// template <typename S1, typename S2>
-// typename std::enable_if<std::is_same<S1, Polygon>::value && std::is_same<S2, Polygon>::value, bool>::type
-// collides(const S1& poly1, const S2& poly2) {
-//     std::cout << "Polygon-Polygon SAT collision check\n";
-//     // Implement SAT for Polygon vs. Polygon
-//     return true; // Placeholder
-// }
 
-bool collides(const Points& polyA, const Points& polyB) {
+// for each (unique) axis
+// project each point of shape onto the axis
+// find min and max value for each shape (if s1 max > s2 min)
+// if we can find 1 axis to separate objects, they are not touching
+bool collides(const Polygon& polyA, const Polygon& polyB) {
     std::vector<Vector> normalsA = getNormals(polyA);
     std::vector<Vector> normalsB = getNormals(polyB);
     float minA, maxA, minB, maxB;
@@ -97,22 +91,3 @@ bool collides(const Points& polyA, const Points& polyB) {
 
     return true;
 }
-
-// TODO: handle circles (should be relatively trivial)
-//       - optimization, remove collinear axes (not really important rn)
-
-// b x ((a dot b) / (b dot b))
-
-// for each (unique) axis
-// project each point of shape onto the axis
-// find min and max value for each shape (if s1 max > s2 min)
-// if we can find 1 axis to separate objects,
-// they are not touching
-
-
-// Registry.sort<Transform>([](const auto& lhs, const auto& ths) { return lhs.z < rhs.z; } // sort by Z-axis
-// auto view = Registry.view<Transform, Sprite>().use<Transform>(); // I didn't know about .use()!
-// for (auto [entity, transform, sprite] : view)
-// {
-//     RenderSprite(transform, sprite); // entities with lower z-coord are rendered first (below) entities with greater z-coord.
-// }
