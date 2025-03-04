@@ -8,6 +8,7 @@
 #include "../ext/stb_image/stb_image.h"
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
+#include "util/debug.hpp"
 
 // Render initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
@@ -33,9 +34,9 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwGetFramebufferSize(window, &frame_buffer_width_px, &frame_buffer_height_px);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 	if (frame_buffer_width_px != WINDOW_WIDTH_PX)
 	{
-		printf("WARNING: retina display! https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value\n");
-		printf("glfwGetFramebufferSize = %d,%d\n", frame_buffer_width_px, frame_buffer_height_px);
-		printf("requested window width,height = %d,%d\n", WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX);
+		debug_printf(DebugType::GAME_INIT, "WARNING: retina display! https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value\n");
+		debug_printf(DebugType::GAME_INIT, "glfwGetFramebufferSize = %d,%d\n", frame_buffer_width_px, frame_buffer_height_px);
+		debug_printf(DebugType::GAME_INIT, "requested window width,height = %d,%d\n", WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX);
 	}
 
 	// Hint: Ask your TA for how to setup pretty OpenGL error callbacks. 

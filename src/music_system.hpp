@@ -88,7 +88,11 @@ private:
             for (auto& [key, val] : audio_map) {
                 val.sound = load_func(audio_path(val.filename).c_str());
                 if (val.sound == nullptr) {
-                    fprintf(stderr, "Failed to load sound: %s\n", val.filename.c_str());
+                    fprintf(
+                        stderr, 
+                        "Failed to load sound: %s\nError: %s\n",
+                        val.filename.c_str(), Mix_GetError()
+                    );
                     return false;
                 }
             }

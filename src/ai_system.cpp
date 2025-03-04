@@ -23,7 +23,6 @@ void AISystem::step(float elapsed_ms)
 
 	auto mobs = registry.view<Mob>();
 	Motion& player_motion = registry.get<Motion>(player_entity); // position to base pathing
-	//std::cout << "player_position" << player_motion.position.x << " " << player_motion.position.y << std::endl;
 	for (auto entity : mobs) {
 		Motion& mob_motion = registry.get<Motion>(entity); // gets motion component of mob
 		if (CollisionSystem::isContact(entity, player_entity, registry, 10)) {

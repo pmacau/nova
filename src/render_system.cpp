@@ -39,11 +39,8 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
 	gl_has_errors();
 	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
-	//std::cout << projLoc << std::endl;
 	GLint transLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
-	//std::cout << transLoc << std::endl;
 	GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
-	//std::cout << colorLoc << std::endl;
 	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
 	glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f); // Draw in red
@@ -122,7 +119,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
-	//std::cout << "Drawing entity with texture: " << (int)render_request.used_texture << std::endl;
+
 	// texture-mapped entities - use data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
@@ -475,17 +472,9 @@ mat3 RenderSystem::createProjectionMatrix()
 
 void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 {
-	// vec3 transformedPos = projection * transform * vec3(0.0f, 0.0f, 1.0f);
-
-    // std::cout << "[DEBUG] Drawing point at screen position: (" 
-    //           << transformedPos.x << ", " << transformedPos.y << ")" << std::endl;
-
 	const GLuint program = (GLuint)effects[(GLuint)EFFECT_ASSET_ID::COLOURED];
 	glUseProgram(program);
 	gl_has_errors();
-
-	// std::cout << "Program: " << program << std::endl;	
-
 
     const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
 	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
@@ -510,28 +499,17 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 
-	// std::cout << "currProgram: " << currProgram << std::endl;	
-
-
 	GLint color_uloc = glGetUniformLocation(currProgram, "in_color");
 	glUniform3fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
-
-	// std::cout << "color_uloc: " << color_uloc << std::endl;
 
 	GLint transform_uloc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform);
 	gl_has_errors();
 
-	// std::cout << "transform_uloc: " << transform_uloc << std::endl;
-
-
 	GLint projection_uloc = glGetUniformLocation(currProgram, "projection");
 	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);
 	gl_has_errors();
-
-	// std::cout << "projection_uloc: " << projection_uloc << std::endl;
-
 
 	// Temporarily disable depth test to check if it's blocking rendering
     glDisable(GL_DEPTH_TEST);
@@ -544,7 +522,6 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 
 	// draw
 	glPointSize(10.0f);
-	// std::cout << "Rendering Debug Point..." << std::endl;
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
 
