@@ -178,7 +178,8 @@ void SpawnSystem::processDespawning() {
         if (sqDistance > (DESPAWN_ZONE_RADIUS * DESPAWN_ZONE_RADIUS)) {
             // Despawn the mob.
 	        debug_printf(DebugType::SPAWN, "Destroying entity (spawn sys)\n");
-            registry.destroy(entity);
+            // registry.destroy(entity);
+            destroy_creature(registry, entity);
         }
     }
 }
