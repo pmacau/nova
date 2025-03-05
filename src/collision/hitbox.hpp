@@ -1,93 +1,29 @@
 #pragma once
 
-#include <vector>
-#include <limits>
-#include <cmath>
-#include <type_traits>
-
 #include "common.hpp"
+#include "tinyECS/components.hpp"
 
 // TODO: handle circles (should be relatively trivial)
 // optimizations:
 // - precompute normals and store 1 "mesh" for each shape type
 // - remove collinear axes (this might be slower due to O(n^2) check
 
+constexpr int EPSILON = 10;
+
 struct Hitbox {
-    Vector centre;
-    bool isRigid;
-    float baseY;
-    float depth;
-
-    Polygon polygon;
-};
-using Polygon = std::vector<Vector>;
-
-struct Vector {
-    float x, y;
-
-    Vector operator-(const Vector& other) const {
-        return {x - other.x, y - other.y};
-    }
-
-    Vector normal() const {
-        return {-y, x};
-    }
-
-    float dot(const Vector& other) const {
-        return x * other.x + y * other.y;
-    }
+    bool isRigid = false;
+    float depth = EPSILON;
+    std::vector<vec2> pts;
 };
 
-std::vector<Vector> getNormals(const Polygon& poly) {
-    std::vector<Vector> normals;
-    int size = poly.size();
-    for (int i = 0; i < size; ++i) {
-        Vector edge = poly[(i + 1) % size] - poly[i];
-        normals.push_back(edge.normal());
-    }
-    return normals;
-}
-
-void projectPolygon(const Polygon& poly, const Vector& axis, float& minProj, float& maxProj) {
-    minProj = std::numeric_limits<float>::infinity();
-    maxProj = -std::numeric_limits<float>::infinity();
-
-    for (const Vector& point : poly) {
-        float projection = point.dot(axis);
-        if (projection < minProj) minProj = projection;
-        if (projection > maxProj) maxProj = projection;
-    }
-}
-
-bool isOverlapping(float minA, float maxA, float minB, float maxB) {
-    return !(maxA < minB || maxB < minA);
-}
-
-
-// for each (unique) axis
-// project each point of shape onto the axis
-// find min and max value for each shape (if s1 max > s2 min)
-// if we can find 1 axis to separate objects, they are not touching
-bool collides(const Polygon& polyA, const Polygon& polyB) {
-    std::vector<Vector> normalsA = getNormals(polyA);
-    std::vector<Vector> normalsB = getNormals(polyB);
-    float minA, maxA, minB, maxB;
-
-    for (const Vector& axis : normalsA) {
-        projectPolygon(polyA, axis, minA, maxA);
-        projectPolygon(polyB, axis, minB, maxB);
-        if (!isOverlapping(minA, maxA, minB, maxB)) {
-            return false;
-        }
-    }
-
-    for (const Vector& axis : normalsB) {
-        projectPolygon(polyA, axis, minA, maxA);
-        projectPolygon(polyB, axis, minB, maxB);
-        if (!isOverlapping(minA, maxA, minB, maxB)) {
-            return false;
-        }
-    }
-
-    return true;
-}
+vec2 edge_normal(const vec2& edge);
+std::vector<vec2> get_normals(const std::vector<vec2>& pts);
+void project(
+    const std::vector<vec2>& pts, const vec2& centre, const vec2& axis,
+    float& minProj, float& maxProj
+);
+bool overlaps(float minA, float maxA, float minB, float maxB);
+bool collides(
+    const Hitbox& h_a, const Motion& m_a,
+    const Hitbox& h_b, const Motion& m_b
+);

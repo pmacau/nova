@@ -5,6 +5,7 @@
 #include <entt.hpp>
 #include "common.hpp"
 #include "tinyECS/components.hpp"
+#include "collision/hitbox.hpp"
 
 
 // System responsible for setting up OpenGL and for rendering all the
@@ -83,7 +84,7 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
-	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
+	void drawDebugHitBoxes(const glm::mat3& projection);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
 	// Window handle

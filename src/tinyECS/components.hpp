@@ -8,16 +8,17 @@
 #include <entt.hpp>
 
 struct Background{};
+struct Collided{};
 
 struct Boss{
 	float agro_range;
 	vec2 spawn;
 };
 
-enum HitBoxType {
-	HITBOX_CIRCLE,
-	HITBOX_RECT
-};
+// enum HitBoxType {
+// 	HITBOX_CIRCLE,
+// 	HITBOX_RECT
+// };
 
 struct InputState {
 	bool up = false;
@@ -26,18 +27,18 @@ struct InputState {
 	bool right = false;
 };
 
-struct HitBox {
-	HitBoxType type;
-	union {
-		struct {
-			float radius;
-		} circle;
-		struct {
-			float width;
-			float height;
-		} rect;
-	} shape;
-};
+// struct HitBox {
+// 	HitBoxType type;
+// 	union {
+// 		struct {
+// 			float radius;
+// 		} circle;
+// 		struct {
+// 			float width;
+// 			float height;
+// 		} rect;
+// 	} shape;
+// };
 
 struct Obstacle {
 	bool isPassable; 
@@ -101,12 +102,6 @@ struct Mob {
 
 // used for Entities that cause damage
 struct Deadly
-{
-
-};
-
-// used for edible entities
-struct Eatable
 {
 
 };

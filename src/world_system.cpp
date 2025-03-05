@@ -292,6 +292,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
 
+
+	// TODO: move enemy attack cooldown system
+	for(auto &&[entity, mob]: registry.view<Mob>().each()) {
+		mob.hit_time -= elapsed_s;
+	}
 	return true;
 }
 
@@ -373,18 +378,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-	// if (key == GLFW_KEY_P) {
-	// 	auto debugView = registry.view<Debug>();
-	// 	if (debugView.empty()) {
-	// 		registry.emplace<Debug>(player_entity);
-	// 	}
-	// 	else {
-	// 		for (auto entity : debugView) {
-	// 			std::cout << "Removing debug" << std::endl;
-	// 			registry.remove<Debug>(entity);
-	// 		}
-	// 	}
-	// }
+	if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+		auto debugView = registry.view<Debug>();
+		if (debugView.empty()) {
+			debug_printf(DebugType::USER_INPUT, "Enabling debug mode\n");
+			registry.emplace<Debug>(player_entity);
+		}
+		else {
+			debug_printf(DebugType::USER_INPUT, "Disabling debug mode\n");
+			for (auto entity : debugView) {
+				registry.remove<Debug>(entity);
+			}
+		}
+	}
 
 	// TODO: testing sound system. remove this later
 	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
