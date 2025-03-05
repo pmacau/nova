@@ -21,7 +21,7 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 			auto& mobhealth_motion = registry.get<Motion>(entity);
 			if (hit) {
 				float left_adjust = abs(mobhealth_motion.scale.x) / 2.f;
-				mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / MOB_HEALTH, 8.f });
+				mobhealth_motion.scale = vec2({ mob.health * std::max(40.f, abs(mob_motion.scale.x) / 2) / healthbar.initial_health, 8.f });
 				healthbar.left_adjust += left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
 			}
 			mobhealth_motion.position.x = mob_motion.position.x - healthbar.left_adjust;
@@ -65,7 +65,8 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 		for (auto player_entity : registry.view<Player>()) {
 			auto& player = registry.get<Player>(player_entity);
 			player.health = min(player.health + potion.heal, PLAYER_HEALTH);
-			updatePlayerHealthBar(registry, player.health);
+			MusicSystem::playSoundEffect(SFX::POTION);
+			updatePlayerHealthBar(registry, player.health);	
 			auto screens = registry.view<ScreenState>();
 			auto& screen = registry.get<ScreenState>(screens.front());
 			if (screens.size() > 0) {
@@ -80,7 +81,6 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
-		std::cout << mouse_pos_x << "\n";
 		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
 		if (i >= 0 && i < inventory.slots.size()) {
 			auto& inventory_entity = inventory.slots[i];
@@ -117,6 +117,7 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 		auto& motion = registry.get<Motion>(entity);
 		if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 			addToInventory(registry, entity);
+			MusicSystem::playSoundEffect(SFX::PICKUP);
 			break;
 		}
 	}

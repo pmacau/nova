@@ -1,6 +1,7 @@
 #include "collision_system.hpp"
 #include "ui_system.hpp"
-
+#include "music_system.hpp"
+#include "util/debug.hpp"
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
 	registry(reg),
@@ -45,8 +46,10 @@ void CollisionSystem::step(float elapsed_ms)
 					auto& mob_ref = registry.get<Mob>(mob);
 					auto& screen = registry.get<ScreenState>(screens.front());
 					if (mob_ref.hit_time <= 0) {
-						//std::cout << "COLLISION" << std::endl;
-						player_ref.health -= MOB_DAMAGE; 
+						player_ref.health -= MOB_DAMAGE;
+						MusicSystem::playSoundEffect(SFX::HIT);
+
+
             UISystem::updatePlayerHealthBar(registry, player_ref.health);
 						physics.knockback(entity, mob, 400);
 
@@ -66,12 +69,36 @@ void CollisionSystem::step(float elapsed_ms)
 				}
 				// repelling force if overlap
 				if (isContact(mob, entity, registry, 0)) {
-					//std::cout << "SUPRESS" << std::endl;
 					physics.suppress(entity, mob);
 				}
 			}
 		}
 
+		if (registry.all_of<Projectile>(entity)) {
+			auto& projectile = registry.get<Projectile>(entity);
+			for (auto mob_entity : mobs) {
+				auto& mob = registry.get<Mob>(mob_entity);
+				if (isContact(entity, mob_entity, registry, 0.f)) {
+					destroy_entities.push_back(entity);
+					mob.health -= projectile.damage;
+					MusicSystem::playSoundEffect(SFX::HIT);
+
+					UISystem::updateMobHealthBar(registry, mob_entity, true);
+					if (mob.health <= 0) {
+						for (auto healthbar_entity : registry.view<MobHealthBar>()) {
+							auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);
+							if (healthbar.entity == mob_entity) {
+								destroy_entities.push_back(healthbar_entity);
+								break;
+							}
+						}
+						UISystem::renderItem(registry, mob_entity);
+						destroy_entities.push_back(mob_entity);
+					}
+					break;
+				}
+			}
+		}
 
 		// OBSTACLE SECTION OF COLLISION
 		if (registry.all_of<Obstacle>(entity)) {
@@ -80,34 +107,14 @@ void CollisionSystem::step(float elapsed_ms)
 		
 		for (auto obstacle : obstacles) {
 			auto& o = registry.get<Obstacle>(obstacle); 
+			if (registry.all_of<Ship>(obstacle) && registry.all_of<Projectile>(entity)) {
+				continue;
+			}
 			if (!o.isPassable) handleBlock(entity, obstacle, registry);
 		}
-		
-			if (registry.all_of<Projectile>(entity)) {
-				auto& projectile = registry.get<Projectile>(entity);
-				for (auto mob_entity : mobs) {
-					auto& mob = registry.get<Mob>(mob_entity);
-					if (isContact(entity, mob_entity, registry, 0.f)) {
-						registry.destroy(entity);
-						mob.health -= projectile.damage;
-						UISystem::updateMobHealthBar(registry, mob_entity, true);
-						if (mob.health <= 0) {
-							for (auto healthbar_entity : registry.view<MobHealthBar>()) {
-								auto& healthbar = registry.get<MobHealthBar>(healthbar_entity);
-								std::cout << (healthbar.entity == mob_entity) << "\n";
-								if (healthbar.entity == mob_entity) {
-									destroy_entities.push_back(healthbar_entity);
-									break;
-								}
-							}
-							UISystem::renderItem(registry, mob_entity);
-							destroy_entities.push_back(mob_entity);
-						}
-					}
-				}	
-			}
 	}
 	for (auto entity : destroy_entities) {
+		debug_printf(DebugType::COLLISION, "Destroying entity\n");
 		registry.destroy(entity);
 	}
 }
@@ -223,8 +230,6 @@ void CollisionSystem::step(float elapsed_ms)
 			return;
 		}
 		vec2 velocity_Component = dot_product * normal * 1.5f;
-		/*std::cout << "X " << m1.velocity.x << "Y " << m1.velocity.y << std::endl;
-		std::cout << "X " << m2.velocity.x << "Y " << m2.velocity.y << std::endl;*/
 		if (!registry.all_of<MarkedCollision>(e1)) {
 			auto& mark = registry.emplace<MarkedCollision>(e1);
 			mark.velocity = m1.velocity - velocity_Component;
@@ -239,7 +244,6 @@ void CollisionSystem::step(float elapsed_ms)
 	// gets the normal of either circle rect, or rect rect cannot handle complex shapes (plan to refactor later)
 	vec2 CollisionSystem::getNormal(const Motion& m1, const HitBox& h1, const Motion& m2, const HitBox& h2) {
 		if (h1.type == HitBoxType::HITBOX_CIRCLE && h2.type == HitBoxType::HITBOX_CIRCLE) {
-			//std::cout << "ENTERS" << std::endl;
 			return normalize(m1.position - m2.position); 
 		}
 		// both rectangles
@@ -324,14 +328,12 @@ void CollisionSystem::step(float elapsed_ms)
 		if (h1IsCircle) {
 			closestPoint = rectangleClamp(m2, h2, m1, h1);
 			if (glm::length(closestPoint - m1.position) < h1.shape.circle.radius) {
-				//std::cout << "Should det" << std::endl;
 				return true; 
 			}
 		}
 		else {
 			closestPoint = rectangleClamp(m1, h1, m2, h2);
 			if (glm::length(closestPoint - m2.position) < h2.shape.circle.radius) {
-				//std::cout << "Should det" << std::endl;
 				return true;
 			}
 		}

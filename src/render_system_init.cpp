@@ -8,6 +8,7 @@
 #include "../ext/stb_image/stb_image.h"
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
+#include "util/debug.hpp"
 
 // Render initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
@@ -33,9 +34,9 @@ bool RenderSystem::init(GLFWwindow* window_arg)
 	glfwGetFramebufferSize(window, &frame_buffer_width_px, &frame_buffer_height_px);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 	if (frame_buffer_width_px != WINDOW_WIDTH_PX)
 	{
-		printf("WARNING: retina display! https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value\n");
-		printf("glfwGetFramebufferSize = %d,%d\n", frame_buffer_width_px, frame_buffer_height_px);
-		printf("requested window width,height = %d,%d\n", WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX);
+		debug_printf(DebugType::GAME_INIT, "WARNING: retina display! https://stackoverflow.com/questions/36672935/why-retina-screen-coordinate-value-is-twice-the-value-of-pixel-value\n");
+		debug_printf(DebugType::GAME_INIT, "glfwGetFramebufferSize = %d,%d\n", frame_buffer_width_px, frame_buffer_height_px);
+		debug_printf(DebugType::GAME_INIT, "requested window width,height = %d,%d\n", WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX);
 	}
 
 	// Hint: Ask your TA for how to setup pretty OpenGL error callbacks. 
@@ -55,48 +56,6 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
-
-	// TODO: big refactor needed here (so many magic numbers lololol)
-	// Load game map
-	// tileMap.resize(199, std::vector<TileRender>(199));
-
-	// std::vector<std::vector<uint16_t>> tile_texture_map = {
-	// 	{0x2222, 0x2220, 0x2202, 0x2022, 0x0222, 0x1122, 0x1212}, 
-	// 	{0x0000, 0x0002, 0x0020, 0x0200, 0x2000, 0x0011, 0x1100},
-	// 	{0x1111, 0x1110, 0x1101, 0x1011, 0x0111, 0x0202, 0x2020},
-	// 	{0x2221, 0x2212, 0x2122, 0x1222, 0x2211, 0x0101, 0x1010},
-	// 	{0x0001, 0x0010, 0x0100, 0x1000, 0x0022, 0x2121, 0x2200},
-	// 	{0x1112, 0x1121, 0x1211, 0x2111, 0x0110, 0x1001, 0x2112},
-	// 	{0x1221, 0x2110, 0x1201, 0x1021, 0x0112, 0xEEEE, 0xFFFF}
-	// };
-
-	// auto game_map = loadBinaryMap(map_path("map.bin"), 200, 200);
-	// for (int row = 0; row < 199; row++) {
-	// 	for (int col = 0; col < 199; col++) {
-	// 		uint8_t tl = game_map[row][col];
-	// 		uint8_t tr = game_map[row][col + 1];
-	// 		uint8_t bl = game_map[row + 1][col];
-	// 		uint8_t br = game_map[row + 1][col + 1];
-
-	// 		uint16_t tex_val = ((tl & 0x0F) << 12) |
-	// 						   ((tr & 0x0F) << 8) |
-	// 						   ((bl & 0x0F) << 4) |
-	// 						   (br & 0x0F);			
-
-	// 		bool val_set = false;
-	// 		for (int t_row = 0; t_row < 7; t_row++) {
-	// 			for (int t_col = 0; t_col < 7; t_col++) {
-	// 				if (tile_texture_map[t_row][t_col] == tex_val) {
-	// 					tileMap[row][col].coord = {float(t_row), float(t_col)};
-	// 					val_set = true;
-	// 				}
-	// 			}
-	// 		}
-	// 		if (!val_set) {
-	// 			tileMap[row][col].coord = {6.f, 5.f};
-	// 		}
-	// 	}
-	// }
 
 	glGenVertexArrays(1, &defaultVAO);
 	glBindVertexArray(defaultVAO);
@@ -241,8 +200,6 @@ RenderSystem::~RenderSystem()
 	// remove all entities created by the render system
 	auto view = registry.view<RenderRequest>();
 	registry.destroy(view.begin(), view.end());
-	// while (registry.renderRequests.entities.size() > 0)
-	//     registry.remove_all_components_of(registry.renderRequests.entities.back());
 }
 
 // Initialize the screen texture from a standard sprite

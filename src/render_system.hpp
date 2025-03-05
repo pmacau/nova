@@ -6,16 +6,6 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
-// // TODO refactor this background render stuff...
-// struct TileRender {
-// 	RenderRequest request = {
-// 		TEXTURE_ASSET_ID::TILESET,
-// 		EFFECT_ASSET_ID::TEXTURED,
-// 		GEOMETRY_BUFFER_ID::SPRITE
-// 	};
-// 	vec2 coord = {0.f, 0.f};
-// };
-
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -30,18 +20,10 @@ class RenderSystem {
 	std::array<GLuint, texture_count> texture_gl_handles;
 	std::array<ivec2, texture_count>  texture_dimensions;
 
-	// Make sure these paths remain in sync with the associated enumerators.
-	// Associated id with .obj path
-	// const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
-	// 	std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
-	// 	// specify meshes of other assets here
-	// };
-
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
 		textures_path("ship/Ship6.png"),
-		//textures_path("player/astronaut.png"), // might have to look at for conflict
 		textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
@@ -63,8 +45,6 @@ class RenderSystem {
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
-
-	// std::vector<std::vector<TileRender>> tileMap;
 
 public:
 	RenderSystem(entt::registry& reg);
@@ -103,7 +83,6 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
 
-	void drawBackground(const mat3& projection);
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);

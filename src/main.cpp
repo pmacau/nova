@@ -14,6 +14,7 @@
 #include "ai_system.hpp"
 #include "collision_system.hpp"
 #include "physics_system.hpp"
+#include "music_system.hpp"
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
@@ -23,15 +24,12 @@ int main()
 	entt::registry reg;
 
 	// global systems
-	// AISystem	  ai_system;
 	PhysicsSystem physics_system(reg);
 	WorldSystem   world_system(reg, physics_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
-	// PhysicsSystem physics_system(reg, collision_system);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
-	// PhysicsSystem physics_system;
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -42,7 +40,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	if (!world_system.start_and_load_sounds()) {
+	if (!MusicSystem::init()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
 
@@ -74,8 +72,9 @@ int main()
 		// Display new frame rate every half-second
 		if (num_s > 0.5) {
 			std::stringstream title_ss;
-			title_ss << "FPS: ";
+			title_ss << "Nova (FPS: ";
 			title_ss << std::fixed << std::setprecision(3) << (num_frames / num_s);
+			title_ss << ")";
 			glfwSetWindowTitle(window, title_ss.str().c_str());
 
 			num_frames = 0;

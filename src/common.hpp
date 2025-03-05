@@ -48,7 +48,7 @@ const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
 const int GRID_LINE_WIDTH_PX = 2;
 
-const int SHIP_TIMER_MS = 30;
+const int SHIP_TIMER_MS = 500;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 
@@ -67,9 +67,12 @@ const float GAME_SCALE = 2.f;
 const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
 const float PROJECTILE_SIZE = 20.0f;
-const int PROJECTILE_TIMER = 1000;
+const int PROJECTILE_TIMER = 5000;
 
 const int MAX_INVENTORY_SLOTS = 5;
+
+const float WEAPON_COOLDOWN = 0.5;
+const float MOUSE_POLL_RATE = 100;
 
 
 // These are hard coded to the dimensions of the entity's texture
@@ -100,3 +103,4 @@ struct Transform {
 };
 
 bool gl_has_errors();
+

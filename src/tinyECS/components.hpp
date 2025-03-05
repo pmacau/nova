@@ -9,6 +9,11 @@
 
 struct Background{};
 
+struct Boss{
+	float agro_range;
+	vec2 spawn;
+};
+
 enum HitBoxType {
 	HITBOX_CIRCLE,
 	HITBOX_RECT
@@ -47,6 +52,7 @@ struct Obstacle {
 struct Player
 {
 	int health;
+	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
 };
 
 // Ship component
@@ -83,6 +89,7 @@ struct MarkedCollision {
 // Projectile
 struct Projectile {
 	int damage;
+	int timer;
 };
 
 
@@ -121,6 +128,7 @@ struct PlayerHealthBar
 struct MobHealthBar
 {
 	entt::entity entity;
+	int initial_health;
 	float left_adjust = 0.f;
 };
 
@@ -299,5 +307,5 @@ struct Camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 32.f}, {152.f, 96.f}, 3.f, 0.f, 1.f
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3.f, 0.f, 1.f
 };

@@ -13,127 +13,6 @@ RenderSystem::RenderSystem(entt::registry& reg) :
 	screen_state_entity = registry.create();
 }
 
-
-// TODO: can refactor this, and possibly speed it up by not binding the same texture again and again
-void RenderSystem::drawBackground(const mat3& projection) {
-	// entt::entity player_entity = *registry.view<Player>().begin();
-	// auto& p_motion = registry.get<Motion>(player_entity);
-
-	// int p_row = int(p_motion.position.y / 16); 
-	// int p_col = int(p_motion.position.x / 16);
-	// int screen_tile_width = WINDOW_WIDTH_PX / 16;
-	// int screen_tile_height = WINDOW_WIDTH_PX / 16;
-
-	// int min_x = max(0, p_col - screen_tile_width);
-	// int max_x = min(199, p_col + screen_tile_width);
-	// int min_y = max(0, p_row - screen_tile_height);
-	// int max_y = min(199, p_row + screen_tile_height);
-
-	// auto camera_entity = registry.view<Camera>().front(); // TODO: make this more robust
-	// auto& camera = registry.get<Camera>(camera_entity);
-
-	// Transform camera_transform;
-	// camera_transform.translate(- camera.offset);
-
-	// for (int i = min_y; i < max_y; i++) {
-	// 	for (int j = min_x; j < max_x; j++) {
-			
-	// 		// Create transforms
-	// 		Transform model_transform;
-	// 		model_transform.translate(vec2(j * 16, i * 16));
-	// 		model_transform.scale(vec2(16.f, 16.f));
-
-	// 		RenderRequest render_request = tileMap[i][j].request;
-
-	// 		const GLuint used_effect_enum = (GLuint)render_request.used_effect;
-	// 		assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
-	// 		const GLuint program = (GLuint)effects[used_effect_enum];
-	// 		// Setting shaders
-	// 		glUseProgram(program);
-	// 		gl_has_errors();
-
-	// 		assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
-	// 		const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
-	// 		const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
-
-	// 		// Setting vertex and index buffers
-	// 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	// 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	// 		gl_has_errors();
-
-	// 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
-	// 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
-	// 		gl_has_errors();
-	// 		assert(in_texcoord_loc >= 0);
-
-	// 		glEnableVertexAttribArray(in_position_loc);
-	// 		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
-	// 							sizeof(TexturedVertex), (void *)0);
-	// 		gl_has_errors();
-
-	// 		glEnableVertexAttribArray(in_texcoord_loc);
-	// 		glVertexAttribPointer(
-	// 			in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
-	// 			(void *)sizeof(
-	// 				vec3)); // note the stride to skip the preceeding vertex position
-
-	// 		// Enabling and binding texture to slot 0
-	// 		glActiveTexture(GL_TEXTURE0);
-	// 		gl_has_errors();
-
-	// 		GLuint texture_id =
-	// 			texture_gl_handles[(GLuint)render_request.used_texture];
-
-	// 		glBindTexture(GL_TEXTURE_2D, texture_id);
-	// 		gl_has_errors();
-
-	// 		// Getting uniform locations for glUniform* calls
-	// 		GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	// 		const vec3 color = vec3(1);
-	// 		glUniform3fv(color_uloc, 1, (float *)&color);
-	// 		gl_has_errors();
-
-	// 		// Get number of indices from index buffer, which has elements uint16_t
-	// 		GLint size = 0;
-	// 		glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-	// 		gl_has_errors();
-
-	// 		GLsizei num_indices = size / sizeof(uint16_t);
-	// 		// GLsizei num_triangles = num_indices / 3;
-
-	// 		GLint currProgram;
-	// 		glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
-
-	// 		// Setting uniform values to the currently bound program
-	// 		GLuint model_transform_loc = glGetUniformLocation(currProgram, "model_transform");
-	// 		glUniformMatrix3fv(model_transform_loc, 1, GL_FALSE, (float *)&model_transform.mat);
-	// 		gl_has_errors();
-
-	// 		// camera transform
-	// 		GLuint camera_transform_loc = glGetUniformLocation(currProgram, "camera_transform");
-	// 		glUniformMatrix3fv(camera_transform_loc, 1, GL_FALSE, (float *)&camera_transform.mat);
-	// 		gl_has_errors();
-
-	// 		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
-	// 		glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
-	// 		gl_has_errors();
-
-
-	// 		GLuint spriteData_loc = glGetUniformLocation(currProgram, "spriteData");
-	// 		GLuint sheetDims_loc = glGetUniformLocation(currProgram, "sheetDims");
-
-	// 		vec2& coord = tileMap[i][j].coord;
-	// 		glUniform4f(spriteData_loc, coord.x, coord.y, 16.f, 16.f);
-	// 		glUniform2f(sheetDims_loc, 112.f, 112.f);
-	// 		gl_has_errors();
-
-	// 		// Drawing of num_indices/3 triangles specified in the index buffer
-	// 		glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr);
-	// 		gl_has_errors();
-	// 	}
-	// }
-}
-
 static std::vector<glm::vec2> generateCircleVertices(float centerX, float centerY, float radius, int segments = 32) {
 	std::vector<glm::vec2> vertices;
 	for (int i = 0; i < segments; i++) {
@@ -160,11 +39,8 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
 	gl_has_errors();
 	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
-	//std::cout << projLoc << std::endl;
 	GLint transLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
-	//std::cout << transLoc << std::endl;
 	GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
-	//std::cout << colorLoc << std::endl;
 	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
 	glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f); // Draw in red
@@ -243,7 +119,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
-	//std::cout << "Drawing entity with texture: " << (int)render_request.used_texture << std::endl;
+
 	// texture-mapped entities - use data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
@@ -521,9 +397,7 @@ void RenderSystem::draw()
 	for (auto entity : ItemRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
-	
-	// Draw background last
-	// drawBackground(projection_2D);
+
 	// Render huge background texture
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
@@ -598,17 +472,9 @@ mat3 RenderSystem::createProjectionMatrix()
 
 void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 {
-	// vec3 transformedPos = projection * transform * vec3(0.0f, 0.0f, 1.0f);
-
-    // std::cout << "[DEBUG] Drawing point at screen position: (" 
-    //           << transformedPos.x << ", " << transformedPos.y << ")" << std::endl;
-
 	const GLuint program = (GLuint)effects[(GLuint)EFFECT_ASSET_ID::COLOURED];
 	glUseProgram(program);
 	gl_has_errors();
-
-	// std::cout << "Program: " << program << std::endl;	
-
 
     const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
 	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
@@ -633,28 +499,17 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 
-	// std::cout << "currProgram: " << currProgram << std::endl;	
-
-
 	GLint color_uloc = glGetUniformLocation(currProgram, "in_color");
 	glUniform3fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
-
-	// std::cout << "color_uloc: " << color_uloc << std::endl;
 
 	GLint transform_uloc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform);
 	gl_has_errors();
 
-	// std::cout << "transform_uloc: " << transform_uloc << std::endl;
-
-
 	GLint projection_uloc = glGetUniformLocation(currProgram, "projection");
 	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);
 	gl_has_errors();
-
-	// std::cout << "projection_uloc: " << projection_uloc << std::endl;
-
 
 	// Temporarily disable depth test to check if it's blocking rendering
     glDisable(GL_DEPTH_TEST);
@@ -667,7 +522,6 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 
 	// draw
 	glPointSize(10.0f);
-	// std::cout << "Rendering Debug Point..." << std::endl;
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
 

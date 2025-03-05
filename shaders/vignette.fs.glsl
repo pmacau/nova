@@ -8,17 +8,25 @@ in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
+float hermite_interp(float a, float b, float x) {
+    float scaled_x = clamp((x - a) / (b - a), 0.0, 1.0);
+    return scaled_x * scaled_x * (3.0 - 2.0 * scaled_x);
+}
+
+vec3 color_lerp(vec3 c1, vec3 c2, float t) {
+    return c1 * (1 - t) + c2 * t;
+}
 
 // M1 interpolation implementation
 vec4 vignette(vec4 in_color) 
 {
 	vec2 center = vec2(0.5, 0.5);
     float dist = distance(texcoord, center) * 1.75;
-    float vignetteFactor = smoothstep(0.5, 1.2, dist);
+    float vignetteFactor = hermite_interp(0.5, 1.2, dist);
 
     vec3 redTint = vec3(1.0, 0.0, 0.0);
 
-    vec3 finalColor = mix(in_color.rgb, redTint, darken_screen_factor * vignetteFactor);
+    vec3 finalColor = color_lerp(in_color.rgb, redTint, darken_screen_factor * vignetteFactor);
 	in_color = vec4(finalColor, 1);
 
 	return in_color;
