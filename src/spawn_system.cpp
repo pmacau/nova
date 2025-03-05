@@ -11,7 +11,7 @@
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
 {
-    std::cout << "SpawnSystem initialized." << std::endl;
+    debug_printf(DebugType::SPAWN, "SpawnSystem initialized.\n");
 
     // random seed.
     rng.seed(std::random_device()());
@@ -67,7 +67,7 @@ void SpawnSystem::processSpawning() {
     float sqDistance = dx * dx + dy * dy;
     if (sqDistance < (SAFE_ZONE_RADIUS * SAFE_ZONE_RADIUS) ||
         sqDistance > (SPAWN_ZONE_RADIUS * SPAWN_ZONE_RADIUS)) {
-        std::cout << "Candidate position out of range." << std::endl;
+        debug_printf(DebugType::SPAWN, "Candidate position out of range.\n");
         return;
     }
     
