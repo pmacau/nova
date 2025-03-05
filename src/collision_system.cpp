@@ -14,6 +14,7 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 
 void CollisionSystem::step(float elapsed_ms) {
 	proccessed.clear();
+	destroy_entities.clear();
 
 	for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
 		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
@@ -31,11 +32,7 @@ void CollisionSystem::step(float elapsed_ms) {
 		}
 	}
 
-	// TODO: this crashes things (it seems to try to do the above loop with the old entities in the next frame)
-	//       ... but they're deleted so ecs dies
-	for (auto entity: destroy_entities) {
-		registry.destroy(entity);
-	}
+	for (auto entity: destroy_entities) registry.destroy(entity);
 }
 
 template<typename C1, typename C2>
@@ -62,7 +59,7 @@ void CollisionSystem::handle<Player, Mob>(
 	if (mob.hit_time > 0) return;
 
 	debug_printf(DebugType::COLLISION, "Player-mob collision!\n");
-	mob.hit_time = 1.f;
+	mob.hit_time = 1.f; // TODO: make this a constant
 	player.health -= MOB_DAMAGE;
 	MusicSystem::playSoundEffect(SFX::HIT);
 
