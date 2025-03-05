@@ -113,9 +113,16 @@ void CollisionSystem::step(float elapsed_ms)
 			if (!o.isPassable) handleBlock(entity, obstacle, registry);
 		}
 	}
+
 	for (auto entity : destroy_entities) {
 		debug_printf(DebugType::COLLISION, "Destroying entity (collision sys)\n");
-		registry.destroy(entity);
+
+		// print entity components before destruction
+		// std::cout << "Entity id: " << static_cast<uint32_t>(entity) << std::endl;
+		// check if entity exist in registry before destroying
+		if (registry.valid(entity)) {
+			registry.destroy(entity);
+		}
 	}
 }
  
