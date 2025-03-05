@@ -317,14 +317,9 @@ void RenderSystem::draw()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
 		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
 	});
-	auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, Projectile>);
+	auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background>);
 	spriteRenders.use<Motion>();
 	for (auto entity : spriteRenders) {
-		drawTexturedMesh(entity, projection_2D);
-	}
-
-	// Render projectiles
-	for (auto entity : registry.view<Projectile, RenderRequest>()) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 

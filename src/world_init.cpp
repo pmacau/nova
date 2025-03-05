@@ -233,7 +233,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
-	hitbox.depth = motion.scale.y / 2;
+	hitbox.depth = 100;
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
@@ -269,8 +269,8 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	float h = motion.scale.y;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = {
-		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+		{w * 0.f, h * -0.5f},
+		{w * 0.5f, h * 0.5f}, {w * -0.5f, h * 0.5f}
 	};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);

@@ -108,9 +108,9 @@ void CollisionSystem::handle<Obstacle, Motion>(
 	auto& obstacle = registry.get<Obstacle>(obs_ent);
 	if (!obstacle.isPassable) {
 		auto& motion = registry.get<Motion>(e2);
+
+		// TODO: make this smoother, works for now tho; can do something similar to water tile movement.
 		motion.position = motion.formerPosition;
-		// physics.knockback(e2, obs_ent, 100);
-		//debug_printf(DebugType::COLLISION, "Obstacle collision detected\n");
 	}
 }
 
