@@ -8,7 +8,6 @@
 #include <entt.hpp>
 
 struct Background{};
-struct Collided{};
 
 struct Boss{
 	float agro_range;

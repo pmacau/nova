@@ -24,12 +24,14 @@ private:
     PhysicsSystem& physics; 
     WorldSystem& world;
 
+    std::vector<entt::entity> destroy_entities;
+    std::unordered_set<entt::entity> proccessed;
+
     template<typename C1, typename C2>
     bool collision_type(entt::entity& e1, entt::entity& e2);
 
     template<typename T1, typename T2>
     void handle(entt::entity e1, entt::entity e2, float elapsed_ms);
-
     void resolve(entt::entity e1, entt::entity e2, float elapsed_ms);
     // collision helpers
     // void handleBlock(entt::entity e1, entt::entity e2, entt::registry& registry);

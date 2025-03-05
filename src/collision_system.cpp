@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include "collision_system.hpp"
 #include "ui_system.hpp"
 #include "music_system.hpp"
@@ -11,24 +13,28 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 }
 
 void CollisionSystem::step(float elapsed_ms) {
-	auto prev = registry.view<Collided>();
-	registry.remove<Collided>(prev.begin(), prev.end());
+	proccessed.clear();
 
-	for (auto e1: registry.view<Motion, Hitbox>(entt::exclude<Collided>)) {
-		for (auto e2: registry.view<Motion, Hitbox>(entt::exclude<Collided>)) {
-			if (e1 == e2) continue;
-
-			auto& m1 = registry.get<Motion>(e1);
-			auto& h1 = registry.get<Hitbox>(e1);
-			auto& m2 = registry.get<Motion>(e2);
-			auto& h2 = registry.get<Hitbox>(e2);
-			if (!collides(h1, m1, h2, m2)) continue;
+	for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
+		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
+			if (
+				e1 == e2 ||
+				proccessed.find(e1) != proccessed.end() ||
+				proccessed.find(e2) != proccessed.end() ||
+				!collides(h1, m1, h2, m2)
+			) continue;
 
 			resolve(e1, e2, elapsed_ms);
 
-			// if (registry.valid(e1)) registry.emplace<Collided>(e1);
-			// if (registry.valid(e2)) registry.emplace<Collided>(e2);
+			proccessed.insert(e1);
+			proccessed.insert(e2);
 		}
+	}
+
+	// TODO: this crashes things (it seems to try to do the above loop with the old entities in the next frame)
+	//       ... but they're deleted so ecs dies
+	for (auto entity: destroy_entities) {
+		registry.destroy(entity);
 	}
 }
 
@@ -88,14 +94,14 @@ void CollisionSystem::handle<Projectile, Mob>(
 	if (mob.health <= 0) {
 		for (auto &&[hb_ent, healthbar] : registry.view<MobHealthBar>().each()) {
 			if (healthbar.entity == mob_ent) {
-				registry.destroy(hb_ent);
+				destroy_entities.push_back(hb_ent);
 				break;
 			}
 		}
 		UISystem::renderItem(registry, mob_ent);
-		registry.destroy(mob_ent);
+		destroy_entities.push_back(mob_ent);
 	}
-	registry.destroy(proj_ent);
+	destroy_entities.push_back(proj_ent);
 }
 
 template<>

@@ -46,8 +46,8 @@ bool collides(
     float b_baseY = (m_b.position + m_b.offset_to_ground).y;
 
     if (
-        !(a_baseY <= b_baseY && b_baseY <= (a_baseY + h_a.depth)) &&
-        !(b_baseY <= a_baseY && a_baseY <= (b_baseY + h_b.depth))
+        !(a_baseY >= (b_baseY - h_b.depth) && a_baseY <= b_baseY) && // A is not within B's bounds
+        !(b_baseY >= (a_baseY - h_a.depth) && b_baseY <= a_baseY)    // B is not within A's bounds
     ) return false;
 
     const std::vector<vec2>& ptsA = h_a.pts;

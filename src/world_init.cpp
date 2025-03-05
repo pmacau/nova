@@ -92,6 +92,9 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	// motion.position = position;
+	motion.position.x = position.x + sprite.dims[0] / 2;
+	motion.position.y = position.y + sprite.dims[1] / 2;
+	motion.scale = vec2(100, 120);
 
 	// HITBOX
 	float w = motion.scale.x;
@@ -101,10 +104,7 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
-
-	motion.position.x = position.x + sprite.dims[0] / 2;
-	motion.position.y = position.y + sprite.dims[1] / 2;
-	motion.scale = vec2(100, 120);
+	hitbox.depth = 50;
 
 	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
 	//motion.scale = vec2(38*3, 54*3);
@@ -217,6 +217,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = vec2(19 * 14, 35 * 4.5);
+	motion.offset_to_ground = vec2(0, motion.scale.y / 2);
 
 	debug_printf(DebugType::WORLD_INIT, "Ship position (%d, %d)\n", position.x, position.y);
 
@@ -232,6 +233,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
+	hitbox.depth = motion.scale.y / 2;
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
