@@ -92,6 +92,11 @@ const float CAMERA_PLAYER_DIST = 100.0f;
 const float CAMERA_ANGLE = M_PI / 4.0f;
 
 
+// Spawn system
+constexpr float SAFE_ZONE_RADIUS    = 600.0f;  // about screen size
+constexpr float SPAWN_ZONE_RADIUS   = 900.0f;  // Spawn are allowed only between SAFE_ZONE_RADIUS and SPAWN_ZONE_RADIUS from the player.
+constexpr float DESPAWN_ZONE_RADIUS = 1200.0f;  // Entities beyond DESPAWN_ZONE_RADIUS from the player are removed.
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recommend making all components non-copyable by derving from ComponentNonCopyable

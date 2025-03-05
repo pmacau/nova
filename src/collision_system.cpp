@@ -114,7 +114,7 @@ void CollisionSystem::step(float elapsed_ms)
 		}
 	}
 	for (auto entity : destroy_entities) {
-		debug_printf(DebugType::COLLISION, "Destroying entity\n");
+		debug_printf(DebugType::COLLISION, "Destroying entity (collision sys)\n");
 		registry.destroy(entity);
 	}
 }

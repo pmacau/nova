@@ -284,6 +284,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		auto& projectile = registry.get<Projectile>(entity);
 		projectile.timer -= elapsed_ms_since_last_update;
 		if (projectile.timer <= 0) {
+			debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: projectile)\n");
+
 			registry.destroy(entity);
 		}
 	}
@@ -323,7 +325,10 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
+	
 	registry.destroy(motions.begin(), motions.end());
+	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
+
 
 	// TODO: move boss spawning system... less magic numbers too
 	for (int i = 0; i < 200; i++) {
