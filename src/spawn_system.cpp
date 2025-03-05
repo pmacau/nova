@@ -120,20 +120,19 @@ void SpawnSystem::processSpawning() {
     std::uniform_int_distribution<int> groupDist(chosenDef->group.minSize, chosenDef->group.maxSize);
     int groupSize = groupDist(rng);
     
-    std::cout << "Spawning " << groupSize << " of type ";
+    const char* creatureStr = "";
     switch (chosenDef->creatureType) {
         case CreatureType::Mob:
-            std::cout << "Mob";
+            creatureStr = "Mob";
             break;
         case CreatureType::Boss:
-            std::cout << "Boss";
+            creatureStr = "Boss";
             break;
         case CreatureType::Mutual:
-            std::cout << "Mutual";
+            creatureStr = "Mutual";
             break;
     }
-    std::cout << " at (" << candidatePos.x << ", " << candidatePos.y << ")" << std::endl;
-    
+    debug_printf(DebugType::SPAWN, "Spawning %d of type %s at (%f, %f)\n", groupSize, creatureStr, candidatePos.x, candidatePos.y);
     // Create the group of entities.
     spawnCreatureGroup(*chosenDef, candidatePos, groupSize);
 }
