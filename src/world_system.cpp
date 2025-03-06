@@ -55,7 +55,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
 	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
 	main_camera_entity = createCamera(registry, player_entity);
-	std::cout << "init" << std::endl;
+
 	screen_entity = registry.create();
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
@@ -448,7 +448,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
             float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
             if (distance_to_ship < 100.0f) {
-                std::cout << "Opening Ship Upgrade UI" << std::endl;
+				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
                 screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
             }
         }
@@ -457,7 +457,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
     // Close ship upgrade UI with G
     if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
-            std::cout << "Closing Ship Upgrade UI" << std::endl;
+			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
         }
     }

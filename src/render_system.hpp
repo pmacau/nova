@@ -89,6 +89,8 @@ public:
 	// Draw all entities
 	void draw();
 
+	mat3 createUIProjectionMatrix();
+
 	mat3 createProjectionMatrix();
 
 	entt::entity get_screen_state_entity() { return screen_state_entity; }

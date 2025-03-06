@@ -656,9 +656,35 @@ void RenderSystem::renderGamePlay()
 							  // sprites back to front
 	gl_has_errors();
 
-
-
 	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	std::vector<entt::entity> UIRenderEntities;
+	auto ui = registry.view<UI, Motion, RenderRequest>();
+	for (auto entity : ui) {
+		UIRenderEntities.push_back(entity);
+	}
+	for (auto entity : UIRenderEntities) {
+		if (registry.any_of<FixedUI>(entity)) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+		else {
+			drawTexturedMesh(entity, projection_2D);
+		}
+	}
+
+	// render projectiles
+	std::vector<entt::entity> ProjectileRenderEntities;
+	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
+
+	for (auto entity : projectiles) {
+		ProjectileRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : ProjectileRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
 	// render players and mobs
 	std::vector<entt::entity> PlayerMobsRenderEntities;
 	// get all mob and player entities with motion and render request components
@@ -806,6 +832,33 @@ void RenderSystem::draw()
             renderGamePlay();
             break;
     }
+}
+
+mat3 RenderSystem::createUIProjectionMatrix() {
+	/*float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+
+	float near_plane = -1.0f;
+	float far_plane = 1.0f;
+
+	return glm::ortho(left, right, bottom, top, near_plane, far_plane);*/
+	float left = 0.f;
+	float top = 0.f;
+	float right = (float)WINDOW_WIDTH_PX;
+	float bottom = (float)WINDOW_HEIGHT_PX;
+
+	float sx = 2.f / (right - left);
+	float sy = 2.f / (top - bottom);
+	float tx = -(right + left) / (right - left);
+	float ty = -(top + bottom) / (top - bottom);
+
+	return {
+		{ sx, 0.f, 0.f},
+		{0.f,  sy, 0.f},
+		{ tx,  ty, 1.f}
+	};
 }
 
 mat3 RenderSystem::createProjectionMatrix()
