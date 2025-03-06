@@ -66,16 +66,16 @@ void SpawnSystem::processNaturalSpawning()
     vec2 safeAreaWorldMax = playerPos + halfSafeZone;
 
     // Convert the spawn area boundaries from world coordinates to tile indices
-    int spawnTileMinX = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.x / MapSystem::TILE_SIZE));
-    int spawnTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(spawnAreaWorldMax.x / MapSystem::TILE_SIZE));
-    int spawnTileMinY = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.y / MapSystem::TILE_SIZE));
-    int spawnTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(spawnAreaWorldMax.y / MapSystem::TILE_SIZE));
+    int spawnTileMinX = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.x / TILE_SIZE));
+    int spawnTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(spawnAreaWorldMax.x / TILE_SIZE));
+    int spawnTileMinY = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.y / TILE_SIZE));
+    int spawnTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(spawnAreaWorldMax.y / TILE_SIZE));
 
     // Convert the safe area boundaries from world coordinates to tile indices
-    int safeTileMinX = std::max<int>(0, static_cast<int>(safeAreaWorldMin.x / MapSystem::TILE_SIZE));
-    int safeTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(safeAreaWorldMax.x / MapSystem::TILE_SIZE));
-    int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / MapSystem::TILE_SIZE));
-    int safeTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(safeAreaWorldMax.y / MapSystem::TILE_SIZE));
+    int safeTileMinX = std::max<int>(0, static_cast<int>(safeAreaWorldMin.x / TILE_SIZE));
+    int safeTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(safeAreaWorldMax.x / TILE_SIZE));
+    int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / TILE_SIZE));
+    int safeTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
 
     std::vector<vec2> validTiles;
 
@@ -200,8 +200,6 @@ void SpawnSystem::processNaturalSpawning()
 
 void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize)
 {
-    vec2 baseWorldPos = MapSystem::get_tile_center_pos(tileIndices);
-
     std::vector<vec2> validNeighborTiles;
 
     int baseTileX = static_cast<int>(tileIndices.x);
@@ -241,7 +239,7 @@ void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const 
 
     // TODO: remove magic number 1/4
     // offset distribution: using +/- TILE_SIZE/4 so that the offset is within the tile
-    std::uniform_real_distribution<float> offsetWithinTile(-MapSystem::TILE_SIZE * 0.25f, MapSystem::TILE_SIZE * 0.25f);
+    std::uniform_real_distribution<float> offsetWithinTile(-TILE_SIZE * 0.25f, TILE_SIZE * 0.25f);
 
     for (int i = 0; i < groupSize; ++i)
     {

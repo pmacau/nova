@@ -55,7 +55,7 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
 
             switch (get_decoration(game_map[i][j])) {
                 case Decoration::BOSS:
-                    bossSpawnIndices.push_bac(vec2(j, i));
+                    bossSpawnIndices.push_back(vec2(j, i));
                     break;
                 case Decoration::SPAWN:
                     spawn_pos = map_pos;
@@ -134,8 +134,15 @@ Tile MapSystem::get_tile_type_by_indices(int tile_x, int tile_y) {
     if (tile_x >= 0 && tile_x < MAP_WIDTH && tile_y >= 0 && tile_y < MAP_HEIGHT) {
         return game_map[tile_y][tile_x];
     }
-    return -1;
+    Tile t;
+    set_terrain(t, Terrain::WATER);
+    return t;
 };
+
+vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
+    float tile_size = static_cast<float>(TILE_SIZE);
+    return tile_size * (tile_indices + vec2(0.5f));
+}
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
@@ -143,3 +150,14 @@ bool MapSystem::walkable_tile(Tile tile) {
         get_decoration(tile) != Decoration::TREE 
     );
 };
+
+
+std::vector<vec2>& MapSystem::getBossSpawnIndices() {
+    return bossSpawnIndices;
+}
+
+// void MapSystem::removeBossSpawnIndex(const vec2& tileIndices) {
+//     auto it = std::find(bossSpawnIndices.begin(), bossSpawnIndices.end(), tileIndices);
+//     if (it != bossSpawnIndices.end())
+//         bossSpawnIndices.erase(it);
+// }

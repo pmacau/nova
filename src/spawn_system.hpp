@@ -17,7 +17,7 @@ private:
 
     float spawnTimer = 0.0f;
     float spawnRate = 2000.0f;
-    size_t spawnCap = 10;       // max mobs
+    size_t spawnCap = 2;       // max mobs
 
     void processNaturalSpawning();
 
