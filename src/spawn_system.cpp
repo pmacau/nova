@@ -1,12 +1,12 @@
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include "spawn_system.hpp"
 #include "tinyECS/components.hpp"
 #include "common.hpp"
 #include "world_init.hpp"
 #include "util/debug.hpp"
-
-
+#include "map/map_system.hpp"
 
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
@@ -19,165 +19,269 @@ SpawnSystem::SpawnSystem(entt::registry &registry)
 
 SpawnSystem::~SpawnSystem()
 {
-
 }
 
-void SpawnSystem::update(float deltaTime) {
+void SpawnSystem::update(float deltaTime)
+{
     spawnTimer += deltaTime;
-    
+
     // Check spawn cap
     size_t currentMobCount = registry.view<Mob>().size();
-    if (currentMobCount >= spawnCap) {
+    if (currentMobCount >= spawnCap)
+    {
         // std::cout << "Spawn cap reached (" << currentMobCount << " mobs). Skipping spawn." << std::endl;
-    } else if (spawnTimer >= spawnRate) {
+    }
+    else if (spawnTimer >= spawnRate)
+    {
         // attempt spawning.
-        spawnTimer = 0.0f; 
+        spawnTimer = 0.0f;
         processSpawning();
     }
-    
+
     processDespawning();
 }
 
-
-void SpawnSystem::processSpawning() {
+void SpawnSystem::processSpawning()
+{
     // Get the player entity
     auto playerView = registry.view<Player, Motion>();
-    if (playerView.size_hint() == 0) {
-		debug_printf(DebugType::SPAWN, "No player entity found (spawn)\n");
-        return;  // No player found.
+    if (playerView.size_hint() == 0)
+    {
+        debug_printf(DebugType::SPAWN, "No player entity found (spawn)\n");
+        return; // No player found.
     }
     auto playerEntity = *playerView.begin();
-    auto& playerMotion = registry.get<Motion>(playerEntity);
+    auto &playerMotion = registry.get<Motion>(playerEntity);
     vec2 playerPos = playerMotion.position;
-    
-    // Generate a random spawn position
-    std::uniform_real_distribution<float> angleDist(0.0f, 2 * 3.14159f);
-    std::uniform_real_distribution<float> distanceDist(SAFE_ZONE_RADIUS, SPAWN_ZONE_RADIUS);
-    float randomAngle = angleDist(rng);
-    float randomDistance = distanceDist(rng);
-    
-    vec2 candidatePos = { 
-        playerPos.x + randomDistance * std::cos(randomAngle),
-        playerPos.y + randomDistance * std::sin(randomAngle)
-    };
 
-    // Squared distance check (for later extensions: might want to use box2d and other checks)
-    float dx = candidatePos.x - playerPos.x;
-    float dy = candidatePos.y - playerPos.y;
-    float sqDistance = dx * dx + dy * dy;
-    if (sqDistance < (SAFE_ZONE_RADIUS * SAFE_ZONE_RADIUS) ||
-        sqDistance > (SPAWN_ZONE_RADIUS * SPAWN_ZONE_RADIUS)) {
-        debug_printf(DebugType::SPAWN, "Candidate position out of range.\n");
+    // Compute rectangular boundaries of the spawn area
+    vec2 halfSpawnZone = SPAWN_ZONE * 0.5f;
+    vec2 spawnAreaWorldMin = playerPos - halfSpawnZone;
+    vec2 spawnAreaWorldMax = playerPos + halfSpawnZone;
+
+    // Compute the world-space safe area boundaries relative to the player
+    vec2 halfSafeZone = SPAWN_SAFE_ZONE * 0.5f;
+    vec2 safeAreaWorldMin = playerPos - halfSafeZone;
+    vec2 safeAreaWorldMax = playerPos + halfSafeZone;
+
+    // Convert the spawn area boundaries from world coordinates to tile indices
+    int spawnTileMinX = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.x / MapSystem::TILE_SIZE));
+    int spawnTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(spawnAreaWorldMax.x / MapSystem::TILE_SIZE));
+    int spawnTileMinY = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.y / MapSystem::TILE_SIZE));
+    int spawnTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(spawnAreaWorldMax.y / MapSystem::TILE_SIZE));
+
+    // Convert the safe area boundaries from world coordinates to tile indices
+    int safeTileMinX = std::max<int>(0, static_cast<int>(safeAreaWorldMin.x / MapSystem::TILE_SIZE));
+    int safeTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(safeAreaWorldMax.x / MapSystem::TILE_SIZE));
+    int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / MapSystem::TILE_SIZE));
+    int safeTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(safeAreaWorldMax.y / MapSystem::TILE_SIZE));
+
+    std::vector<vec2> validTiles;
+
+    // Iterate over tile indices within the spawn area.
+    for (int tileY = spawnTileMinY; tileY <= spawnTileMaxY; ++tileY)
+    {
+        for (int tileX = spawnTileMinX; tileX <= spawnTileMaxX; ++tileX)
+        {
+            // Skip tiles that fall within the safe area.
+            if (tileX >= safeTileMinX && tileX <= safeTileMaxX &&
+                tileY >= safeTileMinY && tileY <= safeTileMaxY)
+            {
+                continue;
+            }
+
+
+            // Check if this tile is valid for spawning.
+            Tile tileType = MapSystem::get_tile_type_by_indices(tileX, tileY);
+            if (MapSystem::walkable_tile(tileType))
+            {
+                validTiles.push_back(vec2(tileX, tileY));
+            }
+        }
+    }
+
+    if (validTiles.empty()) {
+        debug_printf(DebugType::SPAWN, "(Warning) No valid spawnable tiles found in the spawn area.\n");
         return;
     }
     
+    // Randomly pick a valid tile
+    std::uniform_int_distribution<size_t> tileDist(0, validTiles.size() - 1);
+    vec2 candidate_tile_indices = validTiles[tileDist(rng)];
+
     // Assume candidate's biome is 0 for now
     // TODO: biome system
     int candidateBiome = 0;
-    
+
     // Get all eligible spawn definitions for the given location
-    std::vector<const SpawnDefinition*> eligibleDefs;
-    for (const auto& def : spawnDefinitions) {
+    std::vector<const SpawnDefinition *> eligibleDefs;
+    for (const auto &def : spawnDefinitions)
+    {
         bool allowedBiome = false;
-        for (int biome : def.biomeIDs) {
-            if (biome == candidateBiome) {
+        for (int biome : def.biomeIDs)
+        {
+            if (biome == candidateBiome)
+            {
                 allowedBiome = true;
                 break;
             }
         }
-        if (allowedBiome) {
+        if (allowedBiome)
+        {
             eligibleDefs.push_back(&def);
         }
     }
-    
-    if (eligibleDefs.empty()) {
-		debug_printf(DebugType::SPAWN, "No eligible spawn definitions for biome \n");
+
+    if (eligibleDefs.empty())
+    {
+        debug_printf(DebugType::SPAWN, "No eligible spawn definitions for biome \n");
         return;
     }
-    
+
     // Calculate total weight (sum of spawn probabilities)
     float totalWeight = 0.0f;
-    for (const auto* def : eligibleDefs) {
+    for (const auto *def : eligibleDefs)
+    {
         totalWeight += def->spawnProbability;
     }
-    
+
     // Perform weighted random selection.
     std::uniform_real_distribution<float> weightedDist(0.0f, totalWeight);
     float weightedRoll = weightedDist(rng);
-    const SpawnDefinition* chosenDef = nullptr;
-    for (const auto* def : eligibleDefs) {
+    const SpawnDefinition *chosenDef = nullptr;
+    for (const auto *def : eligibleDefs)
+    {
         weightedRoll -= def->spawnProbability;
-        if (weightedRoll <= 0.0f) {
+        if (weightedRoll <= 0.0f)
+        {
             chosenDef = def;
             break;
         }
     }
-    if (!chosenDef) {
+    if (!chosenDef)
+    {
         chosenDef = eligibleDefs.back();
     }
-    
+
     // Determine group size for the selected spawn definition.
     std::uniform_int_distribution<int> groupDist(chosenDef->group.minSize, chosenDef->group.maxSize);
     int groupSize = groupDist(rng);
-    
-    const char* creatureStr = "";
-    switch (chosenDef->creatureType) {
-        case CreatureType::Mob:
-            creatureStr = "Mob";
-            break;
-        case CreatureType::Boss:
-            creatureStr = "Boss";
-            break;
-        case CreatureType::Mutual:
-            creatureStr = "Mutual";
-            break;
+
+    const char *creatureStr = "";
+    switch (chosenDef->creatureType)
+    {
+    case CreatureType::Mob:
+        creatureStr = "Mob";
+        break;
+    case CreatureType::Boss:
+        creatureStr = "Boss";
+        break;
+    case CreatureType::Mutual:
+        creatureStr = "Mutual";
+        break;
     }
-    debug_printf(DebugType::SPAWN, "Spawning %d of type %s at (%f, %f)\n", groupSize, creatureStr, candidatePos.x, candidatePos.y);
+    debug_printf(DebugType::SPAWN, "Spawning %d of type %s at tile (%f, %f)\n", groupSize, creatureStr, candidate_tile_indices, candidate_tile_indices);
     // Create the group of entities.
-    spawnCreatureGroup(*chosenDef, candidatePos, groupSize);
+    spawnCreaturesByTileIndices(*chosenDef, candidate_tile_indices, groupSize);
 }
 
-void SpawnSystem::spawnCreatureGroup(const SpawnDefinition &def, const vec2 &basePos, int groupSize) {
-    std::uniform_real_distribution<float> offsetDist(-20.0f, 20.0f);
-    for (int i = 0; i < groupSize; ++i) {
-        vec2 offset = { offsetDist(rng), offsetDist(rng) };
-        vec2 spawnPos = { basePos.x + offset.x, basePos.y + offset.y };
 
-        switch (def.creatureType) {
-            case CreatureType::Mob:
-            case CreatureType::Mutual:
-                createMob(registry, spawnPos, 50);
-                break;
-            case CreatureType::Boss:
-                createBoss(registry, spawnPos);
-                break;
-            default:
-                break;
+void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize)
+{
+    vec2 baseWorldPos = MapSystem::get_tile_center_pos(tileIndices);
+
+    std::vector<vec2> validNeighborTiles;
+
+    int baseTileX = static_cast<int>(tileIndices.x);
+    int baseTileY = static_cast<int>(tileIndices.y);
+
+    // TODO: change later for customizable radius
+    int spawnAreaMinX = std::max(0, baseTileX - 1);
+    int spawnAreaMaxX = std::min(MapSystem::MAP_WIDTH - 1, baseTileX + 1);
+    int spawnAreaMinY = std::max(0, baseTileY - 1);
+    int spawnAreaMaxY = std::min(MapSystem::MAP_HEIGHT - 1, baseTileY + 1);
+
+    // Loop through neighbor tiles (include itself)
+    for (int y = spawnAreaMinY; y <= spawnAreaMaxY; y++)
+    {
+        for (int x = spawnAreaMinX; x <= spawnAreaMaxX; x++)
+        {
+            vec2 neighborTileIndices = vec2(x, y);
+
+            // world coordinate
+            vec2 neighborCenter = MapSystem::get_tile_center_pos(neighborTileIndices);
+
+            // Check if this tile is valid for spawning
+            Tile tileType = MapSystem::get_tile(neighborCenter);
+            if (MapSystem::walkable_tile(tileType))
+            {
+                validNeighborTiles.push_back(neighborCenter);
+            }
+        }
+    }
+
+    if (validNeighborTiles.empty())
+    {
+        debug_printf(DebugType::SPAWN, "[Error!!] No valid neighbor tiles for spawning\n");
+    }
+
+    std::uniform_int_distribution<size_t> tileIndexDist(0, validNeighborTiles.size() - 1);
+
+    // TODO: remove magic number 1/4
+    // offset distribution: using +/- TILE_SIZE/4 so that the offset is within the tile
+    std::uniform_real_distribution<float> offsetWithinTile(-MapSystem::TILE_SIZE * 0.25f, MapSystem::TILE_SIZE * 0.25f);
+
+    for (int i = 0; i < groupSize; ++i)
+    {
+        vec2 baseSpawnPos = validNeighborTiles[tileIndexDist(rng)];
+
+        // Add a random offset within the tile
+        vec2 offset = {offsetWithinTile(rng), offsetWithinTile(rng)};
+        vec2 spawnPos = baseSpawnPos + offset;
+
+        // Spawn the creature based on its type
+        switch (def.creatureType)
+        {
+        case CreatureType::Mob:
+        case CreatureType::Mutual:
+            createMob(registry, spawnPos, 50); 
+            break;
+        case CreatureType::Boss:
+            createBoss(registry, spawnPos);
+            break;
+        default:
+            break;
         }
     }
 }
 
-void SpawnSystem::processDespawning() {
+void SpawnSystem::processDespawning()
+{
     auto playerView = registry.view<Player, Motion>();
-    if (playerView.size_hint() == 0) {
+    if (playerView.size_hint() == 0)
+    {
         debug_printf(DebugType::SPAWN, "No player entity found (despawning)\n");
         return;
     }
-        
+
     auto playerEntity = *playerView.begin();
-    auto& playerMotion = registry.get<Motion>(playerEntity);
+    auto &playerMotion = registry.get<Motion>(playerEntity);
     vec2 playerPos = playerMotion.position;
-    
+
+    vec2 halfDespawn = DESPAWN_ZONE * 0.5f;
+    vec2 despawnAreaMin = playerPos - halfDespawn;
+    vec2 despawnAreaMax = playerPos + halfDespawn;
+
     auto mobView = registry.view<Mob, Motion>();
-    for (auto entity : mobView) {
-        auto& mobMotion = registry.get<Motion>(entity);
-        float dx = mobMotion.position.x - playerPos.x;
-        float dy = mobMotion.position.y - playerPos.y;
-        float sqDistance = dx * dx + dy * dy;
-        if (sqDistance > (DESPAWN_ZONE_RADIUS * DESPAWN_ZONE_RADIUS)) {
-            // Despawn the mob.
-	        debug_printf(DebugType::SPAWN, "Destroying entity (spawn sys)\n");
-            // registry.destroy(entity);
+    for (auto entity : mobView)
+    {
+        auto &mobMotion = registry.get<Motion>(entity);
+        vec2 mobPos = mobMotion.position;
+
+        if (mobPos.x < despawnAreaMin.x || mobPos.x > despawnAreaMax.x ||
+            mobPos.y < despawnAreaMin.y || mobPos.y > despawnAreaMax.y)
+        {
+            debug_printf(DebugType::SPAWN, "Destroying entity at (%f, %f) (outside despawn zone)\n", mobPos.x, mobPos.y);
             destroy_creature(registry, entity);
         }
     }

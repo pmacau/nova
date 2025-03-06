@@ -23,5 +23,5 @@ private:
 
     void processDespawning();
 
-    void spawnCreatureGroup(const SpawnDefinition &def, const vec2 &basePos, int groupSize);
+    void spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize);
 };

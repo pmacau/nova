@@ -25,13 +25,20 @@ public:
     static void generate_new_map();
     static vec2 populate_ecs(entt::registry& reg);
     static void update_location(entt::registry& reg, entt::entity ent);
-private:
+    static constexpr int TILE_SIZE = 16; // tile size in pixels
+
     static constexpr int MAP_WIDTH = 200;
     static constexpr int MAP_HEIGHT = 200;
-    static constexpr int TILE_SIZE = 16; // tile size in pixels
+
+    static Tile get_tile(vec2 pos);
+    static Tile get_tile_type_by_indices(int x, int y);
+    static vec2 get_tile_indices(vec2 pos);
+    static vec2 get_tile_center_pos(vec2 tile_indices);
+    static bool walkable_tile(Tile tile);
+
+
+private:
     static inline std::vector<std::vector<uint8_t>> game_map;
 
     static void loadMap();
-    static Tile get_tile(vec2 pos);
-    static bool walkable_tile(Tile tile);
 };

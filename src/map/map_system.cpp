@@ -114,13 +114,30 @@ void MapSystem::loadMap() {
 };
 
 Tile MapSystem::get_tile(vec2 pos) {
-    int tile_x = std::round(pos.x / TILE_SIZE);
-    int tile_y = std::round(pos.y / TILE_SIZE);
+    vec2 tile_indices = get_tile_indices(pos);
+    int tile_x = tile_indices.x;
+    int tile_y = tile_indices.y;
+    return MapSystem::get_tile_type_by_indices(tile_x, tile_y);
+};
+
+
+vec2 MapSystem::get_tile_indices(vec2 pos) {
+    return vec2(std::round(pos.x / TILE_SIZE), std::round(pos.y / TILE_SIZE));
+};
+
+Tile MapSystem::get_tile_type_by_indices(int tile_x, int tile_y) {
     if (tile_x >= 0 && tile_x < MAP_WIDTH && tile_y >= 0 && tile_y < MAP_HEIGHT) {
         return static_cast<Tile>(game_map[tile_y][tile_x]);
     }
     return Tile::TILE_COUNT;
-};
+}
+
+vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
+    float tile_size = static_cast<float>(MapSystem::TILE_SIZE);
+    return vec2(tile_indices.x * tile_size + 0.5f * tile_size,
+                tile_indices.y * tile_size + 0.5f * tile_size);
+}
+
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
