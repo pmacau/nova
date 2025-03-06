@@ -36,8 +36,8 @@ int main()
 	CameraSystem camera_system(reg, world_system);
 
 	// debug_printf(DebugType::GAME_INIT, "Generatring game map...?\n");
-	// auto generated_map = perlin_map(200, 200);
-	// save_double_map_as_binary(generated_map, map_path("cpp_map.txt").c_str());
+	auto generated_map = game_map(200, 200);
+	save_map_as_binary(generated_map, map_path("cpp_map.bin").c_str());
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();

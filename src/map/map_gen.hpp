@@ -9,17 +9,19 @@ std::vector<std::vector<double>> perlin_map(
     int width, int height, double scale = 50.0,
     int octaves = 6, double persistence = 0.5, double lacunarity = 2.0
 ) {
-    // std::random_device rd;
-    // std::mt19937 gen(rd());
-    //std::uniform_real_distribution<double> dist(-10000, 10000);
-    // double offset_x = 0;
-    // double offset_y = 0;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(-10000, 10000);
+    double offset_x = dist(gen);
+    double offset_y = dist(gen);
 
     std::vector<std::vector<double>> terrain(height, std::vector<double>(width, 0.0));
 
     FastNoiseLite noise;
     noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    noise.SetFrequency(scale);
+    noise.SetFrequency(1.0 / 40.0);
+
+    noise.SetFractalType(FastNoiseLite::FractalType_FBm);
     noise.SetFractalOctaves(octaves);
     noise.SetFractalGain(persistence);
     noise.SetFractalLacunarity(lacunarity);
@@ -27,9 +29,11 @@ std::vector<std::vector<double>> perlin_map(
     double min_val = 1e9, max_val = -1e9;
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
-            double val = noise.GetNoise(float(j), float(i));
-            printf("val: %f\n", val);
-            terrain[i][j] = val;
+            double val = noise.GetNoise(
+                float(j + offset_x),
+                float(i + offset_y)
+            );
+            terrain[i][j] = 0.5 * (val + 1.0);
         }
     }
     return terrain;
