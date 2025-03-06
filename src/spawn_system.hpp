@@ -24,4 +24,7 @@ private:
     void processDespawning();
 
     void spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize);
+
+
+    void checkAndSpawnBoss();
 };

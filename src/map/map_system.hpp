@@ -30,15 +30,21 @@ public:
     static constexpr int MAP_WIDTH = 200;
     static constexpr int MAP_HEIGHT = 200;
 
+
     static Tile get_tile(vec2 pos);
     static Tile get_tile_type_by_indices(int x, int y);
     static vec2 get_tile_indices(vec2 pos);
     static vec2 get_tile_center_pos(vec2 tile_indices);
     static bool walkable_tile(Tile tile);
 
+    static const std::vector<vec2>& getBossSpawnIndices();
+    static void removeBossSpawnIndex(const vec2& tileIndices);
+
 
 private:
     static inline std::vector<std::vector<uint8_t>> game_map;
 
     static void loadMap();
+
+    static std::vector<vec2> bossSpawnIndices;
 };

@@ -25,6 +25,8 @@ void SpawnSystem::update(float deltaTime)
 {
     spawnTimer += deltaTime;
 
+    checkAndSpawnBoss();
+
     // Check spawn cap
     size_t currentMobCount = registry.view<Mob>().size();
     if (currentMobCount >= spawnCap)
@@ -33,7 +35,6 @@ void SpawnSystem::update(float deltaTime)
     }
     else if (spawnTimer >= spawnRate)
     {
-        // attempt spawning.
         spawnTimer = 0.0f;
         processSpawning();
     }
@@ -163,8 +164,19 @@ void SpawnSystem::processSpawning()
         chosenDef = eligibleDefs.back();
     }
 
-    // Determine group size for the selected spawn definition.
-    std::uniform_int_distribution<int> groupDist(chosenDef->group.minSize, chosenDef->group.maxSize);
+    // Determine group size for the selected spawn definition
+    size_t currentMobCount = registry.view<Mob>().size();
+    int availableSlots = spawnCap - static_cast<int>(currentMobCount);
+
+    if (availableSlots < chosenDef->group.minSize) {
+        debug_printf(DebugType::SPAWN, "Not enough spawn slots available (%d available, need at least %d).\n", availableSlots, chosenDef->group.minSize);
+        return;
+    }
+
+    int minGroup = chosenDef->group.minSize;
+    int maxGroup = std::min(chosenDef->group.maxSize, availableSlots);
+
+    std::uniform_int_distribution<int> groupDist(minGroup, maxGroup);
     int groupSize = groupDist(rng);
 
     const char *creatureStr = "";
@@ -180,7 +192,7 @@ void SpawnSystem::processSpawning()
         creatureStr = "Mutual";
         break;
     }
-    debug_printf(DebugType::SPAWN, "Spawning %d of type %s at tile (%f, %f)\n", groupSize, creatureStr, candidate_tile_indices, candidate_tile_indices);
+    debug_printf(DebugType::SPAWN, "Spawning %d of type %s at tile (%d, %d)\n", groupSize, creatureStr, (int) candidate_tile_indices.x, (int) candidate_tile_indices.y);
     // Create the group of entities.
     spawnCreaturesByTileIndices(*chosenDef, candidate_tile_indices, groupSize);
 }
@@ -283,6 +295,41 @@ void SpawnSystem::processDespawning()
         {
             debug_printf(DebugType::SPAWN, "Destroying entity at (%f, %f) (outside despawn zone)\n", mobPos.x, mobPos.y);
             destroy_creature(registry, entity);
+        }
+    }
+}
+
+void SpawnSystem::checkAndSpawnBoss() {
+    auto playerView = registry.view<Player, Motion>();
+    if (playerView.size_hint() == 0) {
+        debug_printf(DebugType::SPAWN, "No player entity found (boss check)\n");
+        return;
+    }
+    auto playerEntity = *playerView.begin();
+    auto& playerMotion = registry.get<Motion>(playerEntity);
+    vec2 playerPos = playerMotion.position;
+
+    // Compute the rectangular spawn area (using SPAWN_ZONE) centered on the player.
+    vec2 halfSpawnZone = SPAWN_ZONE * 0.5f;
+    vec2 spawnAreaMin = playerPos - halfSpawnZone;
+    vec2 spawnAreaMax = playerPos + halfSpawnZone;
+
+
+    auto& bossIndices = MapSystem::getBossSpawnIndices();
+    for (auto it = bossIndices.begin(); it != bossIndices.end(); ) {
+        vec2 tileIndices = *it;
+        vec2 tileCenter = MapSystem::get_tile_center_pos(tileIndices);
+        
+        // If the tile center is within the spawn area, spawn the boss
+        if (tileCenter.x >= spawnAreaMin.x && tileCenter.x <= spawnAreaMax.x &&
+            tileCenter.y >= spawnAreaMin.y && tileCenter.y <= spawnAreaMax.y) {
+            createBoss(registry, tileCenter);
+            debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
+                         tileCenter.x, tileCenter.y, tileIndices.x, tileIndices.y);
+            // Remove this boss spawn index so it doesn't trigger again.
+            MapSystem::removeBossSpawnIndex(tileIndices);
+        } else {
+            ++it;
         }
     }
 }

@@ -7,6 +7,8 @@ Helpers
 --------------------
 */
 
+std::vector<vec2> MapSystem::bossSpawnIndices;
+
 void createBackground(entt::registry& reg, int width, int height, int tile_size) {
     auto background_ents = reg.view<Background>();
     reg.destroy(background_ents.begin(), background_ents.end());
@@ -54,7 +56,8 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
 
             switch (tile) {
                 case Tile::BOSS_SPAWN:
-                    createBoss(reg, map_pos);
+                    bossSpawnIndices.push_back(vec2(j, i));
+                    // createBoss(reg, map_pos);
                     break;
                 case Tile::SPAWN:
                     spawn_pos = map_pos;
@@ -144,3 +147,15 @@ bool MapSystem::walkable_tile(Tile tile) {
         tile != Tile::WATER && tile != Tile::TREE
     );
 };
+
+// accessor
+const std::vector<vec2>& MapSystem::getBossSpawnIndices() {
+    return bossSpawnIndices;
+}
+
+
+void MapSystem::removeBossSpawnIndex(const vec2& tileIndices) {
+    auto it = std::find(bossSpawnIndices.begin(), bossSpawnIndices.end(), tileIndices);
+    if (it != bossSpawnIndices.end())
+        bossSpawnIndices.erase(it);
+}
