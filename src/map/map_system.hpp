@@ -6,15 +6,9 @@
 #include <string>
 #include <entt.hpp>
 
+#include "map/tile.hpp"
 #include "common.hpp"
 #include "util/debug.hpp"
-
-enum Tile {
-    WATER, SAND, GRASS,
-    SPAWN, BOSS_SPAWN,
-    TREE,
-    TILE_COUNT
-};
 
 class MapSystem {
 public:
@@ -25,8 +19,7 @@ public:
 private:
     static constexpr int MAP_WIDTH = 200;
     static constexpr int MAP_HEIGHT = 200;
-    static constexpr int TILE_SIZE = 16; // tile size in pixels
-    static inline std::vector<std::vector<uint8_t>> game_map;
+    static inline GameMap game_map;
 
     static void loadMap();
     static Tile get_tile(vec2 pos);

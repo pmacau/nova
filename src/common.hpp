@@ -52,7 +52,7 @@ const int SHIP_TIMER_MS = 500;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 
-const int PROJECTILE_DAMAGE = 10;
+const int PROJECTILE_DAMAGE = 200;
 
 const int PLAYER_HEALTH = 100;
 const int MOB_HEALTH = 50; 

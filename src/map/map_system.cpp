@@ -45,21 +45,21 @@ void MapSystem::generate_new_map() {
 }
 
 vec2 MapSystem::populate_ecs(entt::registry& reg) {
-    vec2 spawn_pos = {0.f, 0.f};
+    vec2 spawn_pos = {0, 0};
 
     for (int i = 0; i < MAP_HEIGHT; i++) {
         for (int j = 0; j < MAP_WIDTH; j++) {
-            Tile tile = static_cast<Tile>(game_map[i][j]);
             vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
 
-            switch (tile) {
-                case Tile::BOSS_SPAWN:
+            switch (get_decoration(game_map[i][j])) {
+                case Decoration::BOSS:
                     createBoss(reg, map_pos);
                     break;
-                case Tile::SPAWN:
+                case Decoration::SPAWN:
+                    debug_printf(DebugType::WORLD_INIT, "Found spawn position\n");
                     spawn_pos = map_pos;
                     break;
-                case Tile::TREE:
+                case Decoration::TREE:
                     createTree(reg, map_pos);
                     break;
                 default:
@@ -117,13 +117,13 @@ Tile MapSystem::get_tile(vec2 pos) {
     int tile_x = std::round(pos.x / TILE_SIZE);
     int tile_y = std::round(pos.y / TILE_SIZE);
     if (tile_x >= 0 && tile_x < MAP_WIDTH && tile_y >= 0 && tile_y < MAP_HEIGHT) {
-        return static_cast<Tile>(game_map[tile_y][tile_x]);
+        return game_map[tile_y][tile_x];
     }
-    return Tile::TILE_COUNT;
+    return -1;
 };
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
-        tile != Tile::WATER && tile != Tile::TREE
+        get_terrain(tile) != Terrain::WATER
     );
 };
