@@ -55,7 +55,15 @@ GameMap generate_terrain(
             terrain[i][j] = discretize(val * dist);
         }
     }
-    return terrain;
+
+    GameMap padded(height, std::vector<Tile>(width, (Tile)0));
+    for (int i = 0; i < height - 2; ++i) {
+        for (int j = 0; j < width - 2; ++j) {
+            padded[i + 1][j + 1] = terrain[i][j];
+        }
+    }
+    
+    return padded;
 }
 
 /*
@@ -105,26 +113,26 @@ std::pair<int, int> player_spawn(
 }
 
 
-std::vector<std::vector<uint8_t>> find_mainland(
+std::vector<std::vector<bool>> find_mainland(
     const GameMap& terrain, std::pair<int, int> player_spawn
 ) {
     int height = terrain.size(), width = terrain[0].size();
     int row = player_spawn.first, col = player_spawn.second;
 
-    std::vector<std::vector<uint8_t>> mainland(height, std::vector<uint8_t>(width, 0));
+    std::vector<std::vector<bool>> mainland(height, std::vector<bool>(width, false));
     std::queue<std::pair<int, int>> queue;
 
     queue.push({row, col});
-    mainland[row][col] = 1;
+    mainland[row][col] = true;
 
     auto process = [&queue, &mainland, &terrain, width, height](int row, int col) {
         if (
             (0 <= row && row < height) &&
             (0 <= col && col < width) &&
-            mainland[row][col] == 0 &&
-            terrain[row][col] != 0 // not in water
+            !mainland[row][col] &&
+            get_terrain(terrain[row][col]) != Terrain::WATER
         ) {
-            mainland[row][col] = 1;
+            mainland[row][col] = true;
             queue.push({row, col});
         }
     };
@@ -149,9 +157,9 @@ int manhattan_distance(int r1, int c1, int r2, int c2) {
 }
 
 std::vector<std::pair<int, int>> find_biome_seeds(
-    const std::vector<std::vector<uint8_t>>& grid, std::pair<int, int> spawn, int k
+    const std::vector<std::vector<bool>>& mainland, std::pair<int, int> spawn, int k
 ) {
-    int height = grid.size(), width = grid[0].size();
+    int height = mainland.size(), width = mainland[0].size();
     
     std::vector<std::pair<int, int>> selected_points;
     selected_points.push_back({spawn.first, spawn.second});
@@ -174,7 +182,7 @@ std::vector<std::pair<int, int>> find_biome_seeds(
         
         for (int r = 0; r < height; r++) {
             for (int c = 0; c < width; c++) {
-                if (grid[r][c] == 0 || visited[r][c]) continue;
+                if (!mainland[r][c] || visited[r][c]) continue;
             
                 int dist = get_min_distance_to_selected(r, c);
                 
@@ -192,6 +200,44 @@ std::vector<std::pair<int, int>> find_biome_seeds(
     return selected_points;
 }
 
+std::vector<std::pair<int, int>> get_trees(const GameMap& terrain, int num_trees, int min_dist) {
+    int height = terrain.size(), width = terrain[0].size();
+    
+    std::vector<std::pair<int, int>> land_positions;
+    std::vector<std::pair<int, int>> trees;
+
+    for (int r = 0; r < height; r++) {
+        for (int c = 0; c < width; c++) {
+            if (get_terrain(terrain[r][c]) != Terrain::WATER) {
+                land_positions.emplace_back(r, c);
+            }
+        }
+    }
+
+    auto valid_pos = [&trees, min_dist](int p_row, int p_col) {
+        for (const auto& tree : trees) {
+            if (manhattan_distance(p_row, p_col, tree.first, tree.second) < min_dist) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::shuffle(land_positions.begin(), land_positions.end(), gen);
+
+    for (const auto& pos : land_positions) {
+        if (trees.size() >= num_trees) break;
+
+        if (valid_pos(pos.first, pos.second)) {
+            trees.push_back(pos);
+        }
+    }
+
+    return trees;
+}
+
 /*
 -----------------------
 Full map helpers
@@ -204,32 +250,27 @@ GameMap create_map(int width, int height) {
 
     auto spawn = player_spawn(terrain, width, height);
     set_decoration(terrain[spawn.first][spawn.second], Decoration::SPAWN);
-    debug_printf(DebugType::WORLD_INIT, "Spawn: %d\n", terrain[spawn.first][spawn.second]);
 
     auto mainland = find_mainland(terrain, spawn);
     auto biome_seeds = find_biome_seeds(mainland, spawn, 4);
-    for (const auto& seed : biome_seeds) {
+    for (int i = 1; i <= 4; i++) {
+        auto seed = biome_seeds[i];
         set_decoration(terrain[seed.first][seed.second], Decoration::BOSS);
     }
     debug_printf(DebugType::WORLD_INIT, "Planted biome seeds\n");
 
-    std::vector<std::vector<uint8_t>> padded(height, std::vector<uint8_t>(width, 0));
-    for (int i = 0; i < height - 2; ++i) {
-        for (int j = 0; j < width - 2; ++j) {
-            padded[i + 1][j + 1] = terrain[i][j];
-        }
+    auto trees = get_trees(terrain, 1500, 15);
+    for (const auto& tree : trees) {
+        set_decoration(terrain[tree.first][tree.second], Decoration::TREE);
     }
-    
-    return padded;
+    debug_printf(DebugType::WORLD_INIT, "Planted %d trees\n", trees.size());
+
+    return terrain;
 }
 
 
 void save_map(const GameMap& map, const char* filepath) {
     std::ofstream file(filepath, std::ios::binary);
-    int height = map.size();
-    int width = map[0].size();
-    file.write(reinterpret_cast<const char*>(&height), sizeof(height));
-    file.write(reinterpret_cast<const char*>(&width), sizeof(width));
     for (const auto& row : map) {
         file.write(reinterpret_cast<const char*>(row.data()), row.size());
     }

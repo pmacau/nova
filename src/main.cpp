@@ -26,6 +26,7 @@ using Clock = std::chrono::high_resolution_clock;
 // Entry point
 int main()
 {
+	// TOGGLE this if you don't want a new map every time...
 	if (true) {
 		auto generated_map = create_map(200, 200);
 		create_background(generated_map);

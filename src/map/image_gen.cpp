@@ -121,7 +121,7 @@ void create_background(std::vector<std::vector<uint8_t>>& game_map) {
     Box tile_box = {0, 0, tile.w, tile.h}; 
     Box out_box  = {0, 0, tile.w, tile.h};
 
-    debug_printf(DebugType::WORLD_INIT, "Generating background map...\n");
+    debug_printf(DebugType::WORLD_INIT, "Generating background map\n");
     for (int row = 0; row < h; row++) {
         for (int col = 0; col < w; col++) {
             out_box.x = col * out_box.w;

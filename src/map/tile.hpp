@@ -14,18 +14,18 @@ enum Terrain    {WATER, SAND, GRASS};
 enum Decoration {NO_DECOR, SPAWN, BOSS, SHIP, TREE, SHRUB, ROCK};
 enum Biome      {B_FOREST, B_BEACH, B_ICE, B_SAVANNA, B_JUNGLE, B_OCEAN};
 
-inline Terrain    get_terrain(Tile tile)    { return static_cast<Terrain>   (tile & TERRAIN_MASK);};
-inline Decoration get_decoration(Tile tile) { return static_cast<Decoration>(tile & DECOR_MASK);};
-inline Biome      get_biome(Tile tile)      { return static_cast<Biome>     (tile & BIOME_MASK);};
+inline Terrain    get_terrain(Tile tile)    { return static_cast<Terrain>   ((tile & TERRAIN_MASK) >> 0);};
+inline Decoration get_decoration(Tile tile) { return static_cast<Decoration>((tile & DECOR_MASK)   >> 2);};
+inline Biome      get_biome(Tile tile)      { return static_cast<Biome>     ((tile & BIOME_MASK)   >> 5);};
 
 inline void set_terrain(Tile& tile, Terrain t) {
-    tile = (tile & ~TERRAIN_MASK) | (static_cast<Tile>(t) & TERRAIN_MASK);
+    tile = (tile & ~TERRAIN_MASK) | ((static_cast<Tile>(t) << 0) & TERRAIN_MASK);
 };
 inline void set_decoration(Tile& tile, Decoration d) {
-    tile = (tile & ~DECOR_MASK) | (static_cast<Decoration>(d) & DECOR_MASK);
+    tile = (tile & ~DECOR_MASK) | ((static_cast<Tile>(d) << 2) & DECOR_MASK);
 };
 inline void set_biome(Tile& tile, Biome b) {
-    tile = (tile & ~BIOME_MASK) | (static_cast<Tile>(b) & BIOME_MASK);
+    tile = (tile & ~BIOME_MASK) | ((static_cast<Tile>(b) << 5) & BIOME_MASK);
 };
 
 using GameMap = std::vector<std::vector<Tile>>;

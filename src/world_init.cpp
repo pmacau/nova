@@ -286,7 +286,7 @@ entt::entity createBoss(entt::registry& registry, vec2 pos) {
 	return entity;
 }
 
-entt::entity createTree(entt::registry& registry, vec2 pos) {
+entt::entity createTree(entt::registry& registry, vec2 pos, vec2 spriteCoord) {
 	auto entity = registry.create();
 
 	registry.emplace<Tree>(entity);
@@ -298,9 +298,9 @@ entt::entity createTree(entt::registry& registry, vec2 pos) {
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.coord = {0.f, 0.f};
+	sprite.coord = spriteCoord;
 	sprite.dims = {50.f, 99.f};
-	sprite.sheet_dims = {50.f, 99.f};
+	sprite.sheet_dims = {100.f, 99.f};
 
 	// TODO: allow for more flexible hitboxes. I want to be able to "walk through"
 	//       the leaves (from behind), but I want a hitbox on the trunk

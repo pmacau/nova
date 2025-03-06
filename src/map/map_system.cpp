@@ -56,11 +56,14 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
                     createBoss(reg, map_pos);
                     break;
                 case Decoration::SPAWN:
-                    debug_printf(DebugType::WORLD_INIT, "Found spawn position\n");
                     spawn_pos = map_pos;
                     break;
                 case Decoration::TREE:
-                    createTree(reg, map_pos);
+                    if (get_terrain(game_map[i][j]) == Terrain::SAND) {
+                        createTree(reg, map_pos, {0, 1});
+                    } else {
+                        createTree(reg, map_pos, {0, 0});
+                    }
                     break;
                 default:
                     break;
@@ -124,6 +127,7 @@ Tile MapSystem::get_tile(vec2 pos) {
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
-        get_terrain(tile) != Terrain::WATER
+        get_terrain(tile) != Terrain::WATER &&
+        get_decoration(tile) != Decoration::TREE 
     );
 };
