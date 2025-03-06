@@ -36,13 +36,13 @@ void SpawnSystem::update(float deltaTime)
     else if (spawnTimer >= spawnRate)
     {
         spawnTimer = 0.0f;
-        processSpawning();
+        processNaturalSpawning();
     }
 
     processDespawning();
 }
 
-void SpawnSystem::processSpawning()
+void SpawnSystem::processNaturalSpawning()
 {
     // Get the player entity
     auto playerView = registry.view<Player, Motion>();

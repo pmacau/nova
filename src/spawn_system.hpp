@@ -19,7 +19,7 @@ private:
     float spawnRate = 2000.0f;
     size_t spawnCap = 10;       // max mobs
 
-    void processSpawning();
+    void processNaturalSpawning();
 
     void processDespawning();
 
