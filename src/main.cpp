@@ -18,7 +18,8 @@
 #include "spawn_system.hpp"
 #include "map/map_system.hpp"
 
-#include "map/map_gen.hpp"
+#include "map/generate.hpp"
+#include "map/image_gen.hpp"
 
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
@@ -26,6 +27,13 @@ using Clock = std::chrono::high_resolution_clock;
 // Entry point
 int main()
 {
+	// TOGGLE this if you don't want a new map every time...
+	if (true) {
+		auto generated_map = create_map(200, 200);
+		create_background(generated_map);
+		save_map(generated_map, map_path("map.bin").c_str());
+	}
+
 	entt::registry reg;
 
 	// assets and constants
@@ -39,10 +47,6 @@ int main()
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
 	SpawnSystem spawn_system(reg);
-
-	// debug_printf(DebugType::GAME_INIT, "Generatring game map...?\n");
-	// auto generated_map = game_map(200, 200);
-	// save_map_as_binary(generated_map, map_path("cpp_map.bin").c_str());
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # viz.create_textured_map(terrain, "../data/maps/textured_map.png")
 
     #game_map = np.loadtxt("../data/maps/cpp_map.txt")
-    game_map = gen.load_binary_map("../data/maps/cpp_map.bin")
+    game_map = gen.load_binary_map("../data/maps/map.bin")
     viz.create_coloured_map(game_map, "../data/maps/cpp_map.png")
 
 

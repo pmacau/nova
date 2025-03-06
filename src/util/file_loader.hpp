@@ -3,7 +3,7 @@
 #include <iostream>
 #include "util/debug.hpp"
 
-std::vector<std::vector<uint8_t>> loadBinaryMap(const std::string& filename, int width, int height) {
+std::vector<std::vector<uint8_t>> (const std::string& filename, int width, int height) {
     std::vector<std::vector<uint8_t>> game_map(height, std::vector<uint8_t>(width));
     std::ifstream file(filename, std::ios::binary);
 

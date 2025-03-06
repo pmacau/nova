@@ -289,6 +289,7 @@ void WorldSystem::restart_game() {
 
 
 	player_spawn = MapSystem::populate_ecs(registry);
+	debug_printf(DebugType::WORLD, "Spawning player at: (%.1f, %.1f)\n", player_spawn.x, player_spawn.y);
 
 	auto& ship_motion = registry.get<Motion>(ship_entity);
 	ship_motion.position = player_spawn - vec2(0, 200);
