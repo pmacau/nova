@@ -111,6 +111,7 @@ void CollisionSystem::handle<Projectile, Mob>(
 	destroy_entities.push_back(proj_ent);
 }
 
+// could've probably written the logic much clearer. 
 template<>
 void CollisionSystem::handle<Obstacle, Motion>(
 	entt::entity obs_ent, entt::entity e2, float elapsed_ms
@@ -118,10 +119,21 @@ void CollisionSystem::handle<Obstacle, Motion>(
 	auto& obstacle = registry.get<Obstacle>(obs_ent);
 	if (!obstacle.isPassable) {
 		auto& motion = registry.get<Motion>(e2);
-
-		// TODO: make this smoother, works for now tho; can do something similar to water tile movement.
+		glm::vec2 invalidPosition = motion.position; 
+		motion.position = motion.formerPosition;
+		motion.position.x = invalidPosition.x;
+		if (!collides(registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), registry.get<Hitbox>(e2), registry.get<Motion>(e2))) {
+			return; // Collision resolved by correcting x-axis
+		}
+		motion.position.x = motion.formerPosition.x;
+		motion.position.y = invalidPosition.y;
+		if (!collides(registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), registry.get<Hitbox>(e2), registry.get<Motion>(e2))) {
+			return; // Collision resolved by correcting y-axis
+		}
 		motion.position = motion.formerPosition;
 	}
+		
+	
 }
 
 template<>
@@ -131,7 +143,7 @@ void CollisionSystem::handle<Projectile, Obstacle>(
 	std::cout << "entered " << std::endl; 
 	glm::vec2 normal; 
 	if (get_collision_normal(registry.get<Hitbox>(proj_ent), registry.get<Motion>(proj_ent), registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), normal)) {
-		physics.ricochet(registry.get<Motion>(proj_ent).velocity, normal);
+		physics.ricochet(registry.get<Motion>(proj_ent).velocity, normal); // some bug on corners/nearby. TODO: fix 
 		
 	}
 	//physics.ricochet
