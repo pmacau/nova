@@ -348,3 +348,17 @@ void createInventory(entt::registry& registry) {
 		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	}
 }
+
+void destroy_creature(entt::registry& registry, entt::entity creature) {
+	// find its health bar
+	auto view = registry.view<MobHealthBar>();
+	for (auto entity : view) {
+		auto& healthbar = view.get<MobHealthBar>(entity);
+		if (healthbar.entity == creature) {
+			registry.destroy(entity);
+			break;
+		}
+	}
+
+	registry.destroy(creature);
+}

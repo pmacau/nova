@@ -1,6 +1,8 @@
 #include "tinyECS/components.hpp"
 #include "ui_system.hpp"
 #include <iostream>
+#include "util/debug.hpp"
+
 
 void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
@@ -88,6 +90,8 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 			if (inventory_slot.hasItem) {
 				useItem(registry, inventory_slot.item);
 				inventory_slot.hasItem = false;
+
+				debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
 				registry.destroy(inventory_slot.item);
 				return true;
 			}

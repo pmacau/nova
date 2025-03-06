@@ -32,3 +32,5 @@ entt::entity createTree(entt::registry& registry, vec2 pos, vec2 spriteCoord);
 entt::entity createCamera(entt::registry& registry, entt::entity target);
 
 void createInventory(entt::registry& registry);
+
+void destroy_creature(entt::registry& registry, entt::entity creature);

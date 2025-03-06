@@ -7,6 +7,8 @@ Helpers
 --------------------
 */
 
+std::vector<vec2> MapSystem::bossSpawnIndices;
+
 void createBackground(entt::registry& reg, int width, int height, int tile_size) {
     auto background_ents = reg.view<Background>();
     reg.destroy(background_ents.begin(), background_ents.end());
@@ -53,7 +55,7 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
 
             switch (get_decoration(game_map[i][j])) {
                 case Decoration::BOSS:
-                    createBoss(reg, map_pos);
+                    bossSpawnIndices.push_bac(vec2(j, i));
                     break;
                 case Decoration::SPAWN:
                     spawn_pos = map_pos;
@@ -117,8 +119,18 @@ void MapSystem::loadMap() {
 };
 
 Tile MapSystem::get_tile(vec2 pos) {
-    int tile_x = std::round(pos.x / TILE_SIZE);
-    int tile_y = std::round(pos.y / TILE_SIZE);
+    vec2 tile_indices = get_tile_indices(pos);
+    int tile_x = tile_indices.x;
+    int tile_y = tile_indices.y;
+    return MapSystem::get_tile_type_by_indices(tile_x, tile_y);
+};
+
+
+vec2 MapSystem::get_tile_indices(vec2 pos) {
+    return vec2(std::round(pos.x / TILE_SIZE), std::round(pos.y / TILE_SIZE));
+};
+
+Tile MapSystem::get_tile_type_by_indices(int tile_x, int tile_y) {
     if (tile_x >= 0 && tile_x < MAP_WIDTH && tile_y >= 0 && tile_y < MAP_HEIGHT) {
         return game_map[tile_y][tile_x];
     }

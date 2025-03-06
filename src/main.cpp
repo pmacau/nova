@@ -15,6 +15,7 @@
 #include "collision_system.hpp"
 #include "physics_system.hpp"
 #include "music_system.hpp"
+#include "spawn_system.hpp"
 #include "map/map_system.hpp"
 
 #include "map/generate.hpp"
@@ -35,6 +36,9 @@ int main()
 
 	entt::registry reg;
 
+	// assets and constants
+	initializeSpawnDefinitions();
+
 	// global systems
 	PhysicsSystem physics_system(reg);
 	WorldSystem   world_system(reg, physics_system);
@@ -42,6 +46,7 @@ int main()
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
+	SpawnSystem spawn_system(reg);
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -98,6 +103,7 @@ int main()
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		physics_system.step(elapsed_ms);
 		world_system.step(elapsed_ms);
+		spawn_system.update(elapsed_ms);
 		collision_system.step(elapsed_ms);
 		camera_system.step(elapsed_ms);
 		renderer_system.draw();

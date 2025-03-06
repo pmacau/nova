@@ -79,6 +79,11 @@ const float CAMERA_PLAYER_DIST = 100.0f;
 const float CAMERA_ANGLE = M_PI / 4.0f;
 
 
+// Spawn system
+const vec2 SPAWN_SAFE_ZONE = vec2(1000, 600);   // a bit bigger than screen
+const vec2 SPAWN_ZONE = vec2(1200, 800);
+const vec2 DESPAWN_ZONE = vec2(1500, 1100);
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recommend making all components non-copyable by derving from ComponentNonCopyable
