@@ -389,11 +389,8 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
 	gl_has_errors();
 	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
-	//std::cout << projLoc << std::endl;
 	GLint transLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
-	//std::cout << transLoc << std::endl;
 	GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
-	//std::cout << colorLoc << std::endl;
 	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
 	glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f); // Draw in red
@@ -451,7 +448,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 
 	Transform camera_transform;
 	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
-	camera_transform.translate(- camera.offset);
+	// Only apply camera transform for non-UI elements
+	if (!registry.any_of<FixedUI>(entity)) {
+		camera_transform.translate(-camera.offset);
+	}
 
 	assert(registry.any_of<RenderRequest>(entity));
 	const auto& render_request = registry.get<RenderRequest>(entity);
@@ -469,7 +469,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	gl_has_errors();
-	//std::cout << "Drawing entity with texture: " << (int)render_request.used_texture << std::endl;
+
 	// texture-mapped entities - use data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
@@ -567,7 +567,8 @@ void RenderSystem::drawToScreen()
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, w, h);
-	glDepthRange(0, 10);
+	// glDepthRange(0, 10);
+	glDepthRange(0.0, 1.0);
 	glClearColor(1.f, 0, 0, 1.0);
 	glClearDepth(1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -575,9 +576,9 @@ void RenderSystem::drawToScreen()
 	// Enabling alpha channel for textures
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// glDisable(GL_DEPTH_TEST); // Debug: disable depth test
+	glDisable(GL_DEPTH_TEST); // Debug: disable depth test
 
-	glEnable(GL_DEPTH_TEST);
+	// glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -631,7 +632,8 @@ void RenderSystem::renderGamePlay()
 	gl_has_errors();
 	// clear backbuffer
 	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
+	// glDepthRange(0.00001, 10);
+	glDepthRange(0.0, 1.0);
 	// white background
 	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f);
@@ -704,20 +706,20 @@ void RenderSystem::renderGamePlay()
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// render projectiles
-	std::vector<entt::entity> ProjectileRenderEntities;
-	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
+  // items
+	std::vector<entt::entity> ItemRenderEntities;
+	auto items = registry.view<Item, Motion, RenderRequest>();
 
-	for (auto entity : projectiles) {
-		ProjectileRenderEntities.push_back(entity);
+	for (auto entity : items) {
+		if (!registry.any_of<FixedUI>(entity)) {
+			ItemRenderEntities.push_back(entity);
+		}
 	}
 
-	for (auto entity : ProjectileRenderEntities) {
+	for (auto entity : ItemRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
-	// Draw background last (?????)
-	// drawBackground(projection_2D);
 	// Render huge background texture
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
@@ -833,17 +835,9 @@ mat3 RenderSystem::createProjectionMatrix()
 
 void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 {
-	// vec3 transformedPos = projection * transform * vec3(0.0f, 0.0f, 1.0f);
-
-    // std::cout << "[DEBUG] Drawing point at screen position: (" 
-    //           << transformedPos.x << ", " << transformedPos.y << ")" << std::endl;
-
 	const GLuint program = (GLuint)effects[(GLuint)EFFECT_ASSET_ID::COLOURED];
 	glUseProgram(program);
 	gl_has_errors();
-
-	// std::cout << "Program: " << program << std::endl;	
-
 
     const GLuint vbo = vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
 	const GLuint ibo = index_buffers[(GLuint)GEOMETRY_BUFFER_ID::DEBUG_POINT];
@@ -868,28 +862,17 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 	GLint currProgram;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
 
-	// std::cout << "currProgram: " << currProgram << std::endl;	
-
-
 	GLint color_uloc = glGetUniformLocation(currProgram, "in_color");
 	glUniform3fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
-
-	// std::cout << "color_uloc: " << color_uloc << std::endl;
 
 	GLint transform_uloc = glGetUniformLocation(currProgram, "transform");
 	glUniformMatrix3fv(transform_uloc, 1, GL_FALSE, (float*)&transform);
 	gl_has_errors();
 
-	// std::cout << "transform_uloc: " << transform_uloc << std::endl;
-
-
 	GLint projection_uloc = glGetUniformLocation(currProgram, "projection");
 	glUniformMatrix3fv(projection_uloc, 1, GL_FALSE, (float*)&projection);
 	gl_has_errors();
-
-	// std::cout << "projection_uloc: " << projection_uloc << std::endl;
-
 
 	// Temporarily disable depth test to check if it's blocking rendering
     glDisable(GL_DEPTH_TEST);
@@ -902,7 +885,6 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 
 	// draw
 	glPointSize(10.0f);
-	// std::cout << "Rendering Debug Point..." << std::endl;
 	glDrawElements(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr);
 	gl_has_errors();
 

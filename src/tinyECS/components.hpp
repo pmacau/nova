@@ -9,16 +9,21 @@
 
 struct Background{};
 
+struct Boss{
+	float agro_range;
+	vec2 spawn;
+};
+
 enum HitBoxType {
 	HITBOX_CIRCLE,
 	HITBOX_RECT
 };
 
 struct InputState {
-	bool up;
-	bool down;
-	bool left;
-	bool right;
+	bool up = false;
+	bool down = false;
+	bool left = false;
+	bool right = false;
 };
 
 struct HitBox {
@@ -34,11 +39,20 @@ struct HitBox {
 	} shape;
 };
 
+struct Obstacle {
+	bool isPassable; 
+	bool isSlow; 
+	bool isDamage;
+	float slowFactor; 
+	float damage;
+};
+
 
 // Player component
 struct Player
 {
 	int health;
+	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
 };
 
 // Ship component
@@ -73,9 +87,14 @@ struct Invader {
 	int health;
 };
 
+struct MarkedCollision {
+	glm::vec2 velocity;
+};
+
 // Projectile
 struct Projectile {
 	int damage;
+	int timer;
 };
 
 
@@ -95,6 +114,58 @@ struct Deadly
 struct Eatable
 {
 
+};
+
+struct FixedUI
+{
+
+};
+
+struct UI
+{
+
+};
+
+struct PlayerHealthBar
+{
+};
+
+struct MobHealthBar
+{
+	entt::entity entity;
+	int initial_health;
+	float left_adjust = 0.f;
+};
+
+enum class ITEM_TYPE {
+	POTION
+};
+
+// used for entities which when killed will drop items (usually bosses)
+struct Drop
+{
+	ITEM_TYPE item_type;
+};
+
+struct Item
+{
+	ITEM_TYPE item_type;
+};
+
+struct Potion
+{
+	int heal;
+};
+
+struct InventorySlot
+{
+	bool hasItem = false;
+	entt::entity item;
+};
+
+struct Inventory
+{
+	std::vector<entt::entity> slots;
 };
 
 // Stucture to store collision information
@@ -185,6 +256,12 @@ enum class TEXTURE_ASSET_ID {
 	TILESET,
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
+	HEALTHBAR_GREEN,
+	HEALTHBAR_RED,
+	POTION,
+	INVENTORY_SLOT,
+	//STONE_BLOCK_1,
+	//TREE,
 	TEXTURE_COUNT
 };
 
@@ -246,5 +323,5 @@ struct Camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 32.f}, {152.f, 96.f}, 3.f, 0.f, 1.f
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3.f, 0.f, 1.f
 };

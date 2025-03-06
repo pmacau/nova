@@ -6,16 +6,6 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 
-// // TODO refactor this background render stuff...
-// struct TileRender {
-// 	RenderRequest request = {
-// 		TEXTURE_ASSET_ID::TILESET,
-// 		EFFECT_ASSET_ID::TEXTURED,
-// 		GEOMETRY_BUFFER_ID::SPRITE
-// 	};
-// 	vec2 coord = {0.f, 0.f};
-// };
-
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -30,13 +20,6 @@ class RenderSystem {
 	std::array<GLuint, texture_count> texture_gl_handles;
 	std::array<ivec2, texture_count>  texture_dimensions;
 
-	// Make sure these paths remain in sync with the associated enumerators.
-	// Associated id with .obj path
-	// const std::vector<std::pair<GEOMETRY_BUFFER_ID, std::string>> mesh_paths = {
-	// 	std::pair<GEOMETRY_BUFFER_ID, std::string>(GEOMETRY_BUFFER_ID::CHICKEN, mesh_path("chicken.obj"))
-	// 	// specify meshes of other assets here
-	// };
-
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
@@ -50,7 +33,11 @@ class RenderSystem {
         textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
-		textures_path("projectiles/gold_bubble.png")
+		textures_path("projectiles/gold_bubble.png"),
+		textures_path("healthbar/green.png"), 
+		textures_path("healthbar/red.png"), 
+		textures_path("items/potion.png"), 
+		textures_path("inventory/inventory-slot.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -103,8 +90,6 @@ public:
 	void draw();
 
 	mat3 createProjectionMatrix();
-
-	mat3 createWindowProjectionMatrix();
 
 	entt::entity get_screen_state_entity() { return screen_state_entity; }
 

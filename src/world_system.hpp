@@ -8,10 +8,6 @@
 #include <random>
 #include <entt.hpp>
 
-#define SDL_MAIN_HANDLED
-#include <SDL.h>
-#include <SDL_mixer.h>
-
 #include "render_system.hpp"
 #include "physics_system.hpp"
 
@@ -27,9 +23,6 @@ public:
 
 	// creates main window
 	GLFWwindow* create_window();
-
-	// starts and loads music and sound effects
-	bool start_and_load_sounds();
 
 	// call to close the window
 	void close_window();
@@ -59,16 +52,20 @@ private:
 	entt::entity screen_entity;
 
 	std::vector<std::vector<uint8_t>> gameMap;
-	float spawnX, spawnY;
+	float spawnX = 0.f;
+	float spawnY = 0.f;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
 
+	float mouse_click_poll = MOUSE_POLL_RATE;
+
 	// input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button_pressed(int button, int action, int mods);
+	void left_mouse_click();
 
 	// restart level
 	void restart_game();
@@ -90,10 +87,6 @@ private:
 	// grid
 	std::vector<entt::entity> grid_lines;
 
-	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* chicken_dead_sound;
-	Mix_Chunk* chicken_eat_sound;
 
 	// C++ random number generator
 	std::default_random_engine rng;

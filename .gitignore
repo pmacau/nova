@@ -13,6 +13,7 @@ CMakeFiles/
 */.DS_Store
 .DS_Store
 ext/project_path.hpp
+*__pycache__
 
 # exclude python script libraries
 scripts/.venv/
@@ -22,3 +23,6 @@ project_path.hpp
 
 # exclude executables
 nova
+
+# python env
+scripts/env/

@@ -7,15 +7,30 @@
 
 entt::entity createPlayer(entt::registry& registry, vec2 position);
 
+entt::entity createPlayerHealthBar(entt::registry& registry, vec2 position);
+
 entt::entity createShip(entt::registry& registry, vec2 position);
 
 entt::entity createUIShip(entt::registry& registry, vec2 position, int shipNum);
 
 // invaders
-entt::entity createMob(entt::registry& registry, vec2 position);
+entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
+
+entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity);
 
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);
 
+
+entt::entity createBoss(entt::registry& registry, vec2 pos);
+
+
+// terrain
+// entt::entity createRockType1(entt::registry& registry, vec2 position);
+
+// entt::entity createTreeType1(entt::registry& registry, vec2 position);
+
 // camera
 entt::entity createCamera(entt::registry& registry, entt::entity target);
+
+void createInventory(entt::registry& registry);

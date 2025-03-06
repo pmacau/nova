@@ -3,7 +3,8 @@
 #include "world_init.hpp"
 #include "world_system.hpp"
 #include "tinyECS/components.hpp"
-
+#include "music_system.hpp"
+	
 AISystem::AISystem(entt::registry& reg) :
 	registry(reg)
 {
@@ -22,20 +23,36 @@ void AISystem::step(float elapsed_ms)
 
 	auto mobs = registry.view<Mob>();
 	Motion& player_motion = registry.get<Motion>(player_entity); // position to base pathing
-	//std::cout << "player_position" << player_motion.position.x << " " << player_motion.position.y << std::endl;
 	for (auto entity : mobs) {
 		Motion& mob_motion = registry.get<Motion>(entity); // gets motion component of mob
 		if (CollisionSystem::isContact(entity, player_entity, registry, 10)) {
 			mob_motion.velocity = vec2(0, 0);
 			continue; 
 		}
-		vec2 direction = (player_motion.position + player_motion.offset_to_ground) - (mob_motion.position + mob_motion.offset_to_ground); // direction from mob to player
-		if (direction != vec2(0, 0)) {
-			direction = normalize(direction) * MOB_SPEED; 
-		}
-		mob_motion.velocity = direction; // sets velocity of mob to be towards player
-		//std::cout << "mob velocity" << mob_motion.velocity.x << " " << mob_motion.velocity.y << std::endl;
 
+		vec2 velo_to_player = MOB_SPEED * normalize(
+			(player_motion.position + player_motion.offset_to_ground) -
+			(mob_motion.position + mob_motion.offset_to_ground)
+		); // direction from mob to player
+
+		if (registry.any_of<Boss>(entity)) {
+			auto& boss = registry.get<Boss>(entity);
+			vec2 velo_to_home = MOB_SPEED * normalize(
+				boss.spawn - (mob_motion.position + mob_motion.offset_to_ground)
+			);
+			float player_dist = distance(mob_motion.position, player_motion.position);
+			float home_dist = distance(mob_motion.position, boss.spawn);
+
+			if (player_dist <= boss.agro_range) {
+				mob_motion.velocity = velo_to_player;
+			} else if (home_dist <= 32) {
+				mob_motion.velocity = {0.f, 0.f};
+			} else {
+				mob_motion.velocity = velo_to_home;
+			}
+		} else {
+			mob_motion.velocity = velo_to_player;
+		}
 	}
 
 }
