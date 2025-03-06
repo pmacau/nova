@@ -47,9 +47,9 @@ int main()
 	}
 
 	// initialize the main systems
+	world_system.init();
 	renderer_system.init(window);
 	renderer_system.initFreetype();
-	world_system.init();
 
 	// variable timestep loop
 	auto t = Clock::now();

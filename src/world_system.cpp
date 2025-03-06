@@ -60,6 +60,21 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+
+
+	// init all the ui ships to use
+	createUIShip(registry, vec2(spawnX - 300, spawnY - 175), 6);
+	// entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 6);
+	// Motion& uiMotion = registry.get<Motion>(UISHIP);
+	// std::cout << "uiship pos: (" << uiMotion.position.x << ", " << uiMotion.position.y << ")" << std::endl;
+
+	createUIShip(registry, vec2(spawnX - 50, spawnY - 270), 2);
+	createUIShip(registry, vec2(spawnX - 50, spawnY - 70), 3);
+
+	createUIShip(registry, vec2(spawnX + 200, spawnY - 370), 5);
+	createUIShip(registry, vec2(spawnX + 200, spawnY - 170), 1);
+	createUIShip(registry, vec2(spawnX + 200, spawnY + 20), 4);
+
 }
 
 WorldSystem::~WorldSystem() {
@@ -333,7 +348,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);
 	registry.destroy(motions.begin(), motions.end());
 	// createMob(registry, vec2(WINDOW_WIDTH_PX / 2, WINDOW_WIDTH_PX / 2));
 	createMob(registry, vec2(0, WINDOW_HEIGHT_PX));
@@ -409,6 +424,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
             auto& player_motion = registry.get<Motion>(player_entity);
             auto& ship_motion = registry.get<Motion>(ship_entity);
+
+			player_motion.velocity.x = 0;
+			player_motion.velocity.y = 0;
 
             float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
             if (distance_to_ship < 100.0f) {

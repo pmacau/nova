@@ -49,6 +49,11 @@ struct Ship
 	int timer;
 };
 
+struct UIShip
+{
+
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
@@ -170,7 +175,12 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
-	SHIP,
+	SHIP1,
+	SHIP2,
+	SHIP3,
+	SHIP4,
+	SHIP5,
+	SHIP6,
     MOB,
 	TILESET,
 	MAP_BACKGROUND,

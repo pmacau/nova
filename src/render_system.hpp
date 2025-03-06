@@ -40,6 +40,11 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
+		textures_path("ship/Ship1.png"),
+		textures_path("ship/Ship2.png"),
+		textures_path("ship/Ship3.png"),
+		textures_path("ship/Ship4.png"),
+		textures_path("ship/Ship5.png"),
 		textures_path("ship/Ship6.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
@@ -99,6 +104,8 @@ public:
 
 	mat3 createProjectionMatrix();
 
+	mat3 createWindowProjectionMatrix();
+
 	entt::entity get_screen_state_entity() { return screen_state_entity; }
 
 private:
@@ -130,6 +137,8 @@ private:
 	GLuint textShaderProgram;
 	GLuint textVAO = 0;
 	GLuint textVBO = 0;
+
+	mat3 shipUITransform = mat3(1.0f);
 
 	GLuint createShader(const std::string& vertexPath, const std::string& fragmentPath);
 	

@@ -157,15 +157,6 @@ bool RenderSystem::initFreetype() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-	std::cout << "made it here" << std::endl;
-
-    // Create text shader program (add this to your init code)
-    // You'll need to create text.vs and text.fs shader files
-    // textShaderProgram = createShader("shaders/text.vs.glsl", "shaders/text.fs.glsl");
-    
-    // For now, add it to your EFFECT_ASSET_ID enum and load it with your other shaders
-    // EFFECT_ASSET_ID::TEXT
-
     return true;
 }
 
@@ -744,6 +735,7 @@ void RenderSystem::renderGamePlay()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+
 }
 
 void RenderSystem::renderShipUI() 
@@ -761,9 +753,12 @@ void RenderSystem::renderShipUI()
         return;
     }
 
+	glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
 	// clear backbuffer
 	glViewport(0, 0, w, h);
-	glDepthRange(0.00001, 10);
+	glDepthRange(0.0, 10);
 
 	// black background
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -772,22 +767,23 @@ void RenderSystem::renderShipUI()
 	mat3 projection_2D = createProjectionMatrix();
 
 	// render ship
-	auto ship = registry.view<Ship, Motion, RenderRequest>().front();
-    auto& motion = registry.get<Motion>(ship);
-    glm::vec2 originalPosition = motion.position;
-    motion.position = glm::vec2(w / 2.0f, h / 2.0f);
+	std::vector<entt::entity> PlayerMobsRenderEntities;
+	auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
 
-    // Render the ship
-    drawTexturedMesh(ship, projection_2D);
+	for (auto entity : UIShips) {
+		PlayerMobsRenderEntities.push_back(entity);
+	}
 
-    // Restore the ship's original position
-    motion.position = originalPosition;
+	for (auto entity : PlayerMobsRenderEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
 
 	drawToScreen();
 
 	mat3 flippedProjection = projection_2D;
 	flippedProjection[1][1] *= -1.0f; 
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	renderText("Current ship", -348.0f, -51.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -834,7 +830,6 @@ mat3 RenderSystem::createProjectionMatrix()
 
 	return glm::ortho(left, right, bottom, top, near_plane, far_plane);
 }
-
 
 void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 {

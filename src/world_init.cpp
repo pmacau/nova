@@ -117,7 +117,34 @@ entt::entity createShip(entt::registry& registry, vec2 position)
     sprite.sheet_dims = {128.f, 128.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP;
+	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP6;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createUIShip(entt::registry& registry, vec2 position, int shipNum)
+{
+
+	auto entity = registry.create();
+	registry.emplace<UIShip>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * vec2(128.f / 2.f, 128.f / 2.f);
+	// motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {0.0f, 0.0f};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	shipNum = std::clamp(shipNum, 1, 6);
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(TEXTURE_ASSET_ID::SHIP1) + (shipNum - 1));
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
