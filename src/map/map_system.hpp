@@ -37,7 +37,7 @@ public:
     static vec2 get_tile_center_pos(vec2 tile_indices);
     static bool walkable_tile(Tile tile);
 
-    static const std::vector<vec2>& getBossSpawnIndices();
+    static std::vector<vec2>& getBossSpawnIndices();
     static void removeBossSpawnIndex(const vec2& tileIndices);
 
 

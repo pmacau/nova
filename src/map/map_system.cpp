@@ -149,7 +149,7 @@ bool MapSystem::walkable_tile(Tile tile) {
 };
 
 // accessor
-const std::vector<vec2>& MapSystem::getBossSpawnIndices() {
+std::vector<vec2>& MapSystem::getBossSpawnIndices() {
     return bossSpawnIndices;
 }
 

@@ -316,20 +316,19 @@ void SpawnSystem::checkAndSpawnBoss() {
 
 
     auto& bossIndices = MapSystem::getBossSpawnIndices();
-    for (auto it = bossIndices.begin(); it != bossIndices.end(); ) {
-        vec2 tileIndices = *it;
+    for (size_t i = 0; i < bossIndices.size(); ) {
+        vec2 tileIndices = bossIndices[i];
         vec2 tileCenter = MapSystem::get_tile_center_pos(tileIndices);
         
-        // If the tile center is within the spawn area, spawn the boss
         if (tileCenter.x >= spawnAreaMin.x && tileCenter.x <= spawnAreaMax.x &&
             tileCenter.y >= spawnAreaMin.y && tileCenter.y <= spawnAreaMax.y) {
             createBoss(registry, tileCenter);
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
                          tileCenter.x, tileCenter.y, tileIndices.x, tileIndices.y);
-            // Remove this boss spawn index so it doesn't trigger again.
-            MapSystem::removeBossSpawnIndex(tileIndices);
+            // Remove this boss spawn index.
+            bossIndices.erase(bossIndices.begin() + i);
         } else {
-            ++it;
+            ++i;
         }
     }
 }
