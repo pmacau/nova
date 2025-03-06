@@ -5,8 +5,8 @@
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
 	registry(reg),
-	world(world), 
-	physics(physics)
+	physics(physics),
+	world(world)
 {
 }
 
