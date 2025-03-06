@@ -9,9 +9,12 @@
 #include "common.hpp"
 #include "util/debug.hpp"
 
-enum Tile {
-    WATER, SAND, GRASS,
-    SPAWN, BOSS_SPAWN,
+enum class Tile {
+    WATER, 
+    SAND, 
+    GRASS,
+    SPAWN, 
+    BOSS_SPAWN,
     TREE,
     TILE_COUNT
 };

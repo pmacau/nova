@@ -19,7 +19,7 @@ struct DebugData {
     const std::string header;
 };
 
-enum DebugType {
+enum class DebugType {
     WORLD_INIT, WORLD, PHYSICS, COLLISION, GAME_INIT,
     SPAWN,
     USER_INPUT,
@@ -28,15 +28,15 @@ enum DebugType {
 
 inline std::unordered_map<DebugType, DebugData> debug_options = {
     // Systems
-    {WORLD_INIT, {true, 32, "[WORLD INIT]"}},
-    {WORLD,      {true, 34, "[WORLD]"}},
-    {PHYSICS,    {true, 35, "[PHYSICS]"}},
-    {COLLISION,  {true, 33, "[COLLISION]"}},
-    {GAME_INIT,  {true, 31, "[GAME INIT]"}},
-    {SPAWN,  {true, 37, "[SPAWN]"}},
+    {DebugType::WORLD_INIT, {true, 32, "[WORLD INIT]"}},
+    {DebugType::WORLD,      {true, 34, "[WORLD]"}},
+    {DebugType::PHYSICS,    {true, 35, "[PHYSICS]"}},
+    {DebugType::COLLISION,  {true, 33, "[COLLISION]"}},
+    {DebugType::GAME_INIT,  {true, 31, "[GAME INIT]"}},
+    {DebugType::SPAWN,  {true, 37, "[SPAWN]"}},
 
     // Fine-grain debug types
-    {USER_INPUT, {true, 36, "[INPUT]"}}
+    {DebugType::USER_INPUT, {true, 36, "[INPUT]"}}
 };
 
 inline void toggle_debug(DebugType type) {
