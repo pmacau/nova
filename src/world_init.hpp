@@ -21,7 +21,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 
 
 entt::entity createBoss(entt::registry& registry, vec2 pos);
-
+entt::entity createTree(entt::registry& registry, vec2 pos);
 
 // terrain
 // entt::entity createRockType1(entt::registry& registry, vec2 position);
@@ -32,3 +32,5 @@ entt::entity createBoss(entt::registry& registry, vec2 pos);
 entt::entity createCamera(entt::registry& registry, entt::entity target);
 
 void createInventory(entt::registry& registry);
+
+void destroy_creature(entt::registry& registry, entt::entity creature);

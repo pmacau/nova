@@ -7,6 +7,7 @@
 #include <limits>
 #include <entt.hpp>
 
+struct Tree{};
 struct Background{};
 
 struct Boss{
@@ -244,8 +245,7 @@ enum class TEXTURE_ASSET_ID {
 	HEALTHBAR_RED,
 	POTION,
 	INVENTORY_SLOT,
-	//STONE_BLOCK_1,
-	//TREE,
+	TREE,
 	TEXTURE_COUNT
 };
 
