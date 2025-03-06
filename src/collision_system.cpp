@@ -12,6 +12,7 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 {
 }
 
+
 void CollisionSystem::step(float elapsed_ms) {
 	proccessed.clear();
 	destroy_entities.clear();
@@ -27,12 +28,21 @@ void CollisionSystem::step(float elapsed_ms) {
 
 			resolve(e1, e2, elapsed_ms);
 
-			proccessed.insert(e1);
-			proccessed.insert(e2);
+			processHandler(e1, e2); 
 		}
 	}
 
 	for (auto entity: destroy_entities) registry.destroy(entity);
+}
+
+void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {
+	auto& obs = registry.view<Obstacle>();
+	if (obs.find(e1) == obs.end()) {
+		proccessed.insert(e1);
+	} 
+	if (obs.find(e2) == obs.end()) {
+		proccessed.insert(e2);
+	}
 }
 
 template<typename C1, typename C2>
@@ -114,9 +124,23 @@ void CollisionSystem::handle<Obstacle, Motion>(
 	}
 }
 
+template<>
+void CollisionSystem::handle<Projectile, Obstacle>(
+	entt::entity proj_ent, entt::entity obs_ent, float elapsed_ms
+) {
+	std::cout << "entered " << std::endl; 
+	glm::vec2 normal; 
+	if (get_collision_normal(registry.get<Hitbox>(proj_ent), registry.get<Motion>(proj_ent), registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), normal)) {
+		physics.ricochet(registry.get<Motion>(proj_ent).velocity, normal);
+		
+	}
+	//physics.ricochet
+}
+
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {
 	if      (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Mob>(e1, e2))  handle<Projectile, Mob>(e1, e2, elapsed_ms);
+	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms); 
 	else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);
 }
 

@@ -27,6 +27,8 @@ private:
     std::vector<entt::entity> destroy_entities;
     std::unordered_set<entt::entity> proccessed;
 
+    void processHandler(entt::entity& e1, entt::entity& e2); 
+
     template<typename C1, typename C2>
     bool collision_type(entt::entity& e1, entt::entity& e2);
 

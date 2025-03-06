@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 #include "tinyECS/components.hpp"
-
+#include "util/debug.hpp"
 // TODO: handle circles (should be relatively trivial)
 // optimizations:
 // - precompute normals and store 1 "mesh" for each shape type
@@ -27,3 +27,8 @@ bool collides(
     const Hitbox& h_a, const Motion& m_a,
     const Hitbox& h_b, const Motion& m_b
 );
+bool get_collision_normal(
+    const Hitbox& h_a, const Motion& m_a,
+    const Hitbox& h_b, const Motion& m_b,
+    vec2& collision_normal
+); 

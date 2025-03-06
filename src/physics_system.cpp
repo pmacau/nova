@@ -74,6 +74,13 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     }
 }
 
+void PhysicsSystem::ricochet(vec2& velocity, const vec2& normal) {
+    float dotProduct = dot(velocity, normal);
+   
+    velocity = velocity - 2.0f * dotProduct * normal;
+    std::cout << velocity.x << " " << velocity.y << std::endl;
+}
+
 
 // Should move both away. 
 void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
