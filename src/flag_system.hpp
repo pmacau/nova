@@ -2,6 +2,8 @@
 
 #include "common.hpp"
 #include <entt.hpp>
+#include "tinyECS/components.hpp"
+
 class FlagSystem {
 public:
     //moved, shot, mobkilled from listening to register, accessed in screenstate (ask Frank)? 
@@ -31,7 +33,9 @@ public:
     void step() {
         //if () screenstate no longer
         // set unpaused to false. 
-
+        auto screen_entity = registry.view<ScreenState>().front(); 
+        auto& screen_state = registry.get<ScreenState>(screen_entity);
+        // if (screen_state.)
         if (done) {
             return; 
         }
