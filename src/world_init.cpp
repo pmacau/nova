@@ -1,5 +1,6 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
+#include "collision/hitbox.hpp"
 #include <iostream>
 
 
@@ -16,15 +17,6 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
-	//player.direction = 0; // TODO: use enum
-	// HITBOX
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = 25.f;
-	/*hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 43.f;
-	hitBox.shape.rect.height = 55.f;*/
-
 	 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -32,12 +24,17 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.position = position;
 	motion.formerPosition = position;
 	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
-	// motion.scale = vec2(19 * 2, 32 * 2);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
-	registry.emplace<Eatable>(entity);
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
 
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::PLAYER;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
@@ -83,36 +80,35 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto entity = registry.create();
 
 	auto& mob = registry.emplace<Mob>(entity);
+	mob.health = health;
+	mob.hit_time = 1.f;
+
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 43.f, 55.f };	
 	sprite.sheet_dims = {43.f, 55.f};
-
-	// HITBOX
-	auto& hitBox = registry.emplace<HitBox>(entity); 
-	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
-	hitBox.shape.circle.radius = 40.f; 
-	/*hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 43.f;
-	hitBox.shape.rect.height = 55.f;*/
-
-	mob.health = health;
-	mob.hit_time = 1.f;
 	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	// motion.position = position;
-
 	motion.position.x = position.x + sprite.dims[0] / 2;
 	motion.position.y = position.y + sprite.dims[1] / 2;
 	motion.scale = vec2(100, 120);
 
+	// HITBOX
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
+	hitbox.depth = 50;
+
 	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
 	//motion.scale = vec2(38*3, 54*3);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
-
-	registry.emplace<Eatable>(entity);
 	
 	auto& drop = registry.emplace<Drop>(entity);
 	drop.item_type = ITEM_TYPE::POTION;
@@ -221,21 +217,26 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = vec2(19 * 14, 35 * 4.5);
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 19.f * 11.f;
-	hitBox.shape.rect.height = 35.f * 3.2;
-
-	auto& obstacle = registry.emplace<Obstacle>(entity);
-	obstacle.isPassable = false;
+	motion.offset_to_ground = vec2(0, motion.scale.y / 2);
 
 	debug_printf(DebugType::WORLD_INIT, "Ship position (%d, %d)\n", position.x, position.y);
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0.0f, 0.0f};
-    // sprite.dims = {19 * 15, 35 * 7};
 	sprite.dims = {128, 75};
-   sprite.sheet_dims = { 128, 75 };
+	sprite.sheet_dims = {128, 75};
+
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
+	hitbox.depth = 100;
+
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP;
@@ -264,9 +265,13 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.scale = size;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = motion.scale.x / 2;
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * 0.f, h * -0.5f},
+		{w * 0.5f, h * 0.5f}, {w * -0.5f, h * 0.5f}
+	};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::GOLD_PROJECTILE;
