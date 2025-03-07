@@ -17,6 +17,8 @@
 #include "music_system.hpp"
 #include "spawn_system.hpp"
 #include "map/map_system.hpp"
+#include "animation_system.hpp"
+#include "player/player_system.hpp"
 
 #include "map/map_gen.hpp"
 
@@ -29,7 +31,7 @@ int main()
 	entt::registry reg;
 
 	// assets and constants
-	initializeSpawnDefinitions();
+	initializeEnemyDefinitions();
 
 	// global systems
 	PhysicsSystem physics_system(reg);
@@ -39,6 +41,9 @@ int main()
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
 	SpawnSystem spawn_system(reg);
+	AnimationSystem animationSystem(reg);
+	PlayerSystem playerSystem(reg);
+
 
 	// debug_printf(DebugType::GAME_INIT, "Generatring game map...?\n");
 	// auto generated_map = game_map(200, 200);
@@ -99,6 +104,8 @@ int main()
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		physics_system.step(elapsed_ms);
 		world_system.step(elapsed_ms);
+		playerSystem.update(elapsed_ms);
+		animationSystem.update(elapsed_ms);
 		spawn_system.update(elapsed_ms);
 		collision_system.step(elapsed_ms);
 		camera_system.step(elapsed_ms);

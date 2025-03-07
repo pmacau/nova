@@ -174,23 +174,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// TODO: move this animation system
-	auto animations = registry.view<Animation, Sprite, Motion>();
-	for (auto entity : animations) {
-		auto& sprite = registry.get<Sprite>(entity);
-		auto& animation = registry.get<Animation>(entity);
-		auto& motion = registry.get<Motion>(entity);
+	// auto animations = registry.view<Animation, Sprite, Motion>();
+	// for (auto entity : animations) {
+	// 	auto& sprite = registry.get<Sprite>(entity);
+	// 	auto& animation = registry.get<Animation>(entity);
+	// 	auto& motion = registry.get<Motion>(entity);
 
-		animation.frameTime += elapsed_ms_since_last_update;
-		if (animation.frameTime >= animation.frameDuration) {
-			if (length(motion.velocity) <= 0.5f) {
-				sprite.coord.y = 0;
-			} else {
-				int numFrames = (int) (sprite.sheet_dims.x / sprite.dims.x);
-				sprite.coord.y = ((int) (sprite.coord.y + 1)) % numFrames;
-			}
-			animation.frameTime = 0.0f;
-		}
-	}
+	// 	animation.frameTime += elapsed_ms_since_last_update;
+	// 	if (animation.frameTime >= animation.frameDuration) {
+	// 		if (length(motion.velocity) <= 0.5f) {
+	// 			sprite.coord.y = 0;
+	// 		} else {
+	// 			int numFrames = (int) (sprite.sheet_dims.x / sprite.dims.x);
+	// 			sprite.coord.y = ((int) (sprite.coord.y + 1)) % numFrames;
+	// 		}
+	// 		animation.frameTime = 0.0f;
+	// 	}
+	// }
 
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
 	auto &ship = registry.get<Ship>(ship_entity);

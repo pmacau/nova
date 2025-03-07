@@ -1,6 +1,9 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include <iostream>
+#include "ai/ai_common.hpp"
+#include "ai/ai_component.hpp"
+#include "ai/state_machine/ai_state_machine.hpp"
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
@@ -8,10 +11,15 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	auto entity = registry.create();
 
 	auto& animation = registry.emplace<Animation>(entity);
-	animation.frameDuration = 100.0f;
+    animation.frameDuration = 100.0f; // 100 ms per frame
+    animation.totalFrames = 8;        // for example, if there are 3 frames in the idle animation
+    animation.currentFrameIndex = 0;
+    animation.row = 0;                // idle animation on row 0
+    animation.frameWidth = PLAYER_SPRITESHEET.dims.x;
+    animation.frameHeight = PLAYER_SPRITESHEET.dims.y;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = PLAYER_SPRITESHEET.dims;
+	// sprite.dims = PLAYER_SPRITESHEET.dims;
 	sprite.sheet_dims = PLAYER_SPRITESHEET.sheet_dims;
 
 	auto& player = registry.emplace<Player>(entity);
@@ -361,4 +369,92 @@ void destroy_creature(entt::registry& registry, entt::entity creature) {
 	}
 
 	registry.destroy(creature);
+}
+
+
+entt::entity createCreature(entt::registry& registry, vec2 position, CreatureType creatureType, int health)
+{
+    // Create the entity.
+    auto entity = registry.create();
+
+    // --- Motion Component ---
+    auto& motion = registry.emplace<Motion>(entity);
+    // Set the position (adjusted to center the sprite if desired)
+    motion.position = position;
+    motion.angle = 0.f;
+    motion.velocity = {0, 0};
+    
+    // Choose scale based on creature type.
+    if (creatureType == CreatureType::Boss) {
+        motion.scale = vec2(200, 240);  // Example boss scale
+    } else {
+        motion.scale = vec2(100, 120);  // Default scale for Mob and Mutual
+    }
+    motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
+    // --- Sprite Component ---
+    auto& sprite = registry.emplace<Sprite>(entity);
+    if (creatureType == CreatureType::Boss) {
+        sprite.dims = {80.f, 110.f};
+        sprite.sheet_dims = {80.f, 110.f};
+    } else if (creatureType == CreatureType::Mutual) {
+        sprite.dims = {40.f, 50.f};
+        sprite.sheet_dims = {40.f, 50.f};
+    } else { // Mob
+        sprite.dims = {43.f, 55.f};
+        sprite.sheet_dims = {43.f, 55.f};
+    }
+    // Optionally set sprite.coord for initial frame.
+
+    // --- HitBox Component ---
+    auto& hitBox = registry.emplace<HitBox>(entity);
+    hitBox.type = HITBOX_CIRCLE;
+    if (creatureType == CreatureType::Boss) {
+        hitBox.shape.circle.radius = 60.f;  // Example value for boss
+    } else {
+        hitBox.shape.circle.radius = 40.f;
+    }
+
+    // --- Creature-Specific Component ---
+    if (creatureType == CreatureType::Mob || creatureType == CreatureType::Mutual) {
+        auto& mob = registry.emplace<Mob>(entity);
+        mob.health = health;
+        mob.hit_time = 1.f;
+    } else if (creatureType == CreatureType::Boss) {
+        auto& boss = registry.emplace<Boss>(entity);
+        boss.agro_range = 500.f;  // Example value
+        boss.spawn = position;
+        // Optionally set boss-specific health here.
+    }
+
+    // --- AI Component ---
+    // Attach our AI state machine to control creature behavior.
+    auto& aiComp = registry.emplace<AIComponent>(entity);
+    aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
+    // Set initial state to Idle. (Using a static instance for now; can later be created per entity if needed.)
+    // static IdleState idleState;
+    // aiComp.stateMachine->changeState(&idleState);
+
+    // // --- Render Request Component ---
+    // auto& renderRequest = registry.emplace<RenderRequest>(entity);
+    // switch (creatureType) {
+    //     case CreatureType::Mob:
+    //         renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
+    //         break;
+    //     case CreatureType::Boss:
+    //         renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP; // Example: Boss uses a different texture
+    //         break;
+    //     case CreatureType::Mutual:
+    //         renderRequest.used_texture = TEXTURE_ASSET_ID::TREE; // Example: Mutual creatures might use tree texture
+    //         break;
+    // }
+    // renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+    // renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+    // Optionally, attach additional components like Animation if needed later.
+
+    // (Optional) Create associated UI, health bars, etc.
+    // For example: createMobHealthBar(registry, entity);
+
+    return entity;
 }

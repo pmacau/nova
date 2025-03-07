@@ -291,8 +291,13 @@ struct Sprite
 
 struct Animation
 {
-	float frameDuration;
-	float frameTime = 0.0f;
+    float frameDuration;       // Duration of each frame in milliseconds.
+    float frameTime = 0.0f;      // Time accumulator.
+    int totalFrames;           // Total number of frames in the current animation.
+    int currentFrameIndex;     // Current frame index.
+    int row;                   // The row in the spritesheet for this animation.
+	float frameWidth;          // Width of a single frame (set during creation)
+    float frameHeight;         // Height of a single frame (set during creation)
 };
 
 // Camera

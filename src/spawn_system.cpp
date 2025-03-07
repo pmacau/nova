@@ -7,6 +7,7 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
+#include "ai/enemy_definition.hpp"
 
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
@@ -115,8 +116,8 @@ void SpawnSystem::processNaturalSpawning()
     int candidateBiome = 0;
 
     // Get all eligible spawn definitions for the given location
-    std::vector<const SpawnDefinition *> eligibleDefs;
-    for (const auto &def : spawnDefinitions)
+    std::vector<const EnemyDefinition *> eligibleDefs;
+    for (const auto &def : enemyDefinitions)
     {
         bool allowedBiome = false;
         for (int biome : def.biomeIDs)
@@ -149,7 +150,7 @@ void SpawnSystem::processNaturalSpawning()
     // Perform weighted random selection.
     std::uniform_real_distribution<float> weightedDist(0.0f, totalWeight);
     float weightedRoll = weightedDist(rng);
-    const SpawnDefinition *chosenDef = nullptr;
+    const EnemyDefinition *chosenDef = nullptr;
     for (const auto *def : eligibleDefs)
     {
         weightedRoll -= def->spawnProbability;
@@ -198,7 +199,7 @@ void SpawnSystem::processNaturalSpawning()
 }
 
 
-void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize)
+void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const vec2 &tileIndices, int groupSize)
 {
     vec2 baseWorldPos = MapSystem::get_tile_center_pos(tileIndices);
 

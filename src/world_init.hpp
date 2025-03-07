@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include <entt.hpp>
 #include "render_system.hpp"
+#include "ai/ai_common.hpp"
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position);
@@ -34,3 +35,5 @@ entt::entity createCamera(entt::registry& registry, entt::entity target);
 void createInventory(entt::registry& registry);
 
 void destroy_creature(entt::registry& registry, entt::entity creature);
+
+entt::entity createCreature(entt::registry& registry, vec2 position, CreatureType creatureType, int health);
