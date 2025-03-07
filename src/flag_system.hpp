@@ -16,6 +16,7 @@ public:
         
     };
     bool is_paused;
+    float time_spent_s; 
 private:
     bool done; 
     entt::registry& registry;
@@ -27,10 +28,12 @@ public:
         , done(false)
         , tutorial_step(TutorialStep::None) 
         , registry(reg)
+        , time_spent_s(0)
     {
     }
 
-    void step() {
+    void step(float elapsed_ms) {
+
         //if () screenstate no longer
         // set unpaused to false. 
         auto screen_entity = registry.view<ScreenState>().front(); 
@@ -38,6 +41,11 @@ public:
         // if (screen_state.)
         if (done) {
             return; 
+        }
+
+        if (!is_paused) {
+            time_spent_s = std::min(elapsed_ms / 1000.f + time_spent_s, 10.f);
+            //debug_printf(FLAG, "time is now %f\n", time_spent_s);
         }
         if (tutorial_step == TutorialStep::None) {
             auto view = registry.view<Motion, Player>();
@@ -52,7 +60,7 @@ public:
         else if (tutorial_step == TutorialStep::Moved) {
             auto view = registry.view<ScreenState>();
             setAccessed(true); // TODO: REMOVE THIS WHEN YOU CHANGE BELOW THIS IS JUST FOR PASS THROUGH
-            is_paused = true; //TODO: Move below 
+            //is_paused = true; //TODO: Move below 
             for (auto entity : view) {
                 //TODO:: Frank just change the if statement to whatever state gets changed in registry and it should work. 
                 //auto& screen = registry.get<ScreenState>(entity);
@@ -89,6 +97,7 @@ public:
     void setMobKilled(bool value) {
         if (value && tutorial_step == TutorialStep::Shot) {
             tutorial_step = TutorialStep::MobKilled;
+            time_spent_s = 0;
             debug_printf(FLAG, "setMobKilled: stepped from accessed to mobKilled\n");
         }
     }
@@ -97,6 +106,7 @@ public:
     void setMoved(bool value) {
         if (value && tutorial_step == TutorialStep::None) {
             tutorial_step = TutorialStep::Moved;
+            time_spent_s = 0;
             debug_printf(FLAG, "setMoved: stepped from none to moved\n");
         }
     }
@@ -104,6 +114,7 @@ public:
     void setAccessed(bool value) {
         if (value && tutorial_step == TutorialStep::Moved) {
             tutorial_step = TutorialStep::Accessed;
+            time_spent_s = 0;
             debug_printf(FLAG, "setAccessed: stepped from moved to accessed\n");
         }
     }
@@ -112,6 +123,7 @@ public:
     void setShot(bool value) {
         if (value && tutorial_step == TutorialStep::Accessed) {
             tutorial_step = TutorialStep::Shot;
+            time_spent_s = 0;
             debug_printf(FLAG, "setShot: stepped from accessed to shot\n");
         }
     }

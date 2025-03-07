@@ -91,7 +91,7 @@ int main()
 			collision_system.step(elapsed_ms);
 			camera_system.step(elapsed_ms);
 			ai_system.step(elapsed_ms); // AI system should be before physics system
-			flag_system.step();
+			flag_system.step(elapsed_ms);
 		}
 		
 

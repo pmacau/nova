@@ -265,7 +265,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	//	base_angle = 180.f - base_angle;
 	//}
 	//motion.angle = -base_angle;
-	motion.velocity = velocity / 5.f;
+	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size; //* 3.5f;
 	motion.offset_to_ground = {0, motion.scale.y/ 2.f};
