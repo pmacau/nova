@@ -257,7 +257,7 @@ void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const 
         {
         case CreatureType::Mob:
         case CreatureType::Mutual:
-            createMob(registry, spawnPos, 50); 
+            createMob2(registry, spawnPos, 50); 
             break;
         case CreatureType::Boss:
             createBoss(registry, spawnPos);

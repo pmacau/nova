@@ -90,6 +90,9 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto entity = registry.create();
 
 	auto& mob = registry.emplace<Mob>(entity);
+	mob.health = health;
+	mob.hit_time = 1.f;
+
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 43.f, 55.f };	
@@ -103,8 +106,7 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	hitBox.shape.rect.width = 43.f;
 	hitBox.shape.rect.height = 55.f;*/
 
-	mob.health = health;
-	mob.hit_time = 1.f;
+
 	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -135,12 +137,15 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity) {
 	auto entity = registry.create();
+
 	registry.emplace<UI>(entity);
 	registry.emplace<MobHealthBar>(entity);
 	auto& healthbar = registry.get<MobHealthBar>(entity);
+
 	auto& mob = registry.get<Mob>(mob_entity);
 	healthbar.entity = mob_entity;
 	healthbar.initial_health = mob.health;
+
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;
@@ -158,6 +163,63 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	return entity;
 }
+
+entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
+	// ENTITY CREATION
+	auto entity = registry.create();
+
+	auto& mob = registry.emplace<Mob>(entity);
+	mob.health = health;
+	mob.hit_time = 1.f;
+
+	// SPRITE 
+	auto& sprite = registry.emplace<Sprite>(entity);
+	// sprite.dims = { 43.f, 55.f };	
+	sprite.dims = vec2(1344.f / 7, 960.f / 5);
+
+	sprite.sheet_dims = {1344.f, 960.f};
+
+	// HITBOX
+	auto& hitBox = registry.emplace<HitBox>(entity); 
+	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
+	hitBox.shape.circle.radius = 30.f; 
+	/*hitBox.type = HitBoxType::HITBOX_RECT;
+	hitBox.shape.rect.width = 43.f;
+	hitBox.shape.rect.height = 55.f;*/
+	
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	// motion.position = position;
+
+	motion.position.x = position.x + sprite.dims[0] / 2;
+	motion.position.y = position.y + sprite.dims[1] / 2;
+	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
+
+	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
+	//motion.scale = vec2(38*3, 54*3);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
+	registry.emplace<Eatable>(entity);
+	
+	auto& drop = registry.emplace<Drop>(entity);
+	drop.item_type = ITEM_TYPE::POTION;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	// Setup AnimationComponent (runtime state for animations).
+    auto& animComp = registry.emplace<AnimationComponent>(entity);
+    animComp.currentAnimationId = "mob2_idle";
+    animComp.timer = 0.0f;
+    animComp.currentFrameIndex = 0;
+
+	createMobHealthBar(registry, entity);
+	return entity; 
+}
+
 
 
 //entt::entity createRockType1(entt::registry& registry, vec2 position) {

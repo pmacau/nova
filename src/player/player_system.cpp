@@ -1,5 +1,5 @@
 #include "player_system.hpp"
-#include "tinyECS/components.hpp"  // Contains Motion, Animation, Player, Sprite, etc.
+#include "tinyECS/components.hpp"  
 #include "common.hpp"
 #include <cmath>
 #include <algorithm>
@@ -15,7 +15,6 @@ void PlayerSystem::update(float deltaTime) {
 }
 
 void PlayerSystem::updatePlayerAnimationState() {
-    // Assuming there's only one player entity.
     auto view = registry.view<Player, Motion, AnimationComponent, Sprite>();
     if (view.begin() == view.end())
         return;
@@ -32,7 +31,6 @@ void PlayerSystem::updatePlayerAnimationState() {
         // If velocity is very low, switch to idle animation.
         if (animComp.currentAnimationId != "player_idle") {
             animComp.currentAnimationId = "player_idle";
-            // Optionally, reset the animation state:
             animComp.timer = 0.0f;
             animComp.currentFrameIndex = 0;
         }
@@ -40,9 +38,7 @@ void PlayerSystem::updatePlayerAnimationState() {
         motion.scale.x = std::abs(motion.scale.x);
     }
     else {
-        // Determine dominant movement direction.
         if (std::abs(velocity.x) > std::abs(velocity.y)) {
-            // Horizontal movement dominant.
             animComp.currentAnimationId = "player_walk_right";
             // Flip sprite if moving left.
             if (velocity.x < 0)
@@ -51,7 +47,6 @@ void PlayerSystem::updatePlayerAnimationState() {
                 motion.scale.x = std::abs(motion.scale.x);
         }
         else {
-            // Vertical movement dominant.
             if (velocity.y > 0)
                 animComp.currentAnimationId = "player_walk_down";
             else

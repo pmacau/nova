@@ -14,6 +14,7 @@ entt::entity createShip(entt::registry& registry, vec2 position);
 
 // invaders
 entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
+entt::entity createMob2(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
 
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity);
 
