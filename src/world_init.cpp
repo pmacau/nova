@@ -260,15 +260,15 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	projectile.timer = PROJECTILE_TIMER;
 	auto& motion = registry.emplace<Motion>(entity);
 
-	float base_angle = atan2(-velocity.y, velocity.x) * (180.f / 3.14159f);
-	if (velocity.x < 0) {  // Moving left
-		base_angle = 180.f - base_angle;
-	}
-	motion.angle = -base_angle;
-	motion.velocity = velocity * 1.5f;
+	//float base_angle = atan2(-velocity.y, velocity.x) * (180.f / 3.14159f);
+	//if (velocity.x < 0) {  // Moving left
+	//	base_angle = 180.f - base_angle;
+	//}
+	//motion.angle = -base_angle;
+	motion.velocity = velocity;
 	motion.position = pos;
-	motion.scale = size * 2.0f;
-	motion.offset_to_ground = {0, motion.scale.y / 2.f };
+	motion.scale = size; //* 3.5f;
+	motion.offset_to_ground = {0, motion.scale.y/ 1.5f};
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
