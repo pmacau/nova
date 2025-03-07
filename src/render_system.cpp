@@ -5,7 +5,6 @@
 // internal
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
-#include "util/debug.hpp"
 #include <glm/gtc/type_ptr.hpp>
 // for the text rendering
 #include <ft2build.h>
@@ -397,42 +396,29 @@ std::vector<glm::vec2> generateRectVertices(float centerX, float centerY, float 
 	};
 }
 
-void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection) {
-	auto camera_entity = registry.view<Camera>().front();
-	auto& camera = registry.get<Camera>(camera_entity);
-
-	Transform camera_transform;
-	camera_transform.translate(-camera.offset);
-
+void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform) {
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
 	gl_has_errors();
 	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
 	GLint transLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
-	GLint cameraLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "camera_transform");
 	GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
-
-	glUniformMatrix3fv(projLoc, 1, GL_FALSE, (float *)&projection);
-	glUniformMatrix3fv(cameraLoc, 1, GL_FALSE, (float *)&camera_transform.mat);
+	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix3fv(transLoc, 1, GL_FALSE, glm::value_ptr(transform));
 	glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f); // Draw in red
 	gl_has_errors();
-
-	auto view = registry.view<Debug, Hitbox, Motion>(); //goes through every moving thing with a hitbox
+	auto view = registry.view<HitBox, Motion>(); //goes through every moving thing with a hitbox
 	for (auto entity : view) {
-		auto& motion = registry.get<Motion>(entity);
-		auto& pos = motion.position;
-
-		Transform model_transform;
-		model_transform.translate(pos);
-		model_transform.scale(motion.scale);
-		model_transform.rotate(radians(motion.angle));
-		glUniformMatrix3fv(transLoc, 1, GL_FALSE, (float *)&model_transform.mat);
-		gl_has_errors();
-
 		std::vector<glm::vec2> vertices;
-		for (auto pt: registry.get<Hitbox>(entity).pts)
-			vertices.push_back(pos + pt);
-
-
+		float posX = registry.get<Motion>(entity).position.x;
+		float posY = registry.get<Motion>(entity).position.y;
+		if (registry.get<HitBox>(entity).type == HITBOX_CIRCLE) { //generates corresponding hitbox
+			vertices = generateCircleVertices(posX, posY, registry.get<HitBox>(entity).shape.circle.radius); 
+		}
+		else if (registry.get<HitBox>(entity).type == HITBOX_RECT) {
+			vertices = generateRectVertices(posX, posY,
+				registry.get<HitBox>(entity).shape.rect.width,
+				registry.get<HitBox>(entity).shape.rect.height);
+		}
 		GLuint debugVAO, debugVBO;
 		glGenVertexArrays(1, &debugVAO);
 		glGenBuffers(1, &debugVBO);
@@ -602,6 +588,7 @@ void RenderSystem::drawToScreen()
 	glDisable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST); // Debug: disable depth test
+
 	// glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
@@ -654,43 +641,41 @@ void RenderSystem::renderGamePlay()
 	// First render to the custom framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
 	gl_has_errors();
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	// glDepthRange(0.00001, 10);
+	glDepthRange(0.0, 1.0);
+	// white background
+	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f);
 
-	glViewport(0, 0, w, h); // clear backbuffer
-	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f); // water-colored background
-	glClear(GL_COLOR_BUFFER_BIT);
+	// Debug: claer depth buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+// Debug
+	// glClearDepth(10.f);
+	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//glEnable(GL_DEPTH_TEST); // TODO: enable later after refactoring render system
+	// Debug
+	glEnable(GL_DEPTH_TEST);
+	// glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
+							  // and alpha blending, one would have to sort
+							  // sprites back to front
 	gl_has_errors();
 
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
-
 	std::vector<entt::entity> UIRenderEntities;
 	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
 	for (auto entity : ui) {
 		UIRenderEntities.push_back(entity);
-
-	// Render huge background texture
-	auto background = registry.view<Background>().front();
-	drawTexturedMesh(background, projection_2D);
-
-	// Render main entities
-	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
-		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-	});
-	auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background>);
-	spriteRenders.use<Motion>();
-	for (auto entity : spriteRenders) {
-		drawTexturedMesh(entity, projection_2D);
-
 	}
-
-	// Render UI
-	for (auto entity: registry.view<UI, RenderRequest>(entt::exclude<Item>)) {
+	for (auto entity : UIRenderEntities) {
 		if (registry.any_of<FixedUI>(entity)) {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
@@ -698,7 +683,6 @@ void RenderSystem::renderGamePlay()
 			drawTexturedMesh(entity, projection_2D);
 		}
 	}
-
 
 	// render projectiles
 	std::vector<entt::entity> ProjectileRenderEntities;
@@ -765,23 +749,22 @@ void RenderSystem::renderGamePlay()
 
 	for (auto entity : ItemRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
-
-	for (auto entity: registry.view<Item, FixedUI, RenderRequest>()) {
-		drawTexturedMesh(entity, ui_projection_2D);
-
 	}
 
+	// Render huge background texture
+	auto background = registry.view<Background>().front();
+	drawTexturedMesh(background, projection_2D);
+
+	// draw framebuffer to screen
+	// adding "vignette" effect when applied
 	drawToScreen();
 	// DEBUG
-
-	drawDebugHitBoxes(projection_2D);
-	// auto debugView = registry.view<Debug, Motion>();
-	// if (!debugView.empty()) {
-	// 	glm::mat3 projection = createProjectionMatrix();
-	// 	glm::mat3 transform = glm::mat3(1.0f);
-	// 	drawDebugHitBoxes(projection, transform);
-	// }
-
+	auto debugView = registry.view<Debug>();
+	if (!debugView.empty()) {
+		glm::mat3 projection = createProjectionMatrix();
+		glm::mat3 transform = glm::mat3(1.0f);
+		drawDebugHitBoxes(projection, transform);
+	}
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();

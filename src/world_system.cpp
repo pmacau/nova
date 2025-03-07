@@ -12,7 +12,7 @@
 #include <sstream>
 #include <iostream>
 #include <glm/glm.hpp>
-#include <cmath>
+
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry(reg),
@@ -144,7 +144,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		restart_game();
 	}
 
-	InputState i;
+	InputState i; 
 	if (key_state[KeyboardState::UP]) i.up = true;
 	if (key_state[KeyboardState::DOWN]) i.down = true;
 	if (key_state[KeyboardState::LEFT]) i.left = true;
@@ -211,17 +211,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (animation.frameTime >= animation.frameDuration) {
 			if (length(motion.velocity) <= 0.5f) {
 				sprite.coord.y = 0;
-			}
-			else {
-				int numFrames = (int)(sprite.sheet_dims.x / sprite.dims.x);
-				sprite.coord.y = ((int)(sprite.coord.y + 1)) % numFrames;
+			} else {
+				int numFrames = (int) (sprite.sheet_dims.x / sprite.dims.x);
+				sprite.coord.y = ((int) (sprite.coord.y + 1)) % numFrames;
 			}
 			animation.frameTime = 0.0f;
 		}
 	}
 
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
-	auto& ship = registry.get<Ship>(ship_entity);
+	auto &ship = registry.get<Ship>(ship_entity);
 	auto mobs = registry.view<Mob>();
 
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
@@ -229,7 +228,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (ship.timer <= 0) {
 		ship.timer = SHIP_TIMER_MS;
-
+		
 		for (auto entity : mobs) {
 			auto motion = registry.get<Motion>(entity);
 			auto shipMotion = registry.get<Motion>(ship_entity);
@@ -250,36 +249,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
 	
 
-
+	// TODO: move player out-of-bounds script
 	MapSystem::update_location(registry, player_entity);
 
-	auto& player_motion = registry.get<Motion>(player_entity);
-	int tile_x = std::round((player_motion.position.x) / 16.f);
-	int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
-	int former_x = std::round((player_motion.formerPosition.x) / 16.f);
-	int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
+	// auto& player_motion = registry.get<Motion>(player_entity);
+	// int tile_x = std::round((player_motion.position.x) / 16.f);
+	// int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
+	// int former_x = std::round((player_motion.formerPosition.x) / 16.f);
+	// int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
 
-	auto valid_tile = [this](int tile_x, int tile_y) {
-		bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < 200 && tile_y < 200);
-		if (in_bounds) {
-			bool in_water = gameMap[tile_y][tile_x] == 0;
-			return !in_water;
-		}
-		return false;
-		};
+	// auto valid_tile = [this](int tile_x, int tile_y) {
+	// 	bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < MAP_TILE_WIDTH && tile_y < MAP_TILE_HEIGHT);
+	// 	if (in_bounds) {
+	// 		bool in_water = gameMap[tile_y][tile_x] == 0;
+	// 		return !in_water;
+	// 	}
+	// 	return false;
+	// };
 
-	if (!valid_tile(tile_x, tile_y)) {
-		if (valid_tile(tile_x, former_y)) {
-			player_motion.position = { player_motion.position.x, player_motion.formerPosition.y };
-		}
-		else if (valid_tile(former_x, tile_y)) {
-			player_motion.position = { player_motion.formerPosition.x, player_motion.position.y };
-		}
-		else {
-			player_motion.position = player_motion.formerPosition;
-		}
-	}
-
+	// if (!valid_tile(tile_x, tile_y)) {
+	// 	if (valid_tile(tile_x, former_y)) {
+	// 		player_motion.position = {player_motion.position.x, player_motion.formerPosition.y};
+	// 	} else if (valid_tile(former_x, tile_y)) {
+	// 		player_motion.position = {player_motion.formerPosition.x, player_motion.position.y};
+	// 	} else {
+	// 		player_motion.position = player_motion.formerPosition;
+	// 	}
+	// }
+  
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
 		projectile.timer -= elapsed_ms_since_last_update;
@@ -294,14 +291,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
 
-
-	// TODO: move enemy attack cooldown system
-	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
-		mob.hit_time -= elapsed_s;
-	}
 	return true;
 }
-
 
 void WorldSystem::player_respawn() {
 	Player& player = registry.get<Player>(player_entity);
@@ -370,7 +361,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-
 	if (key == GLFW_KEY_F) 							key_state[KeyboardState::SHIPUI] 	= (action != GLFW_RELEASE);
 
 	if (key == GLFW_KEY_P) {
@@ -381,22 +371,30 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else {
 			for (auto entity : debugView) {
 				std::cout << "Removing debug" << std::endl;
-
-	if (key == GLFW_KEY_P && action == GLFW_PRESS) {
-		auto debugView = registry.view<Debug>();
-		if (debugView.empty()) {
-			debug_printf(DebugType::USER_INPUT, "Enabling debug mode\n");
-			registry.emplace<Debug>(player_entity);
-		}
-		else {
-			debug_printf(DebugType::USER_INPUT, "Disabling debug mode\n");
-			for (auto entity : debugView) {
-
 				registry.remove<Debug>(entity);
 			}
 		}
 	}
-
+	// // Debugging - not used in A1, but left intact for the debug lines
+	// if (key == GLFW_KEY_D) {
+	// 	if (action == GLFW_RELEASE) {
+	// 		if (debugging.in_debug_mode) {
+	// 			debugging.in_debug_mode = false;
+	// 		}
+	// 		else {
+	// 			debugging.in_debug_mode = true;
+	// if (key == GLFW_KEY_P) {
+	// 	auto debugView = registry.view<Debug>();
+	// 	if (debugView.empty()) {
+	// 		registry.emplace<Debug>(player_entity);
+	// 	}
+	// 	else {
+	// 		for (auto entity : debugView) {
+	// 			std::cout << "Removing debug" << std::endl;
+	// 			registry.remove<Debug>(entity);
+	// 		}
+	// 	}
+	// }
 
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
