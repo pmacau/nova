@@ -11,6 +11,7 @@
 #include FT_FREETYPE_H
 #include <map>
 #include <string>
+#include <filesystem>
 #include <sstream>
 
 RenderSystem::RenderSystem(entt::registry& reg) :
@@ -80,7 +81,10 @@ bool RenderSystem::initFreetype() {
     // Load font
     FT_Face face;
     // Modify this path to point to your font file
-    if (FT_New_Face(ft, "fonts/Oxanium.ttf", 0, &face)) {
+	std::filesystem::path basePath = std::filesystem::path(__FILE__).parent_path().parent_path();
+	std::filesystem::path fullPath = basePath / "fonts" / "Oxanium.ttf";
+
+    if (FT_New_Face(ft, fullPath.string().c_str(), 0, &face)) {
         std::cerr << "ERROR::FREETYPE: Failed to load font" << std::endl;
         return false;
     }
@@ -139,6 +143,13 @@ bool RenderSystem::initFreetype() {
     // Configure VAO/VBO for text quads
     glGenVertexArrays(1, &textVAO);
     glGenBuffers(1, &textVBO);
+
+	// Check if VAO/VBO are created successfully
+	if (gl_has_errors()) {
+		std::cerr << "ERROR: OpenGL encountered an issue creating text VAO/VBO" << std::endl;
+		return false;
+	}
+
 
 	if (textVAO == 0) {
         std::cerr << "ERROR: Failed to generate text VAO" << std::endl;
