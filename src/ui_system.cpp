@@ -46,11 +46,11 @@ void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
 			auto& motion = registry.emplace<Motion>(entity);
 			motion.angle = 0.f;
 			motion.position = mob_motion.position;
-			motion.scale = { 265.f / (265.f + 401.f) * 40, 401.f / (265.f + 401.f) * 40 };
+			motion.scale = vec2(512.f, 508.f) / 15.f;
 			motion.velocity = { 0.f, 0.f };
 			auto& sprite = registry.emplace<Sprite>(entity);
-			sprite.coord = { 56.f / 401.f, 124.f / 265.f };
-			sprite.dims = { 265.f, 401.f };
+			sprite.coord = { 0, 0 };
+			sprite.dims = { 512.f, 508.f };
 			sprite.sheet_dims = { 512.f, 508.f };
 			auto& render_request = registry.emplace<RenderRequest>(entity);
 			render_request.used_texture = TEXTURE_ASSET_ID::POTION;

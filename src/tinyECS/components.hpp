@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <entt.hpp>
+#include <animation/animation_definition.hpp>
 
 struct Tree{};
 struct Background{};
@@ -280,13 +281,13 @@ struct RenderRequest
 
 struct Sprite 
 {
-	vec2 coord = {0.0f, 0.0f};
+	FrameIndex coord = {0, 0};
 	vec2 dims;
 	vec2 sheet_dims;
 
-	float up_row = 0.f;
-	float down_row = 0.f;
-	float right_row = 0.f;
+	int up_row = 0;
+	int down_row = 0;
+	int right_row = 0;
 };
 
 struct Animation
@@ -312,5 +313,5 @@ struct Camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 30.f}, {152.f, 90.f}, 3.f, 0.f, 1.f
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3, 0, 1
 };

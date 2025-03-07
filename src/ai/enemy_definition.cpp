@@ -1,4 +1,5 @@
 #include "enemy_definition.hpp"
+#include <glm/glm.hpp>
 
 std::vector<EnemyDefinition> enemyDefinitions;
 
@@ -21,8 +22,7 @@ void initializeEnemyDefinitions() {
         def.damage = 10;
         def.speed = 1.0f;
 
-        // Rendering
-        def.scale = vec2(100, 120);
+        def.scale = glm::vec2(100, 120);
         def.spriteSheetPath = "data/textures/mob/demoMobdummy.png";
 
         // Animations: Suppose each frame is 64x64, row 0 = idle, row 1 = attack, etc.
@@ -38,7 +38,7 @@ void initializeEnemyDefinitions() {
             int idleFrames = 6;
             for (int i = 0; i < idleFrames; i++) {
                 // (x, y) of top-left corner of each frame
-                vec2 framePos = vec2(i * frameWidth, row * frameHeight);
+                glm::vec2 framePos = glm::vec2(i * frameWidth, row * frameHeight);
                 idle.frames.push_back(framePos);
             }
             def.animations.push_back(idle);
@@ -52,7 +52,7 @@ void initializeEnemyDefinitions() {
             int row = 1;
             int attackFrames = 5;
             for (int i = 0; i < attackFrames; i++) {
-                vec2 framePos = vec2(i * frameWidth, row * frameHeight);
+                glm::vec2 framePos = glm::vec2(i * frameWidth, row * frameHeight);
                 attack.frames.push_back(framePos);
             }
             def.animations.push_back(attack);

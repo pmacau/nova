@@ -144,12 +144,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			float x_scale = abs(motion.scale.x);
 
 			if (abs(velo.y) > 0) {
-				sprite.coord.x = (velo.y > 0) ? sprite.down_row : sprite.up_row;
+				sprite.coord.row = (velo.y > 0) ? sprite.down_row : sprite.up_row;
 				motion.scale.x = x_scale;
 			}
 
 			if (abs(velo.x) > 0) {
-				sprite.coord.x = sprite.right_row;
+				sprite.coord.row = sprite.right_row;
 				motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
 			}
 		}
@@ -163,12 +163,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float x_scale = abs(p_motion.scale.x);
 
 		if (abs(velo.x) > 0) {
-			p_sprite.coord.x = 1.f;
+			p_sprite.coord.row = 1;
 			p_motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
 		}
 
 		if (abs(velo.y) > 0) {
-			p_sprite.coord.x = (velo.y > 0) ? 0.f : 2.f;
+			p_sprite.coord.row = (velo.y > 0) ? 0 : 2;
 			p_motion.scale.x = x_scale;
 		}
 	}

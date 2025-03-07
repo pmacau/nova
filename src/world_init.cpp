@@ -4,19 +4,18 @@
 #include "ai/ai_common.hpp"
 #include "ai/ai_component.hpp"
 #include "ai/state_machine/ai_state_machine.hpp"
+#include "animation/animation_component.hpp"
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
 	auto entity = registry.create();
 
-	auto& animation = registry.emplace<Animation>(entity);
-    animation.frameDuration = 100.0f; // 100 ms per frame
-    animation.totalFrames = 8;        // for example, if there are 3 frames in the idle animation
-    animation.currentFrameIndex = 0;
-    animation.row = 0;                // idle animation on row 0
-    animation.frameWidth = PLAYER_SPRITESHEET.dims.x;
-    animation.frameHeight = PLAYER_SPRITESHEET.dims.y;
+	auto& animComp = registry.emplace<AnimationComponent>(entity);
+    animComp.currentAnimationId = "player_idle";
+    animComp.timer = 0.0f;
+    animComp.currentFrameIndex = 0;
+
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	// sprite.dims = PLAYER_SPRITESHEET.dims;
@@ -240,7 +239,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	debug_printf(DebugType::WORLD_INIT, "Ship position (%d, %d)\n", position.x, position.y);
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.coord = {0.0f, 0.0f};
+	sprite.coord = {0, 0};
     // sprite.dims = {19 * 15, 35 * 7};
 	sprite.dims = {128, 75};
    sprite.sheet_dims = { 128, 75 };
@@ -306,7 +305,7 @@ entt::entity createTree(entt::registry& registry, vec2 pos) {
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.coord = {0.f, 0.f};
+	sprite.coord = {0, 0};
 	sprite.dims = {50.f, 99.f};
 	sprite.sheet_dims = {50.f, 99.f};
 
@@ -347,7 +346,7 @@ void createInventory(entt::registry& registry) {
 		motion.scale = { SLOT_SIZE, SLOT_SIZE };
 		motion.velocity = { 0.f, 0.f };
 		auto& sprite = registry.emplace<Sprite>(entity);
-		sprite.coord = { 0.f, 0.f };
+		sprite.coord = { 0, 0 };
 		sprite.dims = { 488.f, 488.f };
 		sprite.sheet_dims = { 488.f, 488.f};
 		auto& render_request = registry.emplace<RenderRequest>(entity);

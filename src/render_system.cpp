@@ -192,7 +192,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	GLuint sheetDims_loc = glGetUniformLocation(currProgram, "sheetDims");
 	const auto& s = registry.get<Sprite>(entity);
 
-	glUniform4f(spriteData_loc, s.coord.x, s.coord.y, s.dims.x, s.dims.y);
+	glUniform4f(spriteData_loc, s.coord.row, s.coord.col, s.dims.x, s.dims.y);
 	glUniform2f(sheetDims_loc, s.sheet_dims.x, s.sheet_dims.y);
 	gl_has_errors();
 

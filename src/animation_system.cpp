@@ -3,32 +3,36 @@
 #include "common.hpp"             // For any common definitions like TILE_SIZE, etc.
 #include <algorithm>              // For std::min
 #include <iostream>
+#include "animation/animation_definition.hpp"
+#include "animation/animation_manager.hpp"
+#include "animation/animation_component.hpp"
 
 void AnimationSystem::update(float deltaTime) {
     // Iterate over all entities with both Sprite and Animation components.
-    auto view = registry.view<Sprite, Animation>();
+    auto view = registry.view<Sprite, AnimationComponent>();
     for (auto entity : view) {
         auto& sprite = view.get<Sprite>(entity);
-        auto& anim = view.get<Animation>(entity);
+        auto& animComp = view.get<AnimationComponent>(entity);
 
-        anim.frameTime += deltaTime;
-        if (anim.frameTime >= anim.frameDuration) {
-            // Advance frame.
-            anim.currentFrameIndex = (anim.currentFrameIndex + 1) % anim.totalFrames;
-            anim.frameTime = 0.0f;
+        const AnimationDefinition* animDef = g_animationManager.getAnimation(animComp.currentAnimationId);
+        if (!animDef) {
+            std::cerr << "Animation definition not found for ID: " << animComp.currentAnimationId << "\n";
+            continue;
         }
 
-        float frameWidth = anim.frameWidth;
-        float frameHeight = anim.frameHeight;
-
-        // Compute the top-left coordinate of the current frame in the spritesheet.
-        // For instance, if the animation row is given by anim.row:
-        // float frameX = anim.currentFrameIndex * frameWidth;
-        // float frameY = anim.row * frameHeight;
-        float frameX = anim.currentFrameIndex;
-        float frameY = anim.row;
+        float currentFrameDuration = animDef->frameDurations[animComp.currentFrameIndex];
         
-        sprite.coord = vec2(anim.row, anim.currentFrameIndex);
-        sprite.dims = vec2(frameWidth, frameHeight);
+        animComp.timer += deltaTime;
+        if (animComp.timer >= currentFrameDuration) {
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex++;
+            // Wrap around if needed.
+            if (animComp.currentFrameIndex >= static_cast<int>(animDef->frames.size())) {
+                animComp.currentFrameIndex = animDef->loop ? 0 : (int)animDef->frames.size() - 1;
+            }
+        }
+        
+        sprite.coord = animDef->frames[animComp.currentFrameIndex];
+        sprite.dims = vec2(animDef->frameWidth, animDef->frameHeight);
     }
 }

@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include <cmath>
 #include <algorithm>
+#include <animation/animation_component.hpp>
 
 PlayerSystem::PlayerSystem(entt::registry& registry)
     : registry(registry)
@@ -14,44 +15,50 @@ void PlayerSystem::update(float deltaTime) {
 }
 
 void PlayerSystem::updatePlayerAnimationState() {
-    // Assuming only one player entity.
-    auto view = registry.view<Player, Motion, Animation, Sprite>();
+    // Assuming there's only one player entity.
+    auto view = registry.view<Player, Motion, AnimationComponent, Sprite>();
     if (view.begin() == view.end())
         return;
     
     auto entity = *view.begin();
     auto& motion = registry.get<Motion>(entity);
-    auto& anim = registry.get<Animation>(entity);
+    auto& animComp = registry.get<AnimationComponent>(entity);
     auto& sprite = registry.get<Sprite>(entity);
 
     vec2 velocity = motion.velocity;
-    
-    // avoid toggling direction for slight noise
-    constexpr float epsilon = 0.1f;
-    
-    // TODO: remove magic numbers row = 0, 1, 2 (can implement a state machine)
-    if (std::abs(velocity.x) > epsilon || std::abs(velocity.y) > epsilon) {
+    constexpr float epsilon = 1.f;
+
+    if (length(velocity) < epsilon) {
+        // If velocity is very low, switch to idle animation.
+        if (animComp.currentAnimationId != "player_idle") {
+            animComp.currentAnimationId = "player_idle";
+            // Optionally, reset the animation state:
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex = 0;
+        }
+        // Ensure no horizontal flip.
+        motion.scale.x = std::abs(motion.scale.x);
+    }
+    else {
+        // Determine dominant movement direction.
         if (std::abs(velocity.x) > std::abs(velocity.y)) {
-            anim.row = 1;
-            // Flip horizontally if moving left.
+            // Horizontal movement dominant.
+            animComp.currentAnimationId = "player_walk_right";
+            // Flip sprite if moving left.
             if (velocity.x < 0)
                 motion.scale.x = -std::abs(motion.scale.x);
             else
                 motion.scale.x = std::abs(motion.scale.x);
         }
         else {
+            // Vertical movement dominant.
             if (velocity.y > 0)
-                anim.row = 0; // Up
+                animComp.currentAnimationId = "player_walk_down";
             else
-                anim.row = 2; // Down
+                animComp.currentAnimationId = "player_walk_up";
             // Ensure no horizontal flip.
             motion.scale.x = std::abs(motion.scale.x);
         }
     }
-    else {
-        // Idle animation
-        anim.row = 0;
-    }
-    // Do NOT update frame timer here.
-    // The generic AnimationSystem is responsible for updating frameTime and currentFrameIndex.
+    // The generic AnimationSystem will read animComp.currentAnimationId and update frame timing.
 }
