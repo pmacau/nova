@@ -68,17 +68,17 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 
 	// init all the ui ships to use
-	createUIShip(registry, vec2(spawnX - 300, spawnY - 175), 6);
-	// entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 6);
+	// createUIShip(registry, vec2(spawnX - 300, spawnY - 175), 6);
+	entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
 	// Motion& uiMotion = registry.get<Motion>(UISHIP);
 	// std::cout << "uiship pos: (" << uiMotion.position.x << ", " << uiMotion.position.y << ")" << std::endl;
 
-	createUIShip(registry, vec2(spawnX - 50, spawnY - 270), 2);
-	createUIShip(registry, vec2(spawnX - 50, spawnY - 70), 3);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
 
-	createUIShip(registry, vec2(spawnX + 200, spawnY - 370), 5);
-	createUIShip(registry, vec2(spawnX + 200, spawnY - 170), 1);
-	createUIShip(registry, vec2(spawnX + 200, spawnY + 20), 4);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 - 155), vec2(1.5f, 1.5f), 5);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
 
 }
 
@@ -447,7 +447,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			player_motion.velocity.y = 0;
 
             float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
-            if (distance_to_ship < 100.0f) {
+            if (distance_to_ship < 150.0f) {
 				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
                 screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
             }

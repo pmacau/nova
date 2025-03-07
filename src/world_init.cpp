@@ -245,17 +245,19 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	return entity;
 }
 
-entt::entity createUIShip(entt::registry& registry, vec2 position, int shipNum)
+entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum)
 {
 
 	auto entity = registry.create();
 	registry.emplace<UIShip>(entity);
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = GAME_SCALE * vec2(128.f / 2.f, 128.f / 2.f);
+	motion.scale = GAME_SCALE * vec2(120.f / scale.x, 128.f / scale.y);
 	// motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
 
 	auto& sprite = registry.emplace<Sprite>(entity);

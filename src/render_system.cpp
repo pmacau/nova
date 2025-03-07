@@ -660,7 +660,7 @@ void RenderSystem::renderGamePlay()
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	std::vector<entt::entity> UIRenderEntities;
-	auto ui = registry.view<UI, Motion, RenderRequest>();
+	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
 	for (auto entity : ui) {
 		UIRenderEntities.push_back(entity);
 	}
@@ -793,6 +793,7 @@ void RenderSystem::renderShipUI()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	// render ship
 	std::vector<entt::entity> PlayerMobsRenderEntities;
@@ -803,7 +804,7 @@ void RenderSystem::renderShipUI()
 	}
 
 	for (auto entity : PlayerMobsRenderEntities) {
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
 	drawToScreen();
@@ -811,7 +812,32 @@ void RenderSystem::renderShipUI()
 	mat3 flippedProjection = projection_2D;
 	flippedProjection[1][1] *= -1.0f; 
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	renderText("Current ship", -348.0f, -51.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	renderText("Current ship", -348.0f, -35.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// current ship
+	// renderText("Damage: 10", -220.0f, 40.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Atk Spd: 10", -220.0f, 28.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("HP: 500", -220.0f, 18.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Range: 250", -220.0f, 8.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 1
+	renderText("Ship 1", -40.0f, 100.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Damage: 40", 50.0f, 160.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Atk Spd: 30", 50.0f, 148.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("HP: 300", 50.0f, 138.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Range: 400", 50.0f, 128.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 2
+	renderText("Ship 2", -35.0f, -151.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 3
+	renderText("Ship 3", 220.0f, 90.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 4
+	renderText("Ship 4", 225.0f, -70.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 5
+	renderText("Ship 5", 225.0f, -245.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
