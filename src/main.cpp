@@ -25,14 +25,14 @@ int main()
 	entt::registry reg;
 
 	// global systems
+	FlagSystem flag_system(reg);
 	PhysicsSystem physics_system(reg);
 	WorldSystem   world_system(reg, physics_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
-	FlagSystem flag_system(reg); 
-
+	
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
 	if (!window) {
@@ -93,9 +93,7 @@ int main()
 			ai_system.step(elapsed_ms); // AI system should be before physics system
 			flag_system.step();
 		}
-		else {
-			world_system.step(elapsed_ms); // to listen for the ship UI exit
-		}
+		
 
 		renderer_system.draw();
 		

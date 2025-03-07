@@ -1,3 +1,5 @@
+#pragma once
+
 #include "common.hpp"
 #include <entt.hpp>
 class FlagSystem {
@@ -27,6 +29,9 @@ public:
     }
 
     void step() {
+        //if () screenstate no longer
+        // set unpaused to false. 
+
         if (done) {
             return; 
         }

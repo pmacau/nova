@@ -46,7 +46,6 @@ private:
 	entt::registry& registry;
 	entt::entity player_entity;
 	PhysicsSystem& physics_system;
-
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
 
