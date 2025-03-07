@@ -287,7 +287,12 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	projectile.damage = PROJECTILE_DAMAGE;
 	projectile.timer = PROJECTILE_TIMER;
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
+
+	//float base_angle = atan2(-velocity.y, velocity.x) * (180.f / 3.14159f);
+	//if (velocity.x < 0) {  // Moving left
+	//	base_angle = 180.f - base_angle;
+	//}
+	//motion.angle = -base_angle;
 	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size;
