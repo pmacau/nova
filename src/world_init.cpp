@@ -252,8 +252,8 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	auto entity = registry.create();
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = {243.f, 140.f};
-	sprite.sheet_dims = {243.f, 140.f};
+	sprite.dims = {18.f, 18.f};
+	sprite.sheet_dims = {18.f, 18.f};
 
 	auto& projectile = registry.emplace<Projectile>(entity);
 	projectile.damage = PROJECTILE_DAMAGE;
@@ -268,7 +268,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.velocity = velocity;
 	motion.position = pos;
 	motion.scale = size; //* 3.5f;
-	motion.offset_to_ground = {0, motion.scale.y/ 1.5f};
+	motion.offset_to_ground = {0, motion.scale.y/ 2.f};
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
