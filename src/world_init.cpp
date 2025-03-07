@@ -315,6 +315,41 @@ entt::entity createBoss(entt::registry& registry, vec2 pos) {
 	return entity;
 }
 
+entt::entity createTree(entt::registry& registry, vec2 pos, vec2 spriteCoord) {
+	auto entity = registry.create();
+
+	registry.emplace<Tree>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.scale = GAME_SCALE * vec2(50.f, 99.f);
+	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.position = pos - motion.offset_to_ground;
+	motion.velocity = {0.f, 0.f};
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = spriteCoord;
+	sprite.dims = {50.f, 99.f};
+	sprite.sheet_dims = {100.f, 99.f};
+
+	// TODO: allow for more flexible hitboxes. I want to be able to "walk through"
+	//       the leaves (from behind), but I want a hitbox on the trunk
+
+	// auto& hitBox = registry.emplace<HitBox>(entity);
+	// hitBox.type = HitBoxType::HITBOX_RECT;
+	// hitBox.shape.rect.height = GAME_SCALE * 50.f;
+	// hitBox.shape.rect.width = GAME_SCALE * 10.f;
+
+	// auto& obstacle = registry.emplace<Obstacle>(entity);
+	// obstacle.isPassable = false;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::TREE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
 void createInventory(entt::registry& registry) {
 	auto inventory_entity = registry.create();
 	auto& inventory = registry.emplace<Inventory>(inventory_entity);
@@ -341,4 +376,18 @@ void createInventory(entt::registry& registry) {
 		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	}
+}
+
+void destroy_creature(entt::registry& registry, entt::entity creature) {
+	// find its health bar
+	auto view = registry.view<MobHealthBar>();
+	for (auto entity : view) {
+		auto& healthbar = view.get<MobHealthBar>(entity);
+		if (healthbar.entity == creature) {
+			registry.destroy(entity);
+			break;
+		}
+	}
+
+	registry.destroy(creature);
 }

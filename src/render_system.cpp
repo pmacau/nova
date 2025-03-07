@@ -702,18 +702,12 @@ void RenderSystem::renderGamePlay()
 	auto mobs = registry.view<Mob, Motion, RenderRequest>();
 	auto players = registry.view<Player, Motion, RenderRequest>();
 	auto ships = registry.view<Ship, Motion, RenderRequest>();
+	auto trees = registry.view<Tree, Motion, RenderRequest>();
 
-	for (auto entity : mobs) {
-		PlayerMobsRenderEntities.push_back(entity);
-	}
-
-	for (auto entity : players) {
-		PlayerMobsRenderEntities.push_back(entity);
-	}
-
-	for (auto entity : ships) {
-		PlayerMobsRenderEntities.push_back(entity);
-	}
+	for (auto entity : mobs)    PlayerMobsRenderEntities.push_back(entity);
+	for (auto entity : players) PlayerMobsRenderEntities.push_back(entity);
+	for (auto entity : ships)   PlayerMobsRenderEntities.push_back(entity);
+	for (auto entity : trees)   PlayerMobsRenderEntities.push_back(entity);
 
 	// Sort entities based on Y position of the "ground offset"
 	std::sort(PlayerMobsRenderEntities.begin(), PlayerMobsRenderEntities.end(), [this](entt::entity a, entt::entity b) {

@@ -15,13 +15,29 @@
 #include "collision_system.hpp"
 #include "physics_system.hpp"
 #include "music_system.hpp"
+#include "spawn_system.hpp"
+#include "map/map_system.hpp"
+
+#include "map/generate.hpp"
+#include "map/image_gen.hpp"
+
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
 int main()
 {
+	// TOGGLE this if you don't want a new map every time...
+	if (true) {
+		auto generated_map = create_map(200, 200);
+		create_background(generated_map);
+		save_map(generated_map, map_path("map.bin").c_str());
+	}
+
 	entt::registry reg;
+
+	// assets and constants
+	initializeSpawnDefinitions();
 
 	// global systems
 	PhysicsSystem physics_system(reg);
@@ -30,6 +46,7 @@ int main()
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
+	SpawnSystem spawn_system(reg);
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -45,6 +62,7 @@ int main()
 	}
 
 	// initialize the main systems
+	MapSystem::init(reg);
 	world_system.init();
 	renderer_system.init(window);
 	renderer_system.initFreetype();
@@ -86,6 +104,7 @@ int main()
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		physics_system.step(elapsed_ms);
 		world_system.step(elapsed_ms);
+		spawn_system.update(elapsed_ms);
 		collision_system.step(elapsed_ms);
 		camera_system.step(elapsed_ms);
 		renderer_system.draw();

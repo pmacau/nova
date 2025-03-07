@@ -22,7 +22,7 @@ texture_map = {
 
 
 def create_coloured_map(terrain, filepath):
-    plt.imshow(terrain, cmap="magma")
+    plt.imshow(terrain, cmap="terrain")
     plt.axis("off")
     plt.savefig(filepath, bbox_inches='tight', pad_inches=0, dpi=300)
 

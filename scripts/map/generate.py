@@ -64,3 +64,11 @@ def game_map(width, height, spawn_radius=5, min_land=0, **perlin_kwargs):
             break
     
     return np.pad(terrain, 1, mode="constant", constant_values=0), (com_y, com_x)
+
+
+def load_binary_map(filepath):
+    with open(filepath, "rb") as f:
+        height = int.from_bytes(f.read(4), "little")
+        width = int.from_bytes(f.read(4), "little")
+        data = np.frombuffer(f.read(), dtype=np.uint8).reshape((height, width))
+    return data

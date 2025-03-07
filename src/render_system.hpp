@@ -37,7 +37,8 @@ class RenderSystem {
 		textures_path("healthbar/green.png"), 
 		textures_path("healthbar/red.png"), 
 		textures_path("items/potion.png"), 
-		textures_path("inventory/inventory-slot.png")
+		textures_path("inventory/inventory-slot.png"),
+		textures_path("terrain/tree.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
