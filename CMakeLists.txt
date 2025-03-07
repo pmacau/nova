@@ -63,7 +63,16 @@ if (IS_OS_MAC)
         target_link_libraries(${PROJECT_NAME} PUBLIC ${FREETYPE_LIB})
     endif()
 elseif (IS_OS_WINDOWS)
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/freetype.lib)
+   #target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/freetype.lib)
+    #target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/freetype.lib")
+        message(WARNING "FreeType library not found. Build FreeType first.")
+    else()
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/freetype.lib)
+        message(STATUS "FreeType Include Path: ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/include")
+
+
+    endif()
 elseif (IS_OS_LINUX)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/.libs/libfreetype.a)
 endif()
@@ -162,15 +171,32 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC 
-    ${GLFW_LIBRARIES} 
-    ${SDL2_LIBRARIES} 
-    ${SDL2MIXER_LIBRARIES} 
-    glm::glm
-    ${FREETYPE_LIB}
-    "-lbz2"
-    "-lpng"
-    "-lz")
+#target_link_libraries(${PROJECT_NAME} PUBLIC 
+#    ${GLFW_LIBRARIES} 
+#    ${SDL2_LIBRARIES} 
+#    ${SDL2MIXER_LIBRARIES} 
+#    glm::glm
+#    ${FREETYPE_LIB}
+#    "-lbz2"
+#    "-lpng"
+#    "-lz")
+if(IS_OS_MAC OR IS_OS_LINUX)
+    target_link_libraries(${PROJECT_NAME} PUBLIC 
+        ${GLFW_LIBRARIES} 
+        ${SDL2_LIBRARIES} 
+        ${SDL2MIXER_LIBRARIES} 
+        glm::glm
+        ${FREETYPE_LIB}
+        "-lbz2"
+        "-lpng"
+        "-lz")
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC 
+        ${GLFW_LIBRARIES} 
+        ${SDL2_LIBRARIES} 
+        ${SDL2MIXER_LIBRARIES} 
+        glm::glm)
+endif()
 
 # needed to add this for Linux
 if(IS_OS_LINUX)
