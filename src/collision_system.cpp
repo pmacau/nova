@@ -132,7 +132,7 @@ void CollisionSystem::handle<Obstacle, Motion>(
 		}
 		motion.position = motion.formerPosition;
 	}
-		
+	
 	
 }
 
@@ -141,12 +141,14 @@ void CollisionSystem::handle<Projectile, Obstacle>(
 	entt::entity proj_ent, entt::entity obs_ent, float elapsed_ms
 ) {
 	std::cout << "entered " << std::endl; 
-	glm::vec2 normal; 
-	if (get_collision_normal(registry.get<Hitbox>(proj_ent), registry.get<Motion>(proj_ent), registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), normal)) {
-		physics.ricochet(registry.get<Motion>(proj_ent).velocity, normal); // some bug on corners/nearby. TODO: fix 
-		
-	}
-	//physics.ricochet
+	//TODO: fix
+	//glm::vec2 normal; 
+	//if (get_collision_normal(registry.get<Hitbox>(proj_ent), registry.get<Motion>(proj_ent), registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), normal)) {
+	//	physics.ricochet(registry.get<Motion>(proj_ent).velocity, normal); // some bug on corners/nearby.  
+	//	
+	//}
+	destroy_entities.push_back(proj_ent);
+	
 }
 
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {

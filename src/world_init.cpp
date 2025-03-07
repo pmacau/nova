@@ -252,18 +252,23 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	auto entity = registry.create();
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = {18.f, 18.f};
-	sprite.sheet_dims = {18.f, 18.f};
+	sprite.dims = {243.f, 140.f};
+	sprite.sheet_dims = {243.f, 140.f};
 
 	auto& projectile = registry.emplace<Projectile>(entity);
 	projectile.damage = PROJECTILE_DAMAGE;
 	projectile.timer = PROJECTILE_TIMER;
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = velocity;
+
+	float base_angle = atan2(-velocity.y, velocity.x) * (180.f / 3.14159f);
+	if (velocity.x < 0) {  // Moving left
+		base_angle = 180.f - base_angle;
+	}
+	motion.angle = -base_angle;
+	motion.velocity = velocity * 1.5f;
 	motion.position = pos;
-	motion.scale = size;
-	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+	motion.scale = size * 2.0f;
+	motion.offset_to_ground = {0, motion.scale.y / 2.f };
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;

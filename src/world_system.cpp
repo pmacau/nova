@@ -12,7 +12,7 @@
 #include <sstream>
 #include <iostream>
 #include <glm/glm.hpp>
-
+#include <cmath>
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry(reg),

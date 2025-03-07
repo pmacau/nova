@@ -28,7 +28,7 @@ class RenderSystem {
 		textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
-		textures_path("projectiles/gold_bubble.png"),
+		textures_path("projectiles/15.png"),
 		textures_path("healthbar/green.png"), 
 		textures_path("healthbar/red.png"), 
 		textures_path("items/potion.png"), 
