@@ -64,6 +64,8 @@ if (IS_OS_MAC)
     endif()
 elseif (IS_OS_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/freetype.lib)
+    #    target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/build/Release/freetype.lib)
+
 elseif (IS_OS_LINUX)
     target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/.libs/libfreetype.a)
 endif()
