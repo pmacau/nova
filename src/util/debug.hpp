@@ -22,7 +22,8 @@ struct DebugData {
 enum DebugType {
     WORLD_INIT, WORLD, PHYSICS, COLLISION, GAME_INIT,
     USER_INPUT,
-    HITBOX, 
+    HITBOX,
+    FLAG,
     DEBUG_TYPE_COUNT
 };
 
@@ -33,7 +34,8 @@ inline std::unordered_map<DebugType, DebugData> debug_options = {
     {PHYSICS,    {true, 35, "[PHYSICS]"}},
     {COLLISION,  {true, 33, "[COLLISION]"}},
     {GAME_INIT,  {true, 31, "[GAME INIT]"}},
-    {HITBOX,  {true, 35, "[HITBOX]"}},
+    {HITBOX,  {true, 36, "[HITBOX]"}},
+    {FLAG, {true, 38, "[FLAG]"}},
     // Fine-grain debug types
     {USER_INPUT, {true, 37, "[INPUT]"}}
 };
