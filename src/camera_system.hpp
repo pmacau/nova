@@ -9,11 +9,11 @@
 
 class CameraSystem {
 public:
-    CameraSystem(entt::registry& reg, WorldSystem& world);  
+    CameraSystem(entt::registry& reg);  
 
     void step(float elapsed_ms);
 
 private:
     entt::registry& registry;
-    WorldSystem& world;  
+    // WorldSystem& world;  
 };
