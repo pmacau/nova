@@ -19,8 +19,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	physics_system(physics_system)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
-	player_entity = createPlayer(registry, player_spawn);
-	ship_entity = createShip(registry, player_spawn);
+	player_entity = createPlayer(registry, {0, 0});
+	ship_entity = createShip(registry, {0, 0});
 	main_camera_entity = createCamera(registry, player_entity);
 
 	screen_entity = registry.create();
@@ -33,7 +33,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 
 
 	// init all the ui ships to use
-	entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
 
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
@@ -276,10 +276,9 @@ void WorldSystem::player_respawn() {
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 
-	player_motion.position = player_spawn;
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
-	player_motion.formerPosition = player_spawn;
+	player_motion.formerPosition = player_motion.position;
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
@@ -294,15 +293,13 @@ void WorldSystem::restart_game() {
 	registry.destroy(motions.begin(), motions.end());
 	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
+	vec2& p_pos = registry.get<Motion>(player_entity).position;
+	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
-	player_spawn = MapSystem::populate_ecs(registry);
-	debug_printf(DebugType::WORLD, "Spawning player at: (%.1f, %.1f)\n", player_spawn.x, player_spawn.y);
-
-	auto& ship_motion = registry.get<Motion>(ship_entity);
-	ship_motion.position = player_spawn - vec2(0, 200);
+	MapSystem::populate_ecs(registry, p_pos, s_pos);
 
 	player_respawn();
-	createPlayerHealthBar(registry, player_spawn);
+	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
 
 	// reset the screen
