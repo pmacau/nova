@@ -81,4 +81,5 @@ private:
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	float currentFlag = 0.0f;
+	std::vector<entt::entity> textBoxEntities;
 };

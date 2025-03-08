@@ -174,6 +174,7 @@ struct TextData
 	std::string content;
 	float scale;
 	vec3 color;
+	bool active = false;
 };
 
 // Stucture to store collision information

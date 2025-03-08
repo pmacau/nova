@@ -506,10 +506,13 @@ void RenderSystem::renderGamePlay()
 	auto textboxes = registry.view<Motion, RenderRequest, TextData>();
 	int count = 0;
 	for (auto entity : textboxes) {
-		count++;
-		textBoxesUI.push_back(entity);
+		auto& textData = registry.get<TextData>(entity);
+		// Only process active text boxes
+		if (textData.active) {
+			count++;
+			textBoxesUI.push_back(entity);
+		}
 	}
-	std::cout << "num of textboxes = " << count << std::endl;
 
 	for (auto entity : textBoxesUI) {
 		drawTexturedMesh(entity, projection_2D);

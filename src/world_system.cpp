@@ -46,7 +46,34 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	// vec2 size = {0.4f, 3.0f};
 	// std::string openingMsg = "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!";
 	// createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
-	handleTextBoxes();
+	// handleTextBoxes();
+	textBoxEntities.resize(5);
+    
+    vec2 size = {0.4f, 3.0f};
+    textBoxEntities[0] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+        "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[1] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+        "Great! Now try accessing the ship's upgrade menu.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[2] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+        "Good job! Try firing your weapon now.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[3] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+        "Nice shot! Go explore the universe.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[4] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+        "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    // Make them all inactive initially
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    
+    // Then set only the first one to active
+    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
+    firstTextData.active = true;
 }
 
 WorldSystem::~WorldSystem() {
@@ -315,74 +342,107 @@ void WorldSystem::handleTextBoxes() {
 	// std::string openingMsg = "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!";
 	// createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
 
-	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
+	// FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
 
-	switch (currentStep) {
-		case FlagSystem::TutorialStep::None: {
-			if (currentFlag == 0.0) {
-				for (auto entity : registry.view<TextData>()) {
-					registry.destroy(entity);
-				}
-				vec2 size = {0.4f, 3.0f};
-            	std::string openingMsg = "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!";
-            	createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
-				std::cout << "none textbox" << std::endl;
-				currentFlag++;
-			}
+	// switch (currentStep) {
+	// 	case FlagSystem::TutorialStep::None: {
+	// 		if (currentFlag == 0.0) {
+	// 			for (auto entity : registry.view<TextData>()) {
+	// 				registry.destroy(entity);
+	// 			}
+	// 			vec2 size = {0.4f, 3.0f};
+    //         	std::string openingMsg = "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!";
+    //         	createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
+	// 			std::cout << "none textbox" << std::endl;
+	// 			currentFlag++;
+	// 		}
+    //         break;
+    //     }
+    //     case FlagSystem::TutorialStep::Moved: {
+	// 		if (currentFlag == 1.0) {
+	// 			for (auto entity : registry.view<TextData>()) {
+	// 				registry.destroy(entity);
+	// 			}
+	// 			vec2 size = {0.4f, 3.0f};
+	// 			std::string openingMsg = "Great! Now try accessing the ship's upgrade menu.";
+	// 			createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
+	// 			std::cout << "moved textbox" << std::endl;
+	// 			currentFlag++;
+	// 		}
+    //         break;
+    //     }
+    //     case FlagSystem::TutorialStep::Accessed: {
+	// 		if (currentFlag == 2.0) {
+	// 			for (auto entity : registry.view<TextData>()) {
+	// 				registry.destroy(entity);
+	// 			}
+	// 			vec2 size = {0.4f, 3.0f};
+	// 			std::string openingMsg = "Good job! Try firing your weapon now.";
+	// 			createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
+	// 			std::cout << "accessed textbox" << std::endl;
+	// 			currentFlag++;
+	// 		}
+    //         break;
+    //     }
+    //     case FlagSystem::TutorialStep::Shot: {
+	// 		if (currentFlag == 3.0) {
+	// 			for (auto entity : registry.view<TextData>()) {
+	// 				registry.destroy(entity);
+	// 			}
+	// 			vec2 size = {0.4f, 3.0f};
+	// 			std::string openingMsg = "Nice shot! Go explore the universe.";
+	// 			createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
+	// 			std::cout << "shot textbox" << std::endl;
+	// 			currentFlag++;
+	// 		}
+    //         break;
+    //     }
+    //     case FlagSystem::TutorialStep::MobKilled: {
+	// 		if (currentFlag == 4.0) {
+	// 			for (auto entity : registry.view<TextData>()) {
+	// 				registry.destroy(entity);
+	// 			}
+	// 			vec2 size = {0.4f, 3.0f};
+	// 			std::string openingMsg = "You defeated an enemy! Keep exploring.";
+	// 			createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
+	// 			std::cout << "mob killed textbox" << std::endl;
+	// 			currentFlag++;
+	// 		}
+    //         break;
+    //     }
+    // }
+	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
+    
+    // First, make all text boxes inactive
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    
+    // Then activate only the appropriate one
+    int activeIndex = -1;
+    switch (currentStep) {
+        case FlagSystem::TutorialStep::None:
+            activeIndex = 0;
             break;
-        }
-        case FlagSystem::TutorialStep::Moved: {
-			if (currentFlag == 1.0) {
-				// for (auto entity : registry.view<TextData>()) {
-				// 	registry.destroy(entity);
-				// }
-				vec2 size = {0.4f, 3.0f};
-				std::string openingMsg = "Great! Now try accessing the ship's upgrade menu.";
-				createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
-				std::cout << "moved textbox" << std::endl;
-				currentFlag++;
-			}
+        case FlagSystem::TutorialStep::Moved:
+            activeIndex = 1;
             break;
-        }
-        case FlagSystem::TutorialStep::Accessed: {
-			if (currentFlag == 2.0) {
-				for (auto entity : registry.view<TextData>()) {
-					registry.destroy(entity);
-				}
-				vec2 size = {0.4f, 3.0f};
-				std::string openingMsg = "Good job! Try firing your weapon now.";
-				createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
-				std::cout << "accessed textbox" << std::endl;
-				currentFlag++;
-			}
+        case FlagSystem::TutorialStep::Accessed:
+            activeIndex = 2;
             break;
-        }
-        case FlagSystem::TutorialStep::Shot: {
-			if (currentFlag == 3.0) {
-				for (auto entity : registry.view<TextData>()) {
-					registry.destroy(entity);
-				}
-				vec2 size = {0.4f, 3.0f};
-				std::string openingMsg = "Nice shot! Go explore the universe.";
-				createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
-				std::cout << "shot textbox" << std::endl;
-				currentFlag++;
-			}
+        case FlagSystem::TutorialStep::Shot:
+            activeIndex = 3;
             break;
-        }
-        case FlagSystem::TutorialStep::MobKilled: {
-			if (currentFlag == 4.0) {
-				for (auto entity : registry.view<TextData>()) {
-					registry.destroy(entity);
-				}
-				vec2 size = {0.4f, 3.0f};
-				std::string openingMsg = "You defeated an enemy! Keep exploring.";
-				createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
-				std::cout << "mob killed textbox" << std::endl;
-				currentFlag++;
-			}
+        case FlagSystem::TutorialStep::MobKilled:
+            activeIndex = 4;
             break;
-        }
+    }
+    
+    if (activeIndex >= 0 && activeIndex < textBoxEntities.size()) {
+        auto& textData = registry.get<TextData>(textBoxEntities[activeIndex]);
+        textData.active = true;
+        std::cout << "Activated text box for step: " << (int)currentStep << std::endl;
     }
 }
 
