@@ -12,7 +12,7 @@
 #include "physics_system.hpp"
 
 enum KeyboardState {
-	UP, DOWN, LEFT, RIGHT, SHIPUI, NUM_STATES,
+	UP, DOWN, LEFT, RIGHT, NUM_STATES,
 };
 
 class WorldSystem
