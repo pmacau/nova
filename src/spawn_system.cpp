@@ -7,6 +7,8 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
+#include "ai/enemy_definition.hpp"
+#include <map/tile.hpp>
 
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
@@ -112,14 +114,14 @@ void SpawnSystem::processNaturalSpawning()
 
     // Assume candidate's biome is 0 for now
     // TODO: biome system
-    int candidateBiome = 0;
+    Biome candidateBiome = Biome::B_FOREST;
 
     // Get all eligible spawn definitions for the given location
-    std::vector<const SpawnDefinition *> eligibleDefs;
-    for (const auto &def : spawnDefinitions)
+    std::vector<const EnemyDefinition *> eligibleDefs;
+    for (const auto &def : enemyDefinitions)
     {
         bool allowedBiome = false;
-        for (int biome : def.biomeIDs)
+        for (Biome biome : def.biomes)
         {
             if (biome == candidateBiome)
             {
@@ -149,7 +151,7 @@ void SpawnSystem::processNaturalSpawning()
     // Perform weighted random selection.
     std::uniform_real_distribution<float> weightedDist(0.0f, totalWeight);
     float weightedRoll = weightedDist(rng);
-    const SpawnDefinition *chosenDef = nullptr;
+    const EnemyDefinition *chosenDef = nullptr;
     for (const auto *def : eligibleDefs)
     {
         weightedRoll -= def->spawnProbability;
@@ -198,7 +200,7 @@ void SpawnSystem::processNaturalSpawning()
 }
 
 
-void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize)
+void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const vec2 &tileIndices, int groupSize)
 {
     std::vector<vec2> validNeighborTiles;
 
@@ -254,7 +256,7 @@ void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const 
         {
         case CreatureType::Mob:
         case CreatureType::Mutual:
-            createMob(registry, spawnPos, 50); 
+            createMob2(registry, spawnPos, 50); 
             break;
         case CreatureType::Boss:
             createBoss(registry, spawnPos);

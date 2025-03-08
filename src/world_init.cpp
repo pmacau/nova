@@ -1,17 +1,24 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include <iostream>
+#include "ai/ai_common.hpp"
+#include "ai/ai_component.hpp"
+#include "ai/state_machine/ai_state_machine.hpp"
+#include "animation/animation_component.hpp"
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
 	auto entity = registry.create();
 
-	auto& animation = registry.emplace<Animation>(entity);
-	animation.frameDuration = 100.0f;
+	auto& animComp = registry.emplace<AnimationComponent>(entity);
+    animComp.currentAnimationId = "player_idle_down";
+    animComp.timer = 0.0f;
+    animComp.currentFrameIndex = 0;
+
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = PLAYER_SPRITESHEET.dims;
+	// sprite.dims = PLAYER_SPRITESHEET.dims;
 	sprite.sheet_dims = PLAYER_SPRITESHEET.sheet_dims;
 
 	auto& player = registry.emplace<Player>(entity);
@@ -83,6 +90,9 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto entity = registry.create();
 
 	auto& mob = registry.emplace<Mob>(entity);
+	mob.health = health;
+	mob.hit_time = 1.f;
+
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 43.f, 55.f };	
@@ -96,8 +106,7 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	hitBox.shape.rect.width = 43.f;
 	hitBox.shape.rect.height = 55.f;*/
 
-	mob.health = health;
-	mob.hit_time = 1.f;
+
 	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -128,12 +137,15 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity) {
 	auto entity = registry.create();
+
 	registry.emplace<UI>(entity);
 	registry.emplace<MobHealthBar>(entity);
 	auto& healthbar = registry.get<MobHealthBar>(entity);
+
 	auto& mob = registry.get<Mob>(mob_entity);
 	healthbar.entity = mob_entity;
 	healthbar.initial_health = mob.health;
+
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;
@@ -151,6 +163,63 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	return entity;
 }
+
+entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
+	// ENTITY CREATION
+	auto entity = registry.create();
+
+	auto& mob = registry.emplace<Mob>(entity);
+	mob.health = health;
+	mob.hit_time = 1.f;
+
+	// SPRITE 
+	auto& sprite = registry.emplace<Sprite>(entity);
+	// sprite.dims = { 43.f, 55.f };	
+	sprite.dims = vec2(1344.f / 7, 960.f / 5);
+
+	sprite.sheet_dims = {1344.f, 960.f};
+
+	// HITBOX
+	auto& hitBox = registry.emplace<HitBox>(entity); 
+	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
+	hitBox.shape.circle.radius = 30.f; 
+	/*hitBox.type = HitBoxType::HITBOX_RECT;
+	hitBox.shape.rect.width = 43.f;
+	hitBox.shape.rect.height = 55.f;*/
+	
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	// motion.position = position;
+
+	motion.position.x = position.x + sprite.dims[0] / 2;
+	motion.position.y = position.y + sprite.dims[1] / 2;
+	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
+
+	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
+	//motion.scale = vec2(38*3, 54*3);
+	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.9f};
+
+	registry.emplace<Eatable>(entity);
+	
+	auto& drop = registry.emplace<Drop>(entity);
+	drop.item_type = ITEM_TYPE::POTION;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	// Setup AnimationComponent (runtime state for animations).
+    auto& animComp = registry.emplace<AnimationComponent>(entity);
+    animComp.currentAnimationId = "mob2_idle";
+    animComp.timer = 0.0f;
+    animComp.currentFrameIndex = 0;
+
+	createMobHealthBar(registry, entity);
+	return entity; 
+}
+
 
 
 //entt::entity createRockType1(entt::registry& registry, vec2 position) {
@@ -232,7 +301,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	debug_printf(DebugType::WORLD_INIT, "Ship position (%d, %d)\n", position.x, position.y);
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.coord = {0.0f, 0.0f};
+	sprite.coord = {0, 0};
     // sprite.dims = {19 * 15, 35 * 7};
 	sprite.dims = {128, 75};
    sprite.sheet_dims = { 128, 75 };
@@ -261,7 +330,7 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 	// motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.coord = {0.0f, 0.0f};
+	sprite.coord = {0, 0};
 	sprite.dims = {128.f, 128.f};
     sprite.sheet_dims = {128.f, 128.f};
 
@@ -315,7 +384,7 @@ entt::entity createBoss(entt::registry& registry, vec2 pos) {
 	return entity;
 }
 
-entt::entity createTree(entt::registry& registry, vec2 pos, vec2 spriteCoord) {
+entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoord) {
 	auto entity = registry.create();
 
 	registry.emplace<Tree>(entity);
@@ -368,7 +437,7 @@ void createInventory(entt::registry& registry) {
 		motion.scale = { SLOT_SIZE, SLOT_SIZE };
 		motion.velocity = { 0.f, 0.f };
 		auto& sprite = registry.emplace<Sprite>(entity);
-		sprite.coord = { 0.f, 0.f };
+		sprite.coord = { 0, 0 };
 		sprite.dims = { 488.f, 488.f };
 		sprite.sheet_dims = { 488.f, 488.f};
 		auto& render_request = registry.emplace<RenderRequest>(entity);
@@ -390,4 +459,92 @@ void destroy_creature(entt::registry& registry, entt::entity creature) {
 	}
 
 	registry.destroy(creature);
+}
+
+
+entt::entity createCreature(entt::registry& registry, vec2 position, CreatureType creatureType, int health)
+{
+    // Create the entity.
+    auto entity = registry.create();
+
+    // --- Motion Component ---
+    auto& motion = registry.emplace<Motion>(entity);
+    // Set the position (adjusted to center the sprite if desired)
+    motion.position = position;
+    motion.angle = 0.f;
+    motion.velocity = {0, 0};
+    
+    // Choose scale based on creature type.
+    if (creatureType == CreatureType::Boss) {
+        motion.scale = vec2(200, 240);  // Example boss scale
+    } else {
+        motion.scale = vec2(100, 120);  // Default scale for Mob and Mutual
+    }
+    motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
+    // --- Sprite Component ---
+    auto& sprite = registry.emplace<Sprite>(entity);
+    if (creatureType == CreatureType::Boss) {
+        sprite.dims = {80.f, 110.f};
+        sprite.sheet_dims = {80.f, 110.f};
+    } else if (creatureType == CreatureType::Mutual) {
+        sprite.dims = {40.f, 50.f};
+        sprite.sheet_dims = {40.f, 50.f};
+    } else { // Mob
+        sprite.dims = {43.f, 55.f};
+        sprite.sheet_dims = {43.f, 55.f};
+    }
+    // Optionally set sprite.coord for initial frame.
+
+    // --- HitBox Component ---
+    auto& hitBox = registry.emplace<HitBox>(entity);
+    hitBox.type = HITBOX_CIRCLE;
+    if (creatureType == CreatureType::Boss) {
+        hitBox.shape.circle.radius = 60.f;  // Example value for boss
+    } else {
+        hitBox.shape.circle.radius = 40.f;
+    }
+
+    // --- Creature-Specific Component ---
+    if (creatureType == CreatureType::Mob || creatureType == CreatureType::Mutual) {
+        auto& mob = registry.emplace<Mob>(entity);
+        mob.health = health;
+        mob.hit_time = 1.f;
+    } else if (creatureType == CreatureType::Boss) {
+        auto& boss = registry.emplace<Boss>(entity);
+        boss.agro_range = 500.f;  // Example value
+        boss.spawn = position;
+        // Optionally set boss-specific health here.
+    }
+
+    // --- AI Component ---
+    // Attach our AI state machine to control creature behavior.
+    auto& aiComp = registry.emplace<AIComponent>(entity);
+    aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
+    // Set initial state to Idle. (Using a static instance for now; can later be created per entity if needed.)
+    // static IdleState idleState;
+    // aiComp.stateMachine->changeState(&idleState);
+
+    // // --- Render Request Component ---
+    // auto& renderRequest = registry.emplace<RenderRequest>(entity);
+    // switch (creatureType) {
+    //     case CreatureType::Mob:
+    //         renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
+    //         break;
+    //     case CreatureType::Boss:
+    //         renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP; // Example: Boss uses a different texture
+    //         break;
+    //     case CreatureType::Mutual:
+    //         renderRequest.used_texture = TEXTURE_ASSET_ID::TREE; // Example: Mutual creatures might use tree texture
+    //         break;
+    // }
+    // renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+    // renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+    // Optionally, attach additional components like Animation if needed later.
+
+    // (Optional) Create associated UI, health bars, etc.
+    // For example: createMobHealthBar(registry, entity);
+
+    return entity;
 }

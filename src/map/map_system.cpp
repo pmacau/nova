@@ -17,7 +17,7 @@ void createBackground(entt::registry& reg, int width, int height, int tile_size)
     reg.emplace<Background>(entity);
     
     auto& sprite = reg.emplace<Sprite>(entity);
-    sprite.coord = {0.0f, 0.0f};
+    sprite.coord = {0, 0};
     sprite.dims = {tile_size * (width - 1), tile_size * (height - 1)};
     sprite.sheet_dims = {tile_size * (width - 1), tile_size * (height - 1)};
 

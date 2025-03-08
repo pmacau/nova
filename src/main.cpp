@@ -20,6 +20,8 @@
 #include "flag_system.hpp"
 #include "map/generate.hpp"
 #include "map/image_gen.hpp"
+#include "animation_system.hpp"
+#include "player/player_system.hpp"
 
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
@@ -37,7 +39,7 @@ int main()
 	entt::registry reg;
 
 	// assets and constants
-	initializeSpawnDefinitions();
+	initializeEnemyDefinitions();
 
 	// global systems
 	PhysicsSystem physics_system(reg);
@@ -48,6 +50,8 @@ int main()
 	CameraSystem camera_system(reg, world_system);
 	SpawnSystem spawn_system(reg);
 	FlagSystem flag_system(reg); 
+	AnimationSystem animationSystem(reg);
+	PlayerSystem playerSystem(reg);
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -106,6 +110,8 @@ int main()
 		if (!flag_system.is_paused) {
 			physics_system.step(elapsed_ms);
 			world_system.step(elapsed_ms);
+			playerSystem.update(elapsed_ms);
+			animationSystem.update(elapsed_ms);
 			spawn_system.update(elapsed_ms);
 			collision_system.step(elapsed_ms);
 			camera_system.step(elapsed_ms);
