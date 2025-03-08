@@ -17,10 +17,11 @@
 #include "music_system.hpp"
 #include "spawn_system.hpp"
 #include "map/map_system.hpp"
+#include "flag_system.hpp"
+#include "map/generate.hpp"
+#include "map/image_gen.hpp"
 #include "animation_system.hpp"
 #include "player/player_system.hpp"
-
-#include "map/map_gen.hpp"
 
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
@@ -28,6 +29,13 @@ using Clock = std::chrono::high_resolution_clock;
 // Entry point
 int main()
 {
+	// TOGGLE this if you don't want a new map every time...
+	if (true) {
+		auto generated_map = create_map(200, 200);
+		create_background(generated_map);
+		save_map(generated_map, map_path("map.bin").c_str());
+	}
+
 	entt::registry reg;
 
 	// assets and constants
@@ -41,13 +49,9 @@ int main()
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
 	SpawnSystem spawn_system(reg);
+	FlagSystem flag_system(reg); 
 	AnimationSystem animationSystem(reg);
 	PlayerSystem playerSystem(reg);
-
-
-	// debug_printf(DebugType::GAME_INIT, "Generatring game map...?\n");
-	// auto generated_map = game_map(200, 200);
-	// save_map_as_binary(generated_map, map_path("cpp_map.bin").c_str());
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -64,8 +68,9 @@ int main()
 
 	// initialize the main systems
 	MapSystem::init(reg);
-	renderer_system.init(window);
 	world_system.init();
+	renderer_system.init(window);
+	renderer_system.initFreetype();
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -102,15 +107,21 @@ int main()
 
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
-		physics_system.step(elapsed_ms);
-		world_system.step(elapsed_ms);
-		playerSystem.update(elapsed_ms);
-		animationSystem.update(elapsed_ms);
-		spawn_system.update(elapsed_ms);
-		collision_system.step(elapsed_ms);
-		camera_system.step(elapsed_ms);
+		if (!flag_system.is_paused) {
+			physics_system.step(elapsed_ms);
+			world_system.step(elapsed_ms);
+			playerSystem.update(elapsed_ms);
+			animationSystem.update(elapsed_ms);
+			spawn_system.update(elapsed_ms);
+			collision_system.step(elapsed_ms);
+			camera_system.step(elapsed_ms);
+			ai_system.step(elapsed_ms); // AI system should be before physics system
+		}
+		
+		flag_system.step(elapsed_ms);
 		renderer_system.draw();
-		ai_system.step(elapsed_ms); // AI system should be before physics system
+		
+		
 	}
 
 	return EXIT_SUCCESS;

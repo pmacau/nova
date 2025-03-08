@@ -12,6 +12,8 @@ entt::entity createPlayerHealthBar(entt::registry& registry, vec2 position);
 
 entt::entity createShip(entt::registry& registry, vec2 position);
 
+entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum);
+
 // invaders
 entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
 entt::entity createMob2(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
@@ -23,7 +25,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 
 
 entt::entity createBoss(entt::registry& registry, vec2 pos);
-entt::entity createTree(entt::registry& registry, vec2 pos);
+entt::entity createTree(entt::registry& registry, vec2 pos, vec2 spriteCoord);
 
 // terrain
 // entt::entity createRockType1(entt::registry& registry, vec2 position);

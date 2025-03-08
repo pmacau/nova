@@ -111,6 +111,8 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			registry.emplace<FixedUI>(item_entity);
 			auto& motion = registry.get<Motion>(item_entity);
 			motion.position = { 50.f + 45.f * i, 50.f };
+
+			MusicSystem::playSoundEffect(SFX::PICKUP);
 			break;
 		}
 	}
@@ -121,7 +123,6 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 		auto& motion = registry.get<Motion>(entity);
 		if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 			addToInventory(registry, entity);
-			MusicSystem::playSoundEffect(SFX::PICKUP);
 			break;
 		}
 	}

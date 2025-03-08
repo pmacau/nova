@@ -6,18 +6,9 @@
 #include <string>
 #include <entt.hpp>
 
+#include "map/tile.hpp"
 #include "common.hpp"
 #include "util/debug.hpp"
-
-enum class Tile {
-    WATER, 
-    SAND, 
-    GRASS,
-    SPAWN, 
-    BOSS_SPAWN,
-    TREE,
-    TILE_COUNT
-};
 
 class MapSystem {
 public:
@@ -25,11 +16,9 @@ public:
     static void generate_new_map();
     static vec2 populate_ecs(entt::registry& reg);
     static void update_location(entt::registry& reg, entt::entity ent);
-    static constexpr int TILE_SIZE = 16; // tile size in pixels
 
     static constexpr int MAP_WIDTH = 200;
     static constexpr int MAP_HEIGHT = 200;
-
 
     static Tile get_tile(vec2 pos);
     static Tile get_tile_type_by_indices(int x, int y);
@@ -38,7 +27,7 @@ public:
     static bool walkable_tile(Tile tile);
 
     static std::vector<vec2>& getBossSpawnIndices();
-    static void removeBossSpawnIndex(const vec2& tileIndices);
+    //static void removeBossSpawnIndex(const vec2& tileIndices);
 
 
 private:

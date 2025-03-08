@@ -12,7 +12,7 @@
 #include "physics_system.hpp"
 
 enum KeyboardState {
-	UP, DOWN, LEFT, RIGHT, NUM_STATES
+	UP, DOWN, LEFT, RIGHT, NUM_STATES,
 };
 
 class WorldSystem
@@ -49,6 +49,7 @@ private:
 
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
+	entt::entity screen_entity;
 
 	vec2 player_spawn = {0.f, 0.f};
 	
