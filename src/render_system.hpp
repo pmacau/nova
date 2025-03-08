@@ -23,8 +23,14 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
-		textures_path("ship/Ship6.png"),
-		textures_path("mob/demoMob.png"),
+		textures_path("ship/Ship1.png"),
+		textures_path("ship/Ship2.png"),
+		textures_path("ship/Ship3.png"),
+		textures_path("ship/Ship4.png"),
+		textures_path("ship/Ship5.png"),
+		textures_path("ship/Ship6.png"),		
+		//textures_path("player/astronaut.png"), // might have to look at for conflict
+        textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png"),
@@ -41,17 +47,29 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("vignette"),
 		shader_path("coloured"),
-		shader_path("debug")
+		shader_path("debug"),
+		shader_path("text"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
+
+	// std::vector<std::vector<TileRender>> tileMap;
+
+	// for texts
+	struct Character {
+		GLuint     TextureID;  // ID handle of the glyph texture
+		glm::ivec2 Size;       // Size of glyph
+		glm::ivec2 Bearing;    // Offset from baseline to left/top of glyph
+		GLuint     Advance;    // Horizontal offset to advance to next glyph
+	};
 
 public:
 	RenderSystem(entt::registry& reg);
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
+	bool initFreetype();
 	bool debugModeEnabled;
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
@@ -72,8 +90,9 @@ public:
 	// Draw all entities
 	void draw();
 
-	mat3 createProjectionMatrix();
 	mat3 createUIProjectionMatrix();
+
+	mat3 createProjectionMatrix();
 
 	entt::entity get_screen_state_entity() { return screen_state_entity; }
 
@@ -83,6 +102,9 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
+
+	void renderGamePlay();
+	void renderShipUI();
 
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
@@ -95,6 +117,17 @@ private:
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
 	entt::entity screen_state_entity;
+	entt::entity screen_entity;
+
+	// text based stuff
+	std::map<char, Character> Characters;
+	GLuint textShaderProgram;
+	GLuint textVAO = 0;
+	GLuint textVBO = 0;
+
+	mat3 shipUITransform = mat3(1.0f);
+	
+	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
 };
 
 bool loadEffectFromFile(

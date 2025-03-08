@@ -34,7 +34,12 @@ if (IS_OS_MAC)
     link_directories(/usr/local/lib)
     # 2024-09-24 - added for M-series Mac's
     include_directories(/opt/homebrew/include)
-    link_directories(/opt/homebrew/lib)
+    # link_directories(/opt/homebrew/lib)
+    # Add specific library paths
+    # include_directories(/opt/homebrew/opt/bzip2/include)
+    # link_directories(/opt/homebrew/opt/bzip2/lib)
+    # include_directories(/opt/homebrew/opt/libpng/include)
+    # link_directories(/opt/homebrew/opt/libpng/lib)
 endif()
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -48,6 +53,22 @@ target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/entt/include/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/noise/include/)
+
+target_include_directories(${PROJECT_NAME} PUBLIC ext/freetype/include)
+
+if (IS_OS_MAC)
+    find_library(FREETYPE_LIB NAMES libfreetype.a PATHS ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/.libs)
+    if(NOT FREETYPE_LIB)
+        message(WARNING "FreeType library not found, text rendering may not work")
+    else()
+        target_link_libraries(${PROJECT_NAME} PUBLIC ${FREETYPE_LIB})
+    endif()
+elseif (IS_OS_WINDOWS)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/freetype.lib)
+
+elseif (IS_OS_LINUX)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ext/freetype/objs/.libs/libfreetype.a)
+endif()
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -143,7 +164,15 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES} ${SDL2_LIBRARIES} ${SDL2MIXER_LIBRARIES} glm::glm)
+target_link_libraries(${PROJECT_NAME} PUBLIC 
+    ${GLFW_LIBRARIES} 
+    ${SDL2_LIBRARIES} 
+    ${SDL2MIXER_LIBRARIES} 
+    glm::glm
+    ${FREETYPE_LIB}
+    "-lbz2"
+    "-lpng"
+    "-lz")
 
 # needed to add this for Linux
 if(IS_OS_LINUX)

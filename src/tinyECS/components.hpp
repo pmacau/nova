@@ -64,6 +64,11 @@ struct Ship
 	int timer;
 };
 
+struct UIShip
+{
+
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
@@ -182,6 +187,12 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
+	enum class ScreenType {
+        GAMEPLAY,
+        SHIP_UPGRADE_UI,
+    };
+
+    ScreenType current_screen;
 	float darken_screen_factor = 0;
 };
 
@@ -236,7 +247,12 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
-	SHIP,
+	SHIP1,
+	SHIP2,
+	SHIP3,
+	SHIP4,
+	SHIP5,
+	SHIP6,
     MOB,
 	TILESET,
 	MAP_BACKGROUND,
@@ -259,7 +275,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

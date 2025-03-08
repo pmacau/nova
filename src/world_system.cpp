@@ -23,8 +23,25 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	ship_entity = createShip(registry, player_spawn);
 	main_camera_entity = createCamera(registry, player_entity);
 
+	screen_entity = registry.create();
+	registry.emplace<ScreenState>(screen_entity);
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+
+
+	// init all the ui ships to use
+	entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
+
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
+
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 - 155), vec2(1.5f, 1.5f), 5);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
+
 }
 
 WorldSystem::~WorldSystem() {
@@ -111,6 +128,11 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	auto screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+		return true;
+	}
+
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		debug_printf(DebugType::WORLD, "Game over; restarting game now...\n");
@@ -217,6 +239,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: freeze everything if in ship_ui
+	
+	
+	
+
 	// TODO: move player out-of-bounds script
 	MapSystem::update_location(registry, player_entity);
 
@@ -282,8 +309,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
-	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);	
 	registry.destroy(motions.begin(), motions.end());
 	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
@@ -299,9 +325,8 @@ void WorldSystem::restart_game() {
 	createInventory(registry);
 
 	// reset the screen
-	auto screens = registry.view<ScreenState>();
-	auto& screen = registry.get<ScreenState>(screens.front());
-	screen.darken_screen_factor = 0;
+	auto screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
@@ -331,6 +356,27 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
+
+	if (key == GLFW_KEY_P) {
+		auto debugView = registry.view<Debug>();
+		if (debugView.empty()) {
+			registry.emplace<Debug>(player_entity);
+		}
+		else {
+			for (auto entity : debugView) {
+				std::cout << "Removing debug" << std::endl;
+				registry.remove<Debug>(entity);
+			}
+		}
+	}
+	// // Debugging - not used in A1, but left intact for the debug lines
+	// if (key == GLFW_KEY_D) {
+	// 	if (action == GLFW_RELEASE) {
+	// 		if (debugging.in_debug_mode) {
+	// 			debugging.in_debug_mode = false;
+	// 		}
+	// 		else {
+	// 			debugging.in_debug_mode = true;
 	// if (key == GLFW_KEY_P) {
 	// 	auto debugView = registry.view<Debug>();
 	// 	if (debugView.empty()) {
@@ -343,6 +389,27 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// 		}
 	// 	}
 	// }
+
+	// E to toggle opening/closign ship ui
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+        if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
+            auto& player_motion = registry.get<Motion>(player_entity);
+            auto& ship_motion = registry.get<Motion>(ship_entity);
+
+			player_motion.velocity.x = 0;
+			player_motion.velocity.y = 0;
+
+            float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
+            if (distance_to_ship < 150.0f) {
+				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
+                screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
+            }
+        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
+            screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+        }
+    }
 
 	// TODO: testing sound system. remove this later
 	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
@@ -367,10 +434,18 @@ void WorldSystem::left_mouse_click() {
 	vec2 velocity = direction * PROJECTILE_SPEED;
 
 	auto& player_comp = registry.get<Player>(player_entity);
+	auto screens = registry.view<ScreenState>();
+	bool isUI = false; 
+	for (auto& screen : screens) {
+		auto& screen_state = registry.get<ScreenState>(screen); 
+		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+			isUI = true; 
+		}
+	}
 
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0
+		player_comp.weapon_cooldown <= 0 && !isUI
 	) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);

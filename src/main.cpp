@@ -17,7 +17,7 @@
 #include "music_system.hpp"
 #include "spawn_system.hpp"
 #include "map/map_system.hpp"
-
+#include "flag_system.hpp"
 #include "map/generate.hpp"
 #include "map/image_gen.hpp"
 
@@ -47,6 +47,7 @@ int main()
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
 	SpawnSystem spawn_system(reg);
+	FlagSystem flag_system(reg); 
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -63,8 +64,9 @@ int main()
 
 	// initialize the main systems
 	MapSystem::init(reg);
-	renderer_system.init(window);
 	world_system.init();
+	renderer_system.init(window);
+	renderer_system.initFreetype();
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -101,13 +103,19 @@ int main()
 
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
-		physics_system.step(elapsed_ms);
-		world_system.step(elapsed_ms);
-		spawn_system.update(elapsed_ms);
-		collision_system.step(elapsed_ms);
-		camera_system.step(elapsed_ms);
+		if (!flag_system.is_paused) {
+			physics_system.step(elapsed_ms);
+			world_system.step(elapsed_ms);
+			spawn_system.update(elapsed_ms);
+			collision_system.step(elapsed_ms);
+			camera_system.step(elapsed_ms);
+			ai_system.step(elapsed_ms); // AI system should be before physics system
+		}
+		
+		flag_system.step(elapsed_ms);
 		renderer_system.draw();
-		ai_system.step(elapsed_ms); // AI system should be before physics system
+		
+		
 	}
 
 	return EXIT_SUCCESS;

@@ -11,6 +11,8 @@ entt::entity createPlayerHealthBar(entt::registry& registry, vec2 position);
 
 entt::entity createShip(entt::registry& registry, vec2 position);
 
+entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum);
+
 // invaders
 entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
 

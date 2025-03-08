@@ -6,11 +6,203 @@
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
 #include <glm/gtc/type_ptr.hpp>
+// for the text rendering
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <map>
+#include <string>
+#include <filesystem>
+#include <sstream>
 
 RenderSystem::RenderSystem(entt::registry& reg) :
 	registry(reg)
 {
 	screen_state_entity = registry.create();
+	screen_entity = registry.view<ScreenState>().front();
+}
+
+bool RenderSystem::initFreetype() {
+    // Initialize FreeType library
+    FT_Library ft;
+    if (FT_Init_FreeType(&ft)) {
+        std::cerr << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+        return false;
+    }
+
+    // Load font
+    FT_Face face;
+    // Modify this path to point to your font file
+	std::filesystem::path basePath = std::filesystem::path(__FILE__).parent_path().parent_path();
+	std::filesystem::path fullPath = basePath / "fonts" / "Oxanium.ttf";
+
+    if (FT_New_Face(ft, fullPath.string().c_str(), 0, &face)) {
+        std::cerr << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        return false;
+    }
+
+    // Set size to load glyphs
+    FT_Set_Pixel_Sizes(face, 0, 48);
+
+    // Disable byte-alignment restriction
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    // Load first 128 characters of ASCII set
+    for (unsigned char c = 0; c < 128; c++) {
+        // Load character glyph 
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+            std::cerr << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+            continue;
+        }
+
+        // Generate texture
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RED,
+            face->glyph->bitmap.width,
+            face->glyph->bitmap.rows,
+            0,
+            GL_RED,
+            GL_UNSIGNED_BYTE,
+            face->glyph->bitmap.buffer
+        );
+
+        // Set texture options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // Store character for later use
+        Character character = {
+            texture,
+            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+            static_cast<GLuint>(face->glyph->advance.x)
+        };
+        Characters.insert(std::pair<char, Character>(c, character));
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Free FreeType resources
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
+
+    // Configure VAO/VBO for text quads
+    glGenVertexArrays(1, &textVAO);
+    glGenBuffers(1, &textVBO);
+
+	// Check if VAO/VBO are created successfully
+	if (gl_has_errors()) {
+		std::cerr << "ERROR: OpenGL encountered an issue creating text VAO/VBO" << std::endl;
+		return false;
+	}
+
+
+	if (textVAO == 0) {
+        std::cerr << "ERROR: Failed to generate text VAO" << std::endl;
+        return false;
+    }
+    if (textVBO == 0) {
+        std::cerr << "ERROR: Failed to generate text VBO" << std::endl;
+        return false;
+    }
+
+    glBindVertexArray(textVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    return true;
+}
+
+void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
+    // Activate corresponding render state	
+    glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
+    gl_has_errors();
+
+    // Validate VAO and VBO
+    if (textVAO == 0 || textVBO == 0) {
+        std::cerr << "ERROR: Text VAO or VBO not initialized" << std::endl;
+        return;
+    }
+
+	glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Set projection
+    GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
+    glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Set text color
+    GLuint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "textColor");
+    glUniform3f(colorLoc, color.x, color.y, color.z);
+    gl_has_errors();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(textVAO);
+
+    // Iterate through all characters
+    for (char c : text) {
+        if (Characters.find(c) == Characters.end()) {
+            std::cerr << "Character not found in font map: " << c << std::endl;
+            continue;
+        }
+
+        Character ch = Characters[c];
+
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
+        
+        // Update VBO for each character
+        float vertices[6][4] = {
+            { xpos,     ypos + h,   0.0f, 0.0f },            
+            { xpos,     ypos,       0.0f, 1.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+
+            { xpos,     ypos + h,   0.0f, 0.0f },
+            { xpos + w, ypos,       1.0f, 1.0f },
+            { xpos + w, ypos + h,   1.0f, 0.0f }           
+        };
+        
+        // Render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+        if (gl_has_errors()) {
+            std::cerr << "Error binding texture for character" << std::endl;
+            continue;
+        }
+        
+        // Update content of VBO memory
+        glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        if (gl_has_errors()) {
+            std::cerr << "Error updating VBO data" << std::endl;
+            continue;
+        }
+
+        // Render quad
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        if (gl_has_errors()) {
+            std::cerr << "Error drawing text quad" << std::endl;
+        }
+
+        // Advance cursor for next glyph
+        x += (ch.Advance >> 6) * scale;
+    }
+    
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    gl_has_errors();
 }
 
 static std::vector<glm::vec2> generateCircleVertices(float centerX, float centerY, float radius, int segments = 32) {
@@ -272,9 +464,7 @@ void RenderSystem::drawToScreen()
 	gl_has_errors();
 }
 
-// Render our game world
-// http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
-void RenderSystem::draw()
+void RenderSystem::renderGamePlay()
 {
 	// Getting size of window
 	int w, h;
@@ -312,7 +502,7 @@ void RenderSystem::draw()
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	std::vector<entt::entity> UIRenderEntities;
-	auto ui = registry.view<UI, Motion, RenderRequest>();
+	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
 	for (auto entity : ui) {
 		UIRenderEntities.push_back(entity);
 	}
@@ -409,6 +599,101 @@ void RenderSystem::draw()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
+
+}
+
+void RenderSystem::renderShipUI() 
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	// render ship
+	std::vector<entt::entity> PlayerMobsRenderEntities;
+	auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
+
+	for (auto entity : UIShips) {
+		PlayerMobsRenderEntities.push_back(entity);
+	}
+
+	for (auto entity : PlayerMobsRenderEntities) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	drawToScreen();
+
+	mat3 flippedProjection = projection_2D;
+	flippedProjection[1][1] *= -1.0f; 
+	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	renderText("Current ship", -348.0f, -35.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// current ship
+	// renderText("Damage: 10", -220.0f, 40.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Atk Spd: 10", -220.0f, 28.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("HP: 500", -220.0f, 18.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Range: 250", -220.0f, 8.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 1
+	renderText("Ship 1", -40.0f, 100.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Damage: 40", 50.0f, 160.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Atk Spd: 30", 50.0f, 148.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("HP: 300", 50.0f, 138.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	// renderText("Range: 400", 50.0f, 128.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 2
+	renderText("Ship 2", -35.0f, -151.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 3
+	renderText("Ship 3", 220.0f, 90.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 4
+	renderText("Ship 4", 225.0f, -70.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	// ship 5
+	renderText("Ship 5", 225.0f, -245.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
+}
+
+// Render our game world
+// http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
+void RenderSystem::draw()
+{
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	// auto& screen_state = registry.get<ScreenState>(screens.front());
+
+    switch (screen_state.current_screen) {
+		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
+            renderShipUI();
+            break;
+        case ScreenState::ScreenType::GAMEPLAY:
+            renderGamePlay();
+            break;
+    }
 }
 
 mat3 RenderSystem::createUIProjectionMatrix() {
@@ -462,7 +747,6 @@ mat3 RenderSystem::createProjectionMatrix()
 
 	return glm::ortho(left, right, bottom, top, near_plane, far_plane);
 }
-
 
 void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 {
@@ -527,4 +811,4 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 
 	// Re-enable depth test
     glEnable(GL_DEPTH_TEST);
-}
+} 
