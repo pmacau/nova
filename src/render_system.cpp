@@ -476,23 +476,16 @@ void RenderSystem::renderGamePlay()
 	glViewport(0, 0, w, h);
 	// glDepthRange(0.00001, 10);
 	glDepthRange(0.0, 1.0);
-	// white background
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	// water-colored background
 	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f);
 
 	// Debug: claer depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-// Debug
-	// glClearDepth(10.f);
-	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Debug
-	// glEnable(GL_DEPTH_TEST);
 	// glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
@@ -521,90 +514,14 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
-
-	// std::vector<entt::entity> UIRenderEntities;
-	// auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
-	// for (auto entity : ui) {
-	// 	UIRenderEntities.push_back(entity);
-	// }
-	// for (auto entity : UIRenderEntities) {
-	// 	if (registry.any_of<FixedUI>(entity)) {
-	// 		drawTexturedMesh(entity, ui_projection_2D);
-	// 	}
-	// 	else {
-	// 		drawTexturedMesh(entity, projection_2D);
-	// 	}
-	// }
-
-	// render projectiles
-	// std::vector<entt::entity> ProjectileRenderEntities;
-	// auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
-
-	// for (auto entity : projectiles) {
-	// 	ProjectileRenderEntities.push_back(entity);
-	// }
-
-	// for (auto entity : ProjectileRenderEntities) {
-	// 	drawTexturedMesh(entity, projection_2D);
-	// }
-
-	// render players and mobs
-	// std::vector<entt::entity> PlayerMobsRenderEntities;
-	// // get all mob and player entities with motion and render request components
-	// auto mobs = registry.view<Mob, Motion, RenderRequest>();
-	// auto players = registry.view<Player, Motion, RenderRequest>();
-	// auto ships = registry.view<Ship, Motion, RenderRequest>();
-	// auto trees = registry.view<Tree, Motion, RenderRequest>();
-
-	// for (auto entity : mobs)    PlayerMobsRenderEntities.push_back(entity);
-	// for (auto entity : players) PlayerMobsRenderEntities.push_back(entity);
-	// for (auto entity : ships)   PlayerMobsRenderEntities.push_back(entity);
-	// for (auto entity : trees)   PlayerMobsRenderEntities.push_back(entity);
-
-	// // Sort entities based on Y position of the "ground offset"
-	// std::sort(PlayerMobsRenderEntities.begin(), PlayerMobsRenderEntities.end(), [this](entt::entity a, entt::entity b) {
-	// 	auto& motionA = registry.get<Motion>(a);
-	// 	auto& motionB = registry.get<Motion>(b);
-	// 	vec2 groundA = motionA.position + motionA.offset_to_ground;
-	// 	vec2 groundB = motionB.position + motionB.offset_to_ground;
-
-	// 	// if y vlue the same, check if either is a player
-	// 	if (groundA.y == groundB.y) {
-	// 		if (registry.any_of<Player>(a)) {
-	// 			return true;
-	// 		}
-	// 		if (registry.any_of<Player>(b)) {
-	// 			return false;
-	// 		}
-
-	// 		// else sort by x
-	// 		return groundA.x > groundB.x;
-	// 	}
-
-	// 	return groundA.y > groundB.y; // Lower Y should render later (on top)
-	// });
-
-	// Render entities in sorted order
-	// for (auto entity : PlayerMobsRenderEntities) {
-	// 	drawTexturedMesh(entity, projection_2D);
-	// }
-
-  // items
-	// std::vector<entt::entity> ItemRenderEntities;
-	// auto items = registry.view<Item, Motion, RenderRequest>();
-
-	// for (auto entity : items) {
-	// 	if (!registry.any_of<FixedUI>(entity)) {
-	// 		ItemRenderEntities.push_back(entity);
-	// 	}
-	// }
-
-	// for (auto entity : ItemRenderEntities) {
-	// 	drawTexturedMesh(entity, projection_2D);
-	// }
+	
+	// Render items on static UI
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip>)) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
 
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied

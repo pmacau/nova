@@ -11,9 +11,9 @@ public:
     void step(float elapsed_ms);
     
 private:
-	float MOB_RANGE = 700.f;
+	// float MOB_RANGE = 700.f;
     entt::registry& registry;
 	float magnitude(vec2 v);
-	float movementEpsilon = 0.2f; // Epsilon for movement
+	// float movementEpsilon = 0.2f; // Epsilon for movement
     entt::entity player_entity; 
 };

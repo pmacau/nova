@@ -22,7 +22,7 @@ void PlayerSystem::updatePlayerAnimationState() {
     auto entity = *view.begin();
     auto& motion = registry.get<Motion>(entity);
     auto& animComp = registry.get<AnimationComponent>(entity);
-    auto& sprite = registry.get<Sprite>(entity);
+    //auto& sprite = registry.get<Sprite>(entity);
 
     vec2 velocity = motion.velocity;
     constexpr float epsilon = 1.f;
