@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include <entt.hpp>
 #include "tinyECS/components.hpp"
-
+#include "util/debug.hpp"
 class FlagSystem {
 public:
     //moved, shot, mobkilled from listening to register, accessed in screenstate (ask Frank)? 
@@ -16,6 +16,7 @@ public:
         
     };
     bool is_paused;
+    float time_spent_s; 
 private:
     bool done; 
     entt::registry& registry;
@@ -24,61 +25,75 @@ private:
 public:
     FlagSystem(entt::registry& reg)
         : is_paused(false)
+        , time_spent_s(0)
         , done(false)
-        , tutorial_step(TutorialStep::None) 
         , registry(reg)
+        , tutorial_step(TutorialStep::None)
     {
     }
 
-    void step() {
+    void step(float elapsed_ms) {
+
         //if () screenstate no longer
         // set unpaused to false. 
-        //auto screen_entity = registry.view<ScreenState>().front(); 
-        //auto& screen_state = registry.get<ScreenState>(screen_entity);
-        //// if (screen_state.)
-        //if (done) {
-        //    return; 
-        //}
-        //if (tutorial_step == TutorialStep::None) {
-        //    auto view = registry.view<Motion, Player>();
-        //    for (auto entity : view) {
-        //        auto& motion = view.get<Motion>(entity);
-        //        if (motion.velocity.x != 0.0f || motion.velocity.y != 0.0f) {
-        //            setMoved(true);
-        //            break;
-        //        }
-        //    }
-        //}
-        //else if (tutorial_step == TutorialStep::Moved) {
-        //    auto view = registry.view<ScreenState>();
-        //    setAccessed(true); // TODO: REMOVE THIS WHEN YOU CHANGE BELOW THIS IS JUST FOR PASS THROUGH
-        //    is_paused = true; //TODO: Move below 
-        //    for (auto entity : view) {
-        //        //TODO:: Frank just change the if statement to whatever state gets changed in registry and it should work. 
-        //        //auto& screen = registry.get<ScreenState>(entity);
-        //        //if (screen.darken_screen_factor > 0.0f) {  
-        //        //    setAccessed(true);
-        //        //    break;
-        //        //}
-        //    }
-        //}
-        //else if (tutorial_step == TutorialStep::Accessed) {
-        //    auto proj_view = registry.view<Projectile>();
-        //    if (!proj_view.empty()) {
-        //        setShot(true); // just leave it at Shot and then display the text. 
-        //    }
-        //}
-        ///*else if (tutorial_step == TutorialStep::Shot) { Don't really know a good way about going about this, we can leave this out since it should be enough. 
-        //*  You can leave a message after shooting to tell the player to go explore... 
-        //    auto mob_view = registry.view<Mob>();  
-        //    for (auto entity : mob_view) {
-        //        auto& mob = registry.get<Mob>(entity);
-        //        if (mob.health <= 0) {
-        //            setMobKilled(true);
-        //            break;
-        //        }
-        //    }
-        //}*/
+     
+        if (tutorial_step != TutorialStep::Moved) {
+            auto view = registry.view<ScreenState>();
+            for (auto entity : view) {
+                auto& screen_state = registry.get<ScreenState>(entity);
+                if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+                    is_paused = true;
+                    return;
+                }
+            }
+        }
+        is_paused = false; 
+        if (done) {
+            return; 
+        }
+
+        if (!is_paused) {
+            time_spent_s = std::min(elapsed_ms / 1000.f + time_spent_s, 10.f);
+            //debug_printf(DebugType::FLAG, "time is now %f\n", time_spent_s);
+        }
+        if (tutorial_step == TutorialStep::None) {
+            auto view = registry.view<Motion, Player>();
+            for (auto entity : view) {
+                auto& motion = view.get<Motion>(entity);
+                if (motion.velocity.x != 0.0f || motion.velocity.y != 0.0f) {
+                    setMoved(true);
+                    break;
+                }
+            }
+        }
+        else if (tutorial_step == TutorialStep::Moved) {
+            auto view = registry.view<ScreenState>();
+            for (auto entity : view) { 
+                auto& screen = registry.get<ScreenState>(entity);
+                if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) { 
+                    is_paused = true; 
+                    setAccessed(true);
+                    break;
+                }
+            }
+        }
+        else if (tutorial_step == TutorialStep::Accessed) {
+            auto proj_view = registry.view<Projectile>();
+            if (!proj_view.empty()) {
+                setShot(true); // just leave it at Shot and then display the text. 
+            }
+        }
+        /*else if (tutorial_step == TutorialStep::Shot) { Don't really know a good way about going about this, we can leave this out since it should be enough. 
+        *  You can leave a message after shooting to tell the player to go explore... 
+            auto mob_view = registry.view<Mob>();  
+            for (auto entity : mob_view) {
+                auto& mob = registry.get<Mob>(entity);
+                if (mob.health <= 0) {
+                    setMobKilled(true);
+                    break;
+                }
+            }
+        }*/
     }
 
   
@@ -89,7 +104,8 @@ public:
     void setMobKilled(bool value) {
         if (value && tutorial_step == TutorialStep::Shot) {
             tutorial_step = TutorialStep::MobKilled;
-            debug_printf(FLAG, "setMobKilled: stepped from accessed to mobKilled\n");
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setMobKilled: stepped from accessed to mobKilled\n");
         }
     }
 
@@ -97,14 +113,16 @@ public:
     void setMoved(bool value) {
         if (value && tutorial_step == TutorialStep::None) {
             tutorial_step = TutorialStep::Moved;
-            debug_printf(FLAG, "setMoved: stepped from none to moved\n");
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setMoved: stepped from none to moved\n");
         }
     }
 
     void setAccessed(bool value) {
         if (value && tutorial_step == TutorialStep::Moved) {
             tutorial_step = TutorialStep::Accessed;
-            debug_printf(FLAG, "setAccessed: stepped from moved to accessed\n");
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setAccessed: stepped from moved to accessed\n");
         }
     }
 
@@ -112,7 +130,8 @@ public:
     void setShot(bool value) {
         if (value && tutorial_step == TutorialStep::Accessed) {
             tutorial_step = TutorialStep::Shot;
-            debug_printf(FLAG, "setShot: stepped from accessed to shot\n");
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setShot: stepped from accessed to shot\n");
         }
     }
 

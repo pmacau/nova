@@ -78,12 +78,13 @@ def create_biome_map(mainland, seeds):
     return biome_map
 
 
-def place_trees(grid, num_trees, min_spacing):
-    rows, cols = grid.shape
+def place_trees(terrain, num_trees, min_spacing):
+    rows, cols = terrain.shape
     tree_positions = []
+    grid = terrain.copy()
     
     def is_valid_position(r, c):
-        if grid[r, c] == 0:
+        if terrain[r, c] == 0:
             return False
         
         for tr, tc in tree_positions:
@@ -95,7 +96,7 @@ def place_trees(grid, num_trees, min_spacing):
     while len(tree_positions) < num_trees and attempts < num_trees * 10:
         r, c = np.random.randint(0, rows), np.random.randint(0, cols)
         if is_valid_position(r, c):
-            grid[r, c] = 5
+            grid[r, c] = 5 # place tree
             tree_positions.append((r, c))
         attempts += 1
     

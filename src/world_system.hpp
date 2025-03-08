@@ -12,7 +12,7 @@
 #include "physics_system.hpp"
 
 enum KeyboardState {
-	UP, DOWN, LEFT, RIGHT, NUM_STATES
+	UP, DOWN, LEFT, RIGHT, NUM_STATES,
 };
 
 class WorldSystem
@@ -46,12 +46,10 @@ private:
 	entt::registry& registry;
 	entt::entity player_entity;
 	PhysicsSystem& physics_system;
+
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
-
-	std::vector<std::vector<uint8_t>> gameMap;
-	float spawnX = 0.f;
-	float spawnY = 0.f;
+	entt::entity screen_entity;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float mouse_pos_x = 0.0f;
@@ -70,20 +68,6 @@ private:
 
 	// OpenGL window handle
 	GLFWwindow* window;
-
-	int next_invader_spawn;
-	int invader_spawn_rate_ms;	// see default value in common.hpp
-
-	int max_towers;	// see default value in common.hpp
-
-	// Number of invaders stopped by the towers, displayed in the window title
-	unsigned int points;
-
-	// Game state
-	float current_speed;
-
-	// grid
-	std::vector<entt::entity> grid_lines;
 
 
 	// C++ random number generator

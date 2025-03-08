@@ -74,18 +74,11 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     }
 }
 
-void PhysicsSystem::ricochet(vec2& velocity, const vec2& normal) {
-    float dotProduct = dot(velocity, normal);
-   
-    velocity = velocity - 2.0f * dotProduct * normal;
-    std::cout << velocity.x << " " << velocity.y << std::endl;
-}
-
 
 // Should move both away. 
 void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     Motion& m1 = registry.get<Motion>(e1); 
-    Motion& m2 = registry.get<Motion>(e2);
+    //Motion& m2 = registry.get<Motion>(e2);
     vec2 direction = getDirection(e1, e2); // gets e2 to e1 
     float repellentMagnitude = 0.15f; 
     m1.acceleration += direction * repellentMagnitude; 
@@ -93,7 +86,6 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
 
 // knocks back e1 in respect to e2's position
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
-   // std::cout << "SUPPRESSED" << std::endl;
     Motion& m1 = registry.get<Motion>(e1);
     vec2 direction = normalize(getDirection(e1, e2));
     m1.acceleration += direction * force;
@@ -103,8 +95,7 @@ void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
 vec2 PhysicsSystem::getDirection(entt::entity e1, entt::entity e2) {
     Motion& m1 = registry.get<Motion>(e1);
     Motion& m2 = registry.get<Motion>(e2);
-    vec2 direction = (m1.position + m1.offset_to_ground) - (m2.position + m2.offset_to_ground);
-
+    vec2 direction = m1.position - m2.position;
     if (m1.position - m2.position == vec2(0, 0)) { //prevents undefined when dividing by 0
         direction = vec2(-1, 0); // move to the left, shouldn't happen since acceleration should increase as they get closer. 
     }

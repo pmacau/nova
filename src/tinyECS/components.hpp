@@ -6,7 +6,9 @@
 #include <cmath>
 #include <limits>
 #include <entt.hpp>
+#include <animation/animation_definition.hpp>
 
+struct Tree{};
 struct Background{};
 
 struct Boss{
@@ -14,10 +16,10 @@ struct Boss{
 	vec2 spawn;
 };
 
-// enum HitBoxType {
-// 	HITBOX_CIRCLE,
-// 	HITBOX_RECT
-// };
+enum HitBoxType {
+	HITBOX_CIRCLE,
+	HITBOX_RECT
+};
 
 struct InputState {
 	bool up = false;
@@ -26,18 +28,18 @@ struct InputState {
 	bool right = false;
 };
 
-// struct HitBox {
-// 	HitBoxType type;
-// 	union {
-// 		struct {
-// 			float radius;
-// 		} circle;
-// 		struct {
-// 			float width;
-// 			float height;
-// 		} rect;
-// 	} shape;
-// };
+struct HitBox {
+	HitBoxType type;
+	union {
+		struct {
+			float radius;
+		} circle;
+		struct {
+			float width;
+			float height;
+		} rect;
+	} shape;
+};
 
 struct Obstacle {
 	bool isPassable; 
@@ -61,6 +63,11 @@ struct Ship
 	int range;
 	int health;
 	int timer;
+};
+
+struct UIShip
+{
+
 };
 
 // All data relevant to the shape and motion of entities
@@ -101,6 +108,12 @@ struct Mob {
 
 // used for Entities that cause damage
 struct Deadly
+{
+
+};
+
+// used for edible entities
+struct Eatable
 {
 
 };
@@ -175,6 +188,12 @@ extern Debug debugging;
 // Sets the brightness of the screen
 struct ScreenState
 {
+	enum class ScreenType {
+        GAMEPLAY,
+        SHIP_UPGRADE_UI,
+    };
+
+    ScreenType current_screen;
 	float darken_screen_factor = 0;
 };
 
@@ -229,7 +248,12 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
-	SHIP,
+	SHIP1,
+	SHIP2,
+	SHIP3,
+	SHIP4,
+	SHIP5,
+	SHIP6,
     MOB,
 	TILESET,
 	MAP_BACKGROUND,
@@ -238,8 +262,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTHBAR_RED,
 	POTION,
 	INVENTORY_SLOT,
-	//STONE_BLOCK_1,
-	//TREE,
+	TREE,
+	GOBLIN_TORCH_BLUE,
 	TEXTURE_COUNT
 };
 
@@ -253,7 +277,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -274,19 +298,24 @@ struct RenderRequest
 
 struct Sprite 
 {
-	vec2 coord = {0.0f, 0.0f};
+	FrameIndex coord = {0, 0};
 	vec2 dims;
 	vec2 sheet_dims;
 
-	float up_row = 0.f;
-	float down_row = 0.f;
-	float right_row = 0.f;
+	int up_row = 0;
+	int down_row = 0;
+	int right_row = 0;
 };
 
 struct Animation
 {
-	float frameDuration;
-	float frameTime = 0.0f;
+    float frameDuration;       // Duration of each frame in milliseconds.
+    float frameTime = 0.0f;      // Time accumulator.
+    int totalFrames;           // Total number of frames in the current animation.
+    int currentFrameIndex;     // Current frame index.
+    int row;                   // The row in the spritesheet for this animation.
+	float frameWidth;          // Width of a single frame (set during creation)
+    float frameHeight;         // Height of a single frame (set during creation)
 };
 
 // Camera
@@ -301,5 +330,5 @@ struct Camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 30.f}, {152.f, 90.f}, 3.f, 0.f, 1.f
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3, 0, 1
 };

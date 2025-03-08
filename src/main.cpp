@@ -15,24 +15,44 @@
 #include "collision_system.hpp"
 #include "physics_system.hpp"
 #include "music_system.hpp"
+#include "spawn_system.hpp"
+#include "map/map_system.hpp"
 #include "flag_system.hpp"
+#include "map/generate.hpp"
+#include "map/image_gen.hpp"
+#include "animation_system.hpp"
+#include "player/player_system.hpp"
+
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
 
 // Entry point
 int main()
 {
+	// TOGGLE this if you don't want a new map every time...
+	if (true) {
+		auto generated_map = create_map(200, 200);
+		create_background(generated_map);
+		save_map(generated_map, map_path("map.bin").c_str());
+	}
+
 	entt::registry reg;
 
+	// assets and constants
+	initializeEnemyDefinitions();
+
 	// global systems
-	FlagSystem flag_system(reg);
 	PhysicsSystem physics_system(reg);
 	WorldSystem   world_system(reg, physics_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
-	CameraSystem camera_system(reg, world_system);
-	
+	CameraSystem camera_system(reg);
+	SpawnSystem spawn_system(reg);
+	FlagSystem flag_system(reg); 
+	AnimationSystem animationSystem(reg);
+	PlayerSystem playerSystem(reg);
+
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
 	if (!window) {
@@ -47,8 +67,10 @@ int main()
 	}
 
 	// initialize the main systems
-	renderer_system.init(window);
+	MapSystem::init(reg);
 	world_system.init();
+	renderer_system.init(window);
+	renderer_system.initFreetype();
 
 	// variable timestep loop
 	auto t = Clock::now();
@@ -88,13 +110,15 @@ int main()
 		if (!flag_system.is_paused) {
 			physics_system.step(elapsed_ms);
 			world_system.step(elapsed_ms);
+			playerSystem.update(elapsed_ms);
+			animationSystem.update(elapsed_ms);
+			spawn_system.update(elapsed_ms);
 			collision_system.step(elapsed_ms);
 			camera_system.step(elapsed_ms);
 			ai_system.step(elapsed_ms); // AI system should be before physics system
-			flag_system.step();
 		}
 		
-
+		flag_system.step(elapsed_ms);
 		renderer_system.draw();
 		
 		

@@ -173,7 +173,6 @@ void RenderSystem::initializeGlGeometryBuffers()
 	};
 	point_indices = {0};
 
-	int geom_index = (int)GEOMETRY_BUFFER_ID::DEBUG_POINT;
 	// meshes[geom_index].vertices = point_vertices;
 	// meshes[geom_index].vertex_indices = point_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::DEBUG_POINT, point_vertices, point_indices);
@@ -199,6 +198,7 @@ RenderSystem::~RenderSystem()
 
 	// remove all entities created by the render system
 	auto view = registry.view<RenderRequest>();
+	debug_printf(DebugType::PHYSICS, "Destroying entity (render sys sys)\n");
 	registry.destroy(view.begin(), view.end());
 }
 
@@ -207,7 +207,8 @@ bool RenderSystem::initScreenTexture()
 {
 	// create a single entry
 	// registry.screenStates.emplace(screen_state_entity);
-	registry.emplace<ScreenState>(screen_state_entity, 0.0f);
+	// registry.emplace<ScreenState>(screen_state_entity, 0.0f);
+	registry.emplace<ScreenState>(screen_state_entity);
 
 	int framebuffer_width, framebuffer_height;
 	glfwGetFramebufferSize(const_cast<GLFWwindow*>(window), &framebuffer_width, &framebuffer_height);  // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
@@ -262,7 +263,7 @@ bool loadEffectFromFile(
 	std::ifstream fs_is(fs_path);
 	if (!vs_is.good() || !fs_is.good())
 	{
-		fprintf(stderr, "Failed to load shader files %s, %s", vs_path.c_str(), fs_path.c_str());
+		fprintf(stderr, "Failed to load shader files %s, %s ", vs_path.c_str(), fs_path.c_str());
 		assert(false);
 		return false;
 	}

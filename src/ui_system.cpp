@@ -1,6 +1,8 @@
 #include "tinyECS/components.hpp"
 #include "ui_system.hpp"
 #include <iostream>
+#include "util/debug.hpp"
+
 
 void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
@@ -44,11 +46,11 @@ void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
 			auto& motion = registry.emplace<Motion>(entity);
 			motion.angle = 0.f;
 			motion.position = mob_motion.position;
-			motion.scale = { 265.f / (265.f + 401.f) * 40, 401.f / (265.f + 401.f) * 40 };
+			motion.scale = vec2(512.f, 508.f) / 15.f;
 			motion.velocity = { 0.f, 0.f };
 			auto& sprite = registry.emplace<Sprite>(entity);
-			sprite.coord = { 56.f / 401.f, 124.f / 265.f };
-			sprite.dims = { 265.f, 401.f };
+			sprite.coord = { 0, 0 };
+			sprite.dims = { 512.f, 508.f };
 			sprite.sheet_dims = { 512.f, 508.f };
 			auto& render_request = registry.emplace<RenderRequest>(entity);
 			render_request.used_texture = TEXTURE_ASSET_ID::POTION;
@@ -88,6 +90,8 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 			if (inventory_slot.hasItem) {
 				useItem(registry, inventory_slot.item);
 				inventory_slot.hasItem = false;
+
+				debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
 				registry.destroy(inventory_slot.item);
 				return true;
 			}
@@ -107,6 +111,8 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			registry.emplace<FixedUI>(item_entity);
 			auto& motion = registry.get<Motion>(item_entity);
 			motion.position = { 50.f + 45.f * i, 50.f };
+
+			MusicSystem::playSoundEffect(SFX::PICKUP);
 			break;
 		}
 	}
@@ -117,7 +123,6 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 		auto& motion = registry.get<Motion>(entity);
 		if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 			addToInventory(registry, entity);
-			MusicSystem::playSoundEffect(SFX::PICKUP);
 			break;
 		}
 	}

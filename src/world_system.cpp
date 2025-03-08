@@ -2,64 +2,46 @@
 #include "world_system.hpp"
 #include "world_init.hpp"
 #include "tinyECS/components.hpp"
-#include "util/file_loader.hpp"
 #include "ui_system.hpp"
 #include "music_system.hpp"
 #include "util/debug.hpp"
+#include "map/map_system.hpp"
 
 // stlib
 #include <cassert>
 #include <sstream>
 #include <iostream>
 #include <glm/glm.hpp>
-#include <cmath>
+
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry(reg),
-	physics_system(physics_system),
-	next_invader_spawn(0),
-	invader_spawn_rate_ms(INVADER_SPAWN_RATE_MS),
-	points(0)
+	physics_system(physics_system)
 {
-
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
-
-	// TODO: move background creation
-	auto entity = reg.create();
-	reg.emplace<Background>(entity);
-	
-	auto& sprite = reg.emplace<Sprite>(entity);
-	sprite.coord = {0.0f, 0.0f};
-	sprite.dims = {16.f * 199.f, 16.f * 199.f};
-	sprite.sheet_dims = {16.f * 199.f, 16.f * 199.f};
-
-	auto& motion = reg.emplace<Motion>(entity);
-	motion.position = {8.f * 199.f, 8.f * 199.f}; // make top-left corner of map at 0,0?
-	motion.scale = {16.f * 199.f, 16.f * 199.f};
-
-	auto& renderRequest = reg.emplace<RenderRequest>(entity);
-	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-	renderRequest.used_texture = TEXTURE_ASSET_ID::MAP_BACKGROUND;
-
-	gameMap = loadBinaryMap(map_path("map.bin"), 200, 200);
-	for (int i = 0; i < 200; i++) {
-		for (int j = 0; j < 200; j++) {
-			if (gameMap[i][j] == 3) {
-				spawnX = j * 16;
-				spawnY = i * 16;
-			}
-
-		}
-	}
-	player_entity = createPlayer(registry, vec2(spawnX, spawnY));
-	ship_entity = createShip(registry, vec2(spawnX, spawnY - 200));
+	player_entity = createPlayer(registry, {0, 0});
+	ship_entity = createShip(registry, {0, 0});
 	main_camera_entity = createCamera(registry, player_entity);
 
-	debug_printf(DebugType::WORLD_INIT, "Player spawn: (%.1f, %.1f)\n", spawnX, spawnY);
+	screen_entity = registry.create();
+	registry.emplace<ScreenState>(screen_entity);
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+
+
+	// init all the ui ships to use
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
+
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
+
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 - 155), vec2(1.5f, 1.5f), 5);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
+
 }
 
 WorldSystem::~WorldSystem() {
@@ -146,13 +128,18 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	auto screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+		return true;
+	}
+
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		debug_printf(DebugType::WORLD, "Game over; restarting game now...\n");
 		restart_game();
 	}
 
-	InputState i;
+	InputState i; 
 	if (key_state[KeyboardState::UP]) i.up = true;
 	if (key_state[KeyboardState::DOWN]) i.down = true;
 	if (key_state[KeyboardState::LEFT]) i.left = true;
@@ -179,12 +166,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			float x_scale = abs(motion.scale.x);
 
 			if (abs(velo.y) > 0) {
-				sprite.coord.x = (velo.y > 0) ? sprite.down_row : sprite.up_row;
+				sprite.coord.row = (velo.y > 0) ? sprite.down_row : sprite.up_row;
 				motion.scale.x = x_scale;
 			}
 
 			if (abs(velo.x) > 0) {
-				sprite.coord.x = sprite.right_row;
+				sprite.coord.row = sprite.right_row;
 				motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
 			}
 		}
@@ -198,38 +185,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float x_scale = abs(p_motion.scale.x);
 
 		if (abs(velo.x) > 0) {
-			p_sprite.coord.x = 1.f;
+			p_sprite.coord.row = 1;
 			p_motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
 		}
 
 		if (abs(velo.y) > 0) {
-			p_sprite.coord.x = (velo.y > 0) ? 0.f : 2.f;
+			p_sprite.coord.row = (velo.y > 0) ? 0 : 2;
 			p_motion.scale.x = x_scale;
 		}
 	}
 
-	// TODO: move this animation system
-	auto animations = registry.view<Animation, Sprite, Motion>();
-	for (auto entity : animations) {
-		auto& sprite = registry.get<Sprite>(entity);
-		auto& animation = registry.get<Animation>(entity);
-		auto& motion = registry.get<Motion>(entity);
-
-		animation.frameTime += elapsed_ms_since_last_update;
-		if (animation.frameTime >= animation.frameDuration) {
-			if (length(motion.velocity) <= 0.5f) {
-				sprite.coord.y = 0;
-			}
-			else {
-				int numFrames = (int)(sprite.sheet_dims.x / sprite.dims.x);
-				sprite.coord.y = ((int)(sprite.coord.y + 1)) % numFrames;
-			}
-			animation.frameTime = 0.0f;
-		}
-	}
-
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
-	auto& ship = registry.get<Ship>(ship_entity);
+	auto &ship = registry.get<Ship>(ship_entity);
 	auto mobs = registry.view<Mob>();
 
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
@@ -237,7 +204,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	if (ship.timer <= 0) {
 		ship.timer = SHIP_TIMER_MS;
-
+		
 		for (auto entity : mobs) {
 			auto motion = registry.get<Motion>(entity);
 			auto shipMotion = registry.get<Motion>(ship_entity);
@@ -253,40 +220,45 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// TODO: freeze everything if in ship_ui
+	
+	
+	
+
 	// TODO: move player out-of-bounds script
-	//       (probably to physics system, but only world system knows about gameMap)
+	MapSystem::update_location(registry, player_entity);
 
-	auto& player_motion = registry.get<Motion>(player_entity);
-	int tile_x = std::round((player_motion.position.x) / 16.f);
-	int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
-	int former_x = std::round((player_motion.formerPosition.x) / 16.f);
-	int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
+	// auto& player_motion = registry.get<Motion>(player_entity);
+	// int tile_x = std::round((player_motion.position.x) / 16.f);
+	// int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
+	// int former_x = std::round((player_motion.formerPosition.x) / 16.f);
+	// int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
 
-	auto valid_tile = [this](int tile_x, int tile_y) {
-		bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < 200 && tile_y < 200);
-		if (in_bounds) {
-			bool in_water = gameMap[tile_y][tile_x] == 0;
-			return !in_water;
-		}
-		return false;
-		};
+	// auto valid_tile = [this](int tile_x, int tile_y) {
+	// 	bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < MAP_TILE_WIDTH && tile_y < MAP_TILE_HEIGHT);
+	// 	if (in_bounds) {
+	// 		bool in_water = gameMap[tile_y][tile_x] == 0;
+	// 		return !in_water;
+	// 	}
+	// 	return false;
+	// };
 
-	if (!valid_tile(tile_x, tile_y)) {
-		if (valid_tile(tile_x, former_y)) {
-			player_motion.position = { player_motion.position.x, player_motion.formerPosition.y };
-		}
-		else if (valid_tile(former_x, tile_y)) {
-			player_motion.position = { player_motion.formerPosition.x, player_motion.position.y };
-		}
-		else {
-			player_motion.position = player_motion.formerPosition;
-		}
-	}
-
+	// if (!valid_tile(tile_x, tile_y)) {
+	// 	if (valid_tile(tile_x, former_y)) {
+	// 		player_motion.position = {player_motion.position.x, player_motion.formerPosition.y};
+	// 	} else if (valid_tile(former_x, tile_y)) {
+	// 		player_motion.position = {player_motion.formerPosition.x, player_motion.position.y};
+	// 	} else {
+	// 		player_motion.position = player_motion.formerPosition;
+	// 	}
+	// }
+  
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
 		projectile.timer -= elapsed_ms_since_last_update;
 		if (projectile.timer <= 0) {
+			debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: projectile)\n");
+
 			registry.destroy(entity);
 		}
 	}
@@ -295,14 +267,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
 
-
-	// TODO: move enemy attack cooldown system
-	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
-		mob.hit_time -= elapsed_s;
-	}
 	return true;
 }
-
 
 void WorldSystem::player_respawn() {
 	Player& player = registry.get<Player>(player_entity);
@@ -310,10 +276,9 @@ void WorldSystem::player_respawn() {
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 
-	player_motion.position = vec2(spawnX, spawnY);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
-	player_motion.formerPosition = vec2(spawnX, spawnY);
+	player_motion.formerPosition = player_motion.position;
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
@@ -322,37 +287,24 @@ void WorldSystem::player_respawn() {
 void WorldSystem::restart_game() {
 	debug_printf(DebugType::WORLD, "Restarting...\n");
 
-	// Reset the game speed
-	current_speed = 1.f;
-
-	points = 0;
-	next_invader_spawn = 0;
-	invader_spawn_rate_ms = INVADER_SPAWN_RATE_MS;
-
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);	
 	registry.destroy(motions.begin(), motions.end());
+	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
-	// TODO: move boss spawning system... less magic numbers too
-	for (int i = 0; i < 200; i++) {
-		for (int j = 0; j < 200; j++) {
-			if (gameMap[i][j] == 4) {
-				createBoss(registry, vec2(j * 16, i * 16));
-			}
-		}
-	}
+	vec2& p_pos = registry.get<Motion>(player_entity).position;
+	vec2& s_pos = registry.get<Motion>(ship_entity).position;
+
+	MapSystem::populate_ecs(registry, p_pos, s_pos);
 
 	player_respawn();
-	createPlayerHealthBar(registry, {spawnX, spawnY});
+	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
-	// createMob(registry, { spawnX + 500, spawnY + 500 }, MOB_HEALTH);
-	// createMob(registry, { spawnX + 600, spawnY + 600 }, MOB_HEALTH);
 
 	// reset the screen
-	auto screens = registry.view<ScreenState>();
-	auto& screen = registry.get<ScreenState>(screens.front());
-	screen.darken_screen_factor = 0;
+	auto screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
@@ -382,19 +334,60 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-	if (key == GLFW_KEY_P && action == GLFW_PRESS) {
+
+	if (key == GLFW_KEY_P) {
 		auto debugView = registry.view<Debug>();
 		if (debugView.empty()) {
-			debug_printf(DebugType::USER_INPUT, "Enabling debug mode\n");
 			registry.emplace<Debug>(player_entity);
 		}
 		else {
-			debug_printf(DebugType::USER_INPUT, "Disabling debug mode\n");
 			for (auto entity : debugView) {
+				std::cout << "Removing debug" << std::endl;
 				registry.remove<Debug>(entity);
 			}
 		}
 	}
+	// // Debugging - not used in A1, but left intact for the debug lines
+	// if (key == GLFW_KEY_D) {
+	// 	if (action == GLFW_RELEASE) {
+	// 		if (debugging.in_debug_mode) {
+	// 			debugging.in_debug_mode = false;
+	// 		}
+	// 		else {
+	// 			debugging.in_debug_mode = true;
+	// if (key == GLFW_KEY_P) {
+	// 	auto debugView = registry.view<Debug>();
+	// 	if (debugView.empty()) {
+	// 		registry.emplace<Debug>(player_entity);
+	// 	}
+	// 	else {
+	// 		for (auto entity : debugView) {
+	// 			std::cout << "Removing debug" << std::endl;
+	// 			registry.remove<Debug>(entity);
+	// 		}
+	// 	}
+	// }
+
+	// E to toggle opening/closign ship ui
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
+        if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
+            auto& player_motion = registry.get<Motion>(player_entity);
+            auto& ship_motion = registry.get<Motion>(ship_entity);
+
+			player_motion.velocity.x = 0;
+			player_motion.velocity.y = 0;
+
+            float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
+            if (distance_to_ship < 150.0f) {
+				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
+                screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
+            }
+        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
+            screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+        }
+    }
 
 	// TODO: testing sound system. remove this later
 	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
@@ -419,10 +412,18 @@ void WorldSystem::left_mouse_click() {
 	vec2 velocity = direction * PROJECTILE_SPEED;
 
 	auto& player_comp = registry.get<Player>(player_entity);
+	auto screens = registry.view<ScreenState>();
+	bool isUI = false; 
+	for (auto& screen : screens) {
+		auto& screen_state = registry.get<ScreenState>(screen); 
+		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+			isUI = true; 
+		}
+	}
 
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0
+		player_comp.weapon_cooldown <= 0 && !isUI
 	) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
