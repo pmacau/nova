@@ -27,18 +27,13 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
-
-	// debug_printf(DebugType::WORLD_INIT, "Player spawn: (%.1f, %.1f)\n", spawnX, spawnY);
-
+	
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 
 
 	// init all the ui ships to use
-	// createUIShip(registry, vec2(spawnX - 300, spawnY - 175), 6);
 	entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
-	// Motion& uiMotion = registry.get<Motion>(UISHIP);
-	// std::cout << "uiship pos: (" << uiMotion.position.x << ", " << uiMotion.position.y << ")" << std::endl;
 
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
@@ -361,7 +356,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_DOWN  || key == GLFW_KEY_S) key_state[KeyboardState::DOWN]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
-	if (key == GLFW_KEY_F) 							key_state[KeyboardState::SHIPUI] 	= (action != GLFW_RELEASE);
 
 	if (key == GLFW_KEY_P) {
 		auto debugView = registry.view<Debug>();
@@ -396,6 +390,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// 	}
 	// }
 
+	// E to toggle opening/closign ship ui
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
@@ -410,12 +405,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
                 screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
             }
-        }
-    }
-
-    // Close ship upgrade UI with G
-    if (key == GLFW_KEY_G && action == GLFW_RELEASE) {
-        if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
         }
