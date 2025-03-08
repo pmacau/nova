@@ -47,6 +47,9 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
 
+    vec2 size = {0.4f, 3.0f};	// smaller number = bigger
+	std::string openingMsg = "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!";
+    createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, openingMsg, 0.35f, {1.0f, 1.0f, 1.0f});
 }
 
 WorldSystem::~WorldSystem() {
@@ -314,7 +317,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, TextData>);	
 	registry.destroy(motions.begin(), motions.end());
 	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 

@@ -169,6 +169,13 @@ struct Inventory
 	std::vector<entt::entity> slots;
 };
 
+struct TextData
+{
+	std::string content;
+	float scale;
+	vec3 color;
+};
+
 // Stucture to store collision information
 // struct Collision
 // {
@@ -262,6 +269,7 @@ enum class TEXTURE_ASSET_ID {
 	POTION,
 	INVENTORY_SLOT,
 	TREE,
+	TEXTBOX_BACKGROUND,
 	TEXTURE_COUNT
 };
 

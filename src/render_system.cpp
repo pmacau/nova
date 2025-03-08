@@ -670,6 +670,33 @@ void RenderSystem::renderGamePlay()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
+	// render all the textboxes
+	std::vector<entt::entity> textBoxesUI;
+	auto textboxes = registry.view<Motion, RenderRequest, TextData>();
+	for (auto entity : textboxes) {
+		textBoxesUI.push_back(entity);
+	}
+
+	for (auto entity : textBoxesUI) {
+		drawTexturedMesh(entity, projection_2D);
+
+		auto& motion = registry.get<Motion>(entity);
+		auto& textData = registry.get<TextData>(entity);
+
+		// float textX = motion.position.x - (motion.scale.x / 4.0f);
+    	// float textY = motion.position.y;
+
+		mat3 flippedProjection = projection_2D;
+    	flippedProjection[1][1] *= -1.0f;
+
+		renderText(textData.content, 
+			motion.position.x - 230, 
+			-motion.position.y, 
+			textData.scale, 
+			textData.color, 
+			flippedProjection);
+	}
+
 	std::vector<entt::entity> UIRenderEntities;
 	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
 	for (auto entity : ui) {
