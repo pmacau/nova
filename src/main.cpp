@@ -41,13 +41,14 @@ int main()
 
 	// global systems
 	PhysicsSystem physics_system(reg);
-	WorldSystem   world_system(reg, physics_system);
+	FlagSystem flag_system(reg); 
+	WorldSystem   world_system(reg, physics_system, flag_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg, world_system);
 	SpawnSystem spawn_system(reg);
-	FlagSystem flag_system(reg); 
+	
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();

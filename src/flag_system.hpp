@@ -98,8 +98,8 @@ public:
 
   
     bool getIsPaused() const { return is_paused; }
-    TutorialStep getTutorialStep() const { return tutorial_step; }
 
+    TutorialStep getTutorialStep() const { return tutorial_step; }
 
     void setMobKilled(bool value) {
         if (value && tutorial_step == TutorialStep::Shot) {
