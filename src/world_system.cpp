@@ -369,6 +369,26 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
+	// // Debugging - not used in A1, but left intact for the debug lines
+	// if (key == GLFW_KEY_D) {
+	// 	if (action == GLFW_RELEASE) {
+	// 		if (debugging.in_debug_mode) {
+	// 			debugging.in_debug_mode = false;
+	// 		}
+	// 		else {
+	// 			debugging.in_debug_mode = true;
+	// if (key == GLFW_KEY_P) {
+	// 	auto debugView = registry.view<Debug>();
+	// 	if (debugView.empty()) {
+	// 		registry.emplace<Debug>(player_entity);
+	// 	}
+	// 	else {
+	// 		for (auto entity : debugView) {
+	// 			std::cout << "Removing debug" << std::endl;
+	// 			registry.remove<Debug>(entity);
+	// 		}
+	// 	}
+	// }
 
 	// E to toggle opening/closign ship ui
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
@@ -422,6 +442,7 @@ void WorldSystem::left_mouse_click() {
 			isUI = true; 
 		}
 	}
+
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
 		player_comp.weapon_cooldown <= 0 && !isUI
