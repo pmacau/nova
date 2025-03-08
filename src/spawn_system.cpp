@@ -8,6 +8,7 @@
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
 #include "ai/enemy_definition.hpp"
+#include <map/tile.hpp>
 
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
@@ -113,14 +114,14 @@ void SpawnSystem::processNaturalSpawning()
 
     // Assume candidate's biome is 0 for now
     // TODO: biome system
-    int candidateBiome = 0;
+    Biome candidateBiome = Biome::B_FOREST;
 
     // Get all eligible spawn definitions for the given location
     std::vector<const EnemyDefinition *> eligibleDefs;
     for (const auto &def : enemyDefinitions)
     {
         bool allowedBiome = false;
-        for (int biome : def.biomeIDs)
+        for (Biome biome : def.biomes)
         {
             if (biome == candidateBiome)
             {

@@ -12,7 +12,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	auto entity = registry.create();
 
 	auto& animComp = registry.emplace<AnimationComponent>(entity);
-    animComp.currentAnimationId = "player_idle";
+    animComp.currentAnimationId = "player_idle_down";
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
@@ -198,7 +198,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 
 	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
 	//motion.scale = vec2(38*3, 54*3);
-	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.9f};
 
 	registry.emplace<Eatable>(entity);
 	

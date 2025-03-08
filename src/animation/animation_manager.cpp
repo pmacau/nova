@@ -11,15 +11,35 @@ void AnimationManager::initializeAnimations() {
     animations.clear();
 
     // --- Idle Animation ---
-    AnimationDefinition idle;
-    idle.id = "player_idle";
-    idle.loop = true;
-    idle.frameWidth = PLAYER_SPRITESHEET.dims.x;
-    idle.frameHeight = PLAYER_SPRITESHEET.dims.y;
+    AnimationDefinition idle_down;
+    idle_down.id = "player_idle_down";
+    idle_down.loop = true;
+    idle_down.frameWidth = PLAYER_SPRITESHEET.dims.x;
+    idle_down.frameHeight = PLAYER_SPRITESHEET.dims.y;
 
-    idle.frames.push_back({0, 0});
-    idle.frameDurations.push_back(1000.f); 
-    animations[idle.id] = idle;
+    idle_down.frames.push_back({0, 0});
+    idle_down.frameDurations.push_back(1000.f); 
+    animations[idle_down.id] = idle_down;
+
+    AnimationDefinition idle_up;
+    idle_up.id = "player_idle_up";
+    idle_up.loop = true;
+    idle_up.frameWidth = PLAYER_SPRITESHEET.dims.x;
+    idle_up.frameHeight = PLAYER_SPRITESHEET.dims.y;
+
+    idle_up.frames.push_back({2, 0});
+    idle_up.frameDurations.push_back(1000.f); 
+    animations[idle_up.id] = idle_up;
+
+    AnimationDefinition idle_right;
+    idle_right.id = "player_idle_right";
+    idle_right.loop = true;
+    idle_right.frameWidth = PLAYER_SPRITESHEET.dims.x;
+    idle_right.frameHeight = PLAYER_SPRITESHEET.dims.y;
+
+    idle_right.frames.push_back({1, 0});
+    idle_right.frameDurations.push_back(1000.f); 
+    animations[idle_right.id] = idle_right;
 
     // --- Walk Right Animation ---
     AnimationDefinition walkRight;

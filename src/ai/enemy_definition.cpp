@@ -1,5 +1,6 @@
 #include "enemy_definition.hpp"
 #include <glm/glm.hpp>
+#include <tinyECS/components.hpp>
 
 std::vector<EnemyDefinition> enemyDefinitions;
 
@@ -14,7 +15,7 @@ void initializeEnemyDefinitions() {
         def.spawnProbability = 0.5f;
         def.group.minSize = 1;
         def.group.maxSize = 3;
-        def.biomeIDs = {0, 1};
+        def.biomes = {Biome::B_FOREST, Biome::B_BEACH};
 
         // Basic stats
         def.minHealth = 50;
@@ -23,7 +24,7 @@ void initializeEnemyDefinitions() {
         def.speed = 1.0f;
 
         def.scale = glm::vec2(100, 120);
-        def.spriteSheetPath = "data/textures/mob/demoMobdummy.png";
+        def.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
 
         // Animations: Suppose each frame is 64x64, row 0 = idle, row 1 = attack, etc.
         int frameWidth  = 64;

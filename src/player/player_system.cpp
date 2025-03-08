@@ -29,13 +29,29 @@ void PlayerSystem::updatePlayerAnimationState() {
 
     if (length(velocity) < epsilon) {
         // If velocity is very low, switch to idle animation.
-        if (animComp.currentAnimationId != "player_idle") {
-            animComp.currentAnimationId = "player_idle";
+        if (animComp.currentAnimationId == "player_walk_right") {
+            animComp.currentAnimationId = "player_idle_right";
             animComp.timer = 0.0f;
             animComp.currentFrameIndex = 0;
         }
+        else if (animComp.currentAnimationId == "player_walk_up") {
+            animComp.currentAnimationId = "player_idle_up";
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex = 0;
+        }
+        else if (animComp.currentAnimationId == "player_walk_down") {
+            animComp.currentAnimationId = "player_idle_down";
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex = 0;
+        }
+
+        // if (animComp.currentAnimationId != "player_idle") {
+        //     animComp.currentAnimationId = "player_idle";
+        //     animComp.timer = 0.0f;
+        //     animComp.currentFrameIndex = 0;
+        // }
         // Ensure no horizontal flip.
-        motion.scale.x = std::abs(motion.scale.x);
+        // motion.scale.x = std::abs(motion.scale.x);
     }
     else {
         if (std::abs(velocity.x) > std::abs(velocity.y)) {

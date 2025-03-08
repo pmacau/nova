@@ -34,12 +34,12 @@ if (IS_OS_MAC)
     link_directories(/usr/local/lib)
     # 2024-09-24 - added for M-series Mac's
     include_directories(/opt/homebrew/include)
-    # link_directories(/opt/homebrew/lib)
+    link_directories(/opt/homebrew/lib)
     # Add specific library paths
-    # include_directories(/opt/homebrew/opt/bzip2/include)
-    # link_directories(/opt/homebrew/opt/bzip2/lib)
-    # include_directories(/opt/homebrew/opt/libpng/include)
-    # link_directories(/opt/homebrew/opt/libpng/lib)
+    include_directories(/opt/homebrew/opt/bzip2/include)
+    link_directories(/opt/homebrew/opt/bzip2/lib)
+    include_directories(/opt/homebrew/opt/libpng/include)
+    link_directories(/opt/homebrew/opt/libpng/lib)
 endif()
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})

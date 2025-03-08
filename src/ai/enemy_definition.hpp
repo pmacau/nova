@@ -5,6 +5,8 @@
 
 #include <vector>
 #include <string>
+#include <map/tile.hpp>
+#include <tinyECS/components.hpp>
 
 // Structure representing an animation sequence for a sprite.
 struct SpriteAnimation {
@@ -28,7 +30,7 @@ struct EnemyDefinition {
     // Spawn-related parameters.
     float spawnProbability;      // Range 0.0 to 1.0.
     GroupProperties group;       // Group spawn settings.
-    std::vector<int> biomeIDs;   // Biomes where this enemy can spawn.
+    std::vector<Biome> biomes;   // Biomes where this enemy can spawn.
 
     // Core gameplay stats.
     int minHealth;
@@ -38,7 +40,7 @@ struct EnemyDefinition {
 
     // Rendering and animation properties.
     vec2 scale;                     // The default scale for rendering the sprite.
-    std::string spriteSheetPath;    // Path to the spritesheet asset.
+    TEXTURE_ASSET_ID textureAssetID;    // Path to the spritesheet asset.
     std::vector<SpriteAnimation> animations; // List of animations (idle, run, attack, etc.)
 
     // Drop information.
