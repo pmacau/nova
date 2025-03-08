@@ -375,26 +375,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-	// // Debugging - not used in A1, but left intact for the debug lines
-	// if (key == GLFW_KEY_D) {
-	// 	if (action == GLFW_RELEASE) {
-	// 		if (debugging.in_debug_mode) {
-	// 			debugging.in_debug_mode = false;
-	// 		}
-	// 		else {
-	// 			debugging.in_debug_mode = true;
-	// if (key == GLFW_KEY_P) {
-	// 	auto debugView = registry.view<Debug>();
-	// 	if (debugView.empty()) {
-	// 		registry.emplace<Debug>(player_entity);
-	// 	}
-	// 	else {
-	// 		for (auto entity : debugView) {
-	// 			std::cout << "Removing debug" << std::endl;
-	// 			registry.remove<Debug>(entity);
-	// 		}
-	// 	}
-	// }
 
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
@@ -444,10 +424,17 @@ void WorldSystem::left_mouse_click() {
 	vec2 velocity = direction * PROJECTILE_SPEED;
 
 	auto& player_comp = registry.get<Player>(player_entity);
-
+	auto& screens = registry.view<ScreenState>();
+	bool isUI = false; 
+	for (auto& screen : screens) {
+		auto& screen_state = registry.get<ScreenState>(screen); 
+		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+			isUI = true; 
+		}
+	}
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0
+		player_comp.weapon_cooldown <= 0 && !isUI
 	) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
