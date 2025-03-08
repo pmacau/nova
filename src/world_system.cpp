@@ -412,6 +412,11 @@ void WorldSystem::handleTextBoxes() {
     //     }
     // }
 	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
+
+	if (currentStep == FlagSystem::TutorialStep::MobKilled && flag_system.time_spent_s > 5.0) {
+		auto& firstTextData = registry.get<TextData>(textBoxEntities[4]);
+    	firstTextData.active = false;
+	}
     
     // First, make all text boxes inactive
     for (auto entity : textBoxEntities) {
