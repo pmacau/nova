@@ -106,7 +106,6 @@ private:
 	void renderGamePlay();
 	void renderShipUI();
 
-	void drawBackground(const mat3& projection);
 	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
@@ -127,8 +126,6 @@ private:
 	GLuint textVBO = 0;
 
 	mat3 shipUITransform = mat3(1.0f);
-
-	GLuint createShader(const std::string& vertexPath, const std::string& fragmentPath);
 	
 	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
 };
