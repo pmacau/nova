@@ -27,7 +27,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
-	
+
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 
@@ -414,7 +414,7 @@ void WorldSystem::left_mouse_click() {
 	vec2 velocity = direction * PROJECTILE_SPEED;
 
 	auto& player_comp = registry.get<Player>(player_entity);
-	auto& screens = registry.view<ScreenState>();
+	auto screens = registry.view<ScreenState>();
 	bool isUI = false; 
 	for (auto& screen : screens) {
 		auto& screen_state = registry.get<ScreenState>(screen); 
