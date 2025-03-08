@@ -5,27 +5,20 @@
 
 class AIStateMachine {
 public:
-    AIStateMachine(entt::registry& registry, entt::entity entity)
-        : registry(registry), entity(entity), currentState(nullptr) {}
+    // Constructor: takes a reference to the registry and the entity owning this state machine.
+    AIStateMachine(entt::registry& registry, entt::entity entity);
+
+    // Destructor.
+    ~AIStateMachine();
 
     // Update the current state.
-    void update(float deltaTime) {
-        if (currentState)
-            currentState->onUpdate(registry, entity, deltaTime);
-    }
+    void update(float deltaTime);
 
-    // Transition to a new state.
-    void changeState(AIState* newState) {
-        if (currentState) {
-            currentState->onExit(registry, entity);
-        }
-        currentState = newState;
-        if (currentState) {
-            currentState->onEnter(registry, entity);
-        }
-    }
+    // Change the current state.
+    void changeState(AIState* newState);
 
-    AIState* getCurrentState() const { return currentState; }
+    // Get the current state.
+    AIState* getCurrentState() const;
 
 private:
     entt::registry& registry;

@@ -5,6 +5,8 @@
 #include "ai/ai_component.hpp"
 #include "ai/state_machine/ai_state_machine.hpp"
 #include "animation/animation_component.hpp"
+#include "ai/state_machine/idle_state.hpp"
+#include "ai/state_machine/patrol_state.hpp"
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
@@ -131,6 +133,13 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
+	auto& aiComp = registry.emplace<AIComponent>(entity);
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
+
+	//initial state
+	static IdleState idleState;
+	aiComp.stateMachine->changeState(&idleState);
+
 	createMobHealthBar(registry, entity);
 	return entity; 
 }
@@ -215,6 +224,13 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
     animComp.currentAnimationId = "mob2_idle";
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
+
+	auto& aiComp = registry.emplace<AIComponent>(entity);
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
+
+	//initial state
+	static PatrolState patrolState;
+	aiComp.stateMachine->changeState(&patrolState);
 
 	createMobHealthBar(registry, entity);
 	return entity; 

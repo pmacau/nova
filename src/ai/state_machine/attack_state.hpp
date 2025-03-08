@@ -1,21 +1,11 @@
-// src/ai/state_machine/idle_state.hpp
 #pragma once
 
 #include "ai_state.hpp"
+#include <iostream>
 
-struct IdleStateConfig {
-    float detectionRange = 400.0f;
-};
-
-class IdleState : public AIState {
+class AttackState : public AIState {
 public:
-    IdleState(): config() {}
-    IdleState(const IdleStateConfig& config) : config(config) {}
     void onEnter(entt::registry& registry, entt::entity entity) override;
-
     void onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) override;
-
     void onExit(entt::registry& registry, entt::entity entity) override;
-protected:
-    IdleStateConfig config;
 };
