@@ -36,7 +36,11 @@ public:
 
         //if () screenstate no longer
         // set unpaused to false. 
-     
+        
+        
+        //debug_printf(DebugType::FLAG, "time is now %f\n", time_spent_s);
+        
+
         if (tutorial_step != TutorialStep::Moved) {
             auto view = registry.view<ScreenState>();
             for (auto entity : view) {

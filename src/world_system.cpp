@@ -128,11 +128,16 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	title_off_time = max(title_off_time + elapsed_ms_since_last_update / 1000.f, 0.5f);
 	auto screen_state = registry.get<ScreenState>(screen_entity);
-	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
-		screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
+	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		title_off_time = 0;
+		return true; 
+	}
+	
 
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
@@ -447,9 +452,11 @@ void WorldSystem::left_mouse_click() {
 		}
 	}
 
+	
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0 && screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY
+		player_comp.weapon_cooldown <= 0 && screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && title_off_time > 0.65f
+
 	) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);

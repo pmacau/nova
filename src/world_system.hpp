@@ -52,6 +52,7 @@ private:
 	entt::entity screen_entity;
 	
 	bool key_state[KeyboardState::NUM_STATES];
+	float title_off_time; 
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
 
