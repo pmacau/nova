@@ -20,7 +20,7 @@ struct SoundData {
 };
 
 enum SFX {
-    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD,
+    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT,
     SFX_COUNT
 };
 const int sfx_count = (int) SFX_COUNT;
@@ -70,7 +70,8 @@ private:
             {POTION, {"sfx/potion.wav"}},
             {EQUIP,  {"sfx/equip.wav"}},
             {PICKUP, {"sfx/pickup.wav"}},
-            {WOOD,   {"sfx/wood.wav"}}
+            {WOOD,   {"sfx/wood.wav"}},
+            {SELECT, {"sfx/select.wav"}}
         };
         inline static std::unordered_map<Music, SoundData<Mix_Music>> music_map = {
             {FOREST,    {"music/forest.wav"}},

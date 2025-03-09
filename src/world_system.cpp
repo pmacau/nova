@@ -503,6 +503,7 @@ void WorldSystem::left_mouse_click() {
 		for (auto entity : registry.view<TitleOption>()) {
 			auto& title_option = registry.get<TitleOption>(entity);
 			if (title_option.hover) {
+				MusicSystem::playSoundEffect(SFX::SELECT);
 				if (title_option.type == TitleOption::Option::PLAY) {
 					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 					return;
