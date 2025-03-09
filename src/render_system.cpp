@@ -501,12 +501,14 @@ void RenderSystem::renderGamePlay()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
-	std::vector<entt::entity> UIRenderEntities;
+	auto title = registry.view<Title, Motion, RenderRequest>();
+
+	for (auto entity : title) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
 	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
 	for (auto entity : ui) {
-		UIRenderEntities.push_back(entity);
-	}
-	for (auto entity : UIRenderEntities) {
 		if (registry.any_of<FixedUI>(entity)) {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
@@ -516,14 +518,9 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// render projectiles
-	std::vector<entt::entity> ProjectileRenderEntities;
 	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
 
 	for (auto entity : projectiles) {
-		ProjectileRenderEntities.push_back(entity);
-	}
-
-	for (auto entity : ProjectileRenderEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
@@ -569,17 +566,12 @@ void RenderSystem::renderGamePlay()
 	}
 
   // items
-	std::vector<entt::entity> ItemRenderEntities;
 	auto items = registry.view<Item, Motion, RenderRequest>();
 
 	for (auto entity : items) {
 		if (!registry.any_of<FixedUI>(entity)) {
-			ItemRenderEntities.push_back(entity);
+			drawTexturedMesh(entity, projection_2D);
 		}
-	}
-
-	for (auto entity : ItemRenderEntities) {
-		drawTexturedMesh(entity, projection_2D);
 	}
 
 	// Render huge background texture

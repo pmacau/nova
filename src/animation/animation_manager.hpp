@@ -1,6 +1,7 @@
 #pragma once
 
 #include "animation_definition.hpp" 
+#include <unordered_map>
 #include <string>
 
 

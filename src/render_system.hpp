@@ -39,8 +39,8 @@ class RenderSystem {
 		textures_path("items/potion.png"), 
 		textures_path("inventory/inventory-slot.png"),
 		textures_path("terrain/tree.png"),
-		textures_path("mob/goblin_torch_blue.png")
-
+		textures_path("mob/goblin_torch_blue.png"), 
+		textures_path("title/screen.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -104,7 +104,6 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen();
-
 	void renderGamePlay();
 	void renderShipUI();
 

@@ -165,6 +165,11 @@ struct InventorySlot
 	entt::entity item;
 };
 
+struct Title
+{
+
+};
+
 struct Inventory
 {
 	std::vector<entt::entity> slots;
@@ -191,6 +196,7 @@ struct ScreenState
 	enum class ScreenType {
         GAMEPLAY,
         SHIP_UPGRADE_UI,
+		TITLE
     };
 
     ScreenType current_screen;
@@ -264,6 +270,7 @@ enum class TEXTURE_ASSET_ID {
 	INVENTORY_SLOT,
 	TREE,
 	GOBLIN_TORCH_BLUE,
+	TITLE,
 	TEXTURE_COUNT
 };
 

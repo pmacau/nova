@@ -548,3 +548,21 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
 
     return entity;
 }
+
+entt::entity createTitleScreen(entt::registry& registry) {
+	auto entity = registry.create();
+	registry.emplace<Title>(entity);
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = { WINDOW_WIDTH_PX / 2.f, WINDOW_HEIGHT_PX / 2.f };
+	motion.scale = { 500.f, 500.f};
+	motion.offset_to_ground = { 0, motion.scale.y / 2.f };
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = { 0, 0 };
+	sprite.dims = { 120.f, 68.f };
+	sprite.sheet_dims = { 120.f, 68.f };
+	auto& render_request = registry.emplace<RenderRequest>(entity);;
+	render_request.used_texture = TEXTURE_ASSET_ID::TITLE;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	return entity;
+}

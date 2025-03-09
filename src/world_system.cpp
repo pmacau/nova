@@ -42,6 +42,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
 
+	createTitleScreen(registry);
 }
 
 WorldSystem::~WorldSystem() {
@@ -129,7 +130,8 @@ void WorldSystem::init() {
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto screen_state = registry.get<ScreenState>(screen_entity);
-	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+		screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 		return true;
 	}
 
@@ -290,7 +292,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title>);	
 	registry.destroy(motions.begin(), motions.end());
 	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
@@ -304,7 +306,6 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, player_spawn);
 	createInventory(registry);
-
 	// reset the screen
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.darken_screen_factor = 0;
@@ -317,10 +318,19 @@ bool WorldSystem::is_over() const {
 
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
-	// exit game w/ ESC
+	// title screen
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
-		close_window();
+		//close_window();
+		if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+			debug_printf(DebugType::USER_INPUT, "Closing pause title screen\n");
+			screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+		}
+		else {
+			debug_printf(DebugType::USER_INPUT, "Opening pause title screen\n");
+			screen_state.current_screen = ScreenState::ScreenType::TITLE;
+		}
 	}
 
 	// Resetting game
@@ -372,7 +382,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// }
 
 	// E to toggle opening/closign ship ui
-	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
             auto& player_motion = registry.get<Motion>(player_entity);
@@ -419,7 +428,8 @@ void WorldSystem::left_mouse_click() {
 	bool isUI = false; 
 	for (auto& screen : screens) {
 		auto& screen_state = registry.get<ScreenState>(screen); 
-		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+			screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 			isUI = true; 
 		}
 	}
