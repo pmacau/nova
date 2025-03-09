@@ -16,29 +16,11 @@ struct Boss{
 	vec2 spawn;
 };
 
-enum HitBoxType {
-	HITBOX_CIRCLE,
-	HITBOX_RECT
-};
-
 struct InputState {
 	bool up = false;
 	bool down = false;
 	bool left = false;
 	bool right = false;
-};
-
-struct HitBox {
-	HitBoxType type;
-	union {
-		struct {
-			float radius;
-		} circle;
-		struct {
-			float width;
-			float height;
-		} rect;
-	} shape;
 };
 
 struct Obstacle {
@@ -191,6 +173,14 @@ struct Inventory
 	std::vector<entt::entity> slots;
 };
 
+struct TextData
+{
+	std::string content;
+	float scale;
+	vec3 color;
+	bool active = false;
+};
+
 // Stucture to store collision information
 // struct Collision
 // {
@@ -286,15 +276,10 @@ enum class TEXTURE_ASSET_ID {
 	INVENTORY_SLOT,
 	TREE,
 	GOBLIN_TORCH_BLUE,
-	TITLE,
+	TITLE, 
+	TEXTBOX_BACKGROUND,
 	TEXTURE_COUNT
 };
-
-//enum class hitBoxType {
-//	Mob,
-//	Projectile, 
-//	Player
-//};
 
 
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

@@ -1,11 +1,14 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include <iostream>
-#include "ai/ai_common.hpp"
-#include "ai/ai_component.hpp"
+#include <ai/ai_common.hpp>
+#include <ai/ai_component.hpp>
 #include "ai/state_machine/ai_state_machine.hpp"
 #include "animation/animation_component.hpp"
-
+#include "ai/state_machine/idle_state.hpp"
+#include "ai/state_machine/patrol_state.hpp"
+#include <ai/ai_initializer.hpp>
+#include "collision/hitbox.hpp"
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
@@ -16,22 +19,12 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
-
 	auto& sprite = registry.emplace<Sprite>(entity);
-	// sprite.dims = PLAYER_SPRITESHEET.dims;
+	sprite.dims = PLAYER_SPRITESHEET.dims;
 	sprite.sheet_dims = PLAYER_SPRITESHEET.sheet_dims;
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
-	//player.direction = 0; // TODO: use enum
-	// HITBOX
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = 25.f;
-	/*hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 43.f;
-	hitBox.shape.rect.height = 55.f;*/
-
 	 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -39,12 +32,17 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.position = position;
 	motion.formerPosition = position;
 	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
-	// motion.scale = vec2(19 * 2, 32 * 2);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
-	registry.emplace<Eatable>(entity);
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
 
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::PLAYER;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
@@ -97,31 +95,28 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 43.f, 55.f };	
 	sprite.sheet_dims = {43.f, 55.f};
-
-	// HITBOX
-	auto& hitBox = registry.emplace<HitBox>(entity); 
-	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
-	hitBox.shape.circle.radius = 40.f; 
-	/*hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 43.f;
-	hitBox.shape.rect.height = 55.f;*/
-
-
 	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	// motion.position = position;
-
 	motion.position.x = position.x + sprite.dims[0] / 2;
 	motion.position.y = position.y + sprite.dims[1] / 2;
 	motion.scale = vec2(100, 120);
 
+	// HITBOX
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
+	hitbox.depth = 50;
+
 	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
 	//motion.scale = vec2(38*3, 54*3);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
-
-	registry.emplace<Eatable>(entity);
 	
 	auto& drop = registry.emplace<Drop>(entity);
 	drop.item_type = ITEM_TYPE::POTION;
@@ -130,6 +125,17 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	createMobHealthBar(registry, entity, 15.f);
+	// ai set up
+	// TODO: create a generic enemy creation
+	auto& aiComp = registry.emplace<AIComponent>(entity);
+	AIConfig bossConfig = getBossAIConfig();
+	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, bossConfig, goblinTransitions);
+   
+	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
+
 
 	createMobHealthBar(registry, entity, 15.f);
 	return entity; 
@@ -173,35 +179,26 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	mob.health = health;
 	mob.hit_time = 1.f;
 
-	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	// sprite.dims = { 43.f, 55.f };	
 	sprite.dims = vec2(1344.f / 7, 960.f / 5);
-
 	sprite.sheet_dims = {1344.f, 960.f};
 
-	// HITBOX
-	auto& hitBox = registry.emplace<HitBox>(entity); 
-	hitBox.type = HitBoxType::HITBOX_CIRCLE; 
-	hitBox.shape.circle.radius = 30.f; 
-	/*hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 43.f;
-	hitBox.shape.rect.height = 55.f;*/
-	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	// motion.position = position;
-
 	motion.position.x = position.x + sprite.dims[0] / 2;
 	motion.position.y = position.y + sprite.dims[1] / 2;
 	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
-
-	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
-	//motion.scale = vec2(38*3, 54*3);
 	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.9f};
 
-	registry.emplace<Eatable>(entity);
+	float w = motion.scale.x * 0.4;
+	float h = motion.scale.y * 0.5;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
+	hitbox.depth = 50;
 	
 	auto& drop = registry.emplace<Drop>(entity);
 	drop.item_type = ITEM_TYPE::POTION;
@@ -217,66 +214,22 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
+	// TODO: create a generic enemy creation
+	// set up ai for goblin
+	auto& aiComp = registry.emplace<AIComponent>(entity);
+	AIConfig goblinConfig = getGoblinAIConfig();
+	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, goblinConfig, goblinTransitions);
+   
+	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
+
+	//initial state
+	static PatrolState patrolState;
+	aiComp.stateMachine->changeState(&patrolState);
+
 	createMobHealthBar(registry, entity, -40.0f);
 	return entity; 
 }
-
-
-
-//entt::entity createRockType1(entt::registry& registry, vec2 position) {
-//	auto entity = registry.create();
-//	auto& sprite = registry.emplace<Sprite>(entity);
-//	sprite.dims = { 5.f, 5.f };
-//	sprite.sheet_dims = { 144.f, 135.f };
-//	auto& hitBox = registry.emplace<HitBox>(entity);
-//	hitBox.type = HitBoxType::HITBOX_RECT;
-//	hitBox.shape.rect.width = 54.f;
-//	hitBox.shape.rect.height = 54.f;
-//	/*hitBox.type = HitBoxType::HITBOX_CIRCLE;
-//	hitBox.shape.circle.radius = 12.f;*/
-//	auto& motion = registry.emplace<Motion>(entity);
-//	motion.angle = 0.f;
-//	motion.velocity = { 0, 0 };
-//	motion.position = position;
-//	motion.scale = vec2(54, 54);
-//	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-//	auto& obstacle = registry.emplace<Obstacle>(entity);
-//	obstacle.isPassable = false;
-//
-//	renderRequest.used_texture = TEXTURE_ASSET_ID::STONE_BLOCK_1;
-//	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-//	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-//	return entity;
-//
-//}
-
-
-//entt::entity createTreeType1(entt::registry& registry, vec2 position) {
-//	auto entity = registry.create();
-//	auto& sprite = registry.emplace<Sprite>(entity);
-//	sprite.dims = { 80.f, 80.f };
-//	sprite.sheet_dims = { 800.f, 944.f };
-//	auto& hitBox = registry.emplace<HitBox>(entity);
-//	/*hitBox.type = HitBoxType::HITBOX_RECT;
-//	hitBox.shape.rect.width = 54.f;
-//	hitBox.shape.rect.height = 54.f;*/
-//	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-//	hitBox.shape.circle.radius = 115.f;
-//	auto& motion = registry.emplace<Motion>(entity);
-//	motion.angle = 0.f;
-//	motion.velocity = { 0, 0 };
-//	motion.position = position;
-//	motion.scale = vec2(250, 250);
-//	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-//	auto& obstacle = registry.emplace<Obstacle>(entity);
-//	obstacle.isPassable = false;
-//
-//	renderRequest.used_texture = TEXTURE_ASSET_ID::TREE;
-//	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-//	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-//	return entity;
-//
-//}
 
 entt::entity createShip(entt::registry& registry, vec2 position)
 {
@@ -291,21 +244,24 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = vec2(19 * 14, 35 * 4.5);
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_RECT;
-	hitBox.shape.rect.width = 19.f * 11.f;
-	hitBox.shape.rect.height = 35.f * 3.2;
+	motion.offset_to_ground = vec2(0, motion.scale.y / 2);
+
+	float w = motion.scale.x * 0.8;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+	};
+	hitbox.depth = 100;
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
 
-	debug_printf(DebugType::WORLD_INIT, "Ship position (%d, %d)\n", position.x, position.y);
-
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0, 0};
-    // sprite.dims = {19 * 15, 35 * 7};
 	sprite.dims = {128, 75};
-   sprite.sheet_dims = { 128, 75 };
+   	sprite.sheet_dims = { 128, 75 };
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP6;
@@ -317,7 +273,6 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 
 entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum)
 {
-
 	auto entity = registry.create();
 	registry.emplace<UIShip>(entity);
 	registry.emplace<UI>(entity);
@@ -328,7 +283,6 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 	motion.velocity = {0, 0};
 	motion.position = position;
 	motion.scale = GAME_SCALE * vec2(120.f / scale.x, 128.f / scale.y);
-	// motion.offset_to_ground = {0, motion.scale.y / 2.f / 2.5};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0, 0};
@@ -338,6 +292,34 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	shipNum = std::clamp(shipNum, 1, 6);
 	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(TEXTURE_ASSET_ID::SHIP1) + (shipNum - 1));
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor) {
+	auto entity = registry.create();
+
+	// registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+	registry.emplace<TextData>(entity, text, scale, textColor);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	// motion.scale = GAME_SCALE * size;
+	motion.scale = GAME_SCALE * vec2(120.f / size.x, 128.f / size.y);
+	// motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.position = position;
+	motion.velocity = {0.f, 0.f};
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	// sprite.coord = position;
+	sprite.coord = {0, 0};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::TEXTBOX_BACKGROUND;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
@@ -363,9 +345,14 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.scale = size;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
-	auto& hitBox = registry.emplace<HitBox>(entity);
-	hitBox.type = HitBoxType::HITBOX_CIRCLE;
-	hitBox.shape.circle.radius = motion.scale.x / 2;
+	// TODO: make hexagonal hitbox
+	float w = motion.scale.x;
+	float h = motion.scale.y;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * 0, h * -0.5f},
+		{w * 0.5f, h * 0.5f}, {w * -0.5f, h * 0.5f}
+	};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::GOLD_PROJECTILE;
@@ -401,16 +388,20 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 	sprite.dims = {50.f, 99.f};
 	sprite.sheet_dims = {100.f, 99.f};
 
-	// TODO: allow for more flexible hitboxes. I want to be able to "walk through"
-	//       the leaves (from behind), but I want a hitbox on the trunk
+	// TODO: make this hitbox trapezoid at the root
+	float w = 18.f;
+	float h = 16.f;
+	float g = 49.5f;
 
-	// auto& hitBox = registry.emplace<HitBox>(entity);
-	// hitBox.type = HitBoxType::HITBOX_RECT;
-	// hitBox.shape.rect.height = GAME_SCALE * 50.f;
-	// hitBox.shape.rect.width = GAME_SCALE * 10.f;
+	// hitbox is relative to object's center
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	hitbox.pts = {
+		{w * -0.5f, g + h * -0.5f}, {w * 0.5f, g + h * -0.5f},
+		{w * 0.5f, g + h * 0.5f},   {w * -0.5f, g + h * 0.5f}
+	};
 
-	// auto& obstacle = registry.emplace<Obstacle>(entity);
-	// obstacle.isPassable = false;
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::TREE;
@@ -498,13 +489,13 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
     // Optionally set sprite.coord for initial frame.
 
     // --- HitBox Component ---
-    auto& hitBox = registry.emplace<HitBox>(entity);
-    hitBox.type = HITBOX_CIRCLE;
-    if (creatureType == CreatureType::Boss) {
-        hitBox.shape.circle.radius = 60.f;  // Example value for boss
-    } else {
-        hitBox.shape.circle.radius = 40.f;
-    }
+    // auto& hitBox = registry.emplace<HitBox>(entity);
+    // hitBox.type = HITBOX_CIRCLE;
+    // if (creatureType == CreatureType::Boss) {
+    //     hitBox.shape.circle.radius = 60.f;  // Example value for boss
+    // } else {
+    //     hitBox.shape.circle.radius = 40.f;
+    // }
 
     // --- Creature-Specific Component ---
     if (creatureType == CreatureType::Mob || creatureType == CreatureType::Mutual) {
@@ -520,8 +511,8 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
 
     // --- AI Component ---
     // Attach our AI state machine to control creature behavior.
-    auto& aiComp = registry.emplace<AIComponent>(entity);
-    aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
+    // auto& aiComp = registry.emplace<AIComponent>(entity);
+    // aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
     // Set initial state to Idle. (Using a static instance for now; can later be created per entity if needed.)
     // static IdleState idleState;
     // aiComp.stateMachine->changeState(&idleState);

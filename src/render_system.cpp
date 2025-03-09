@@ -124,7 +124,7 @@ bool RenderSystem::initFreetype() {
 
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
     // Activate corresponding render state	
-    glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
     gl_has_errors();
 
     // Validate VAO and VBO
@@ -135,11 +135,9 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     // Set projection
     GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
     glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
     // Set text color
     GLuint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "textColor");
     glUniform3f(colorLoc, color.x, color.y, color.z);
@@ -200,33 +198,13 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
         x += (ch.Advance >> 6) * scale;
     }
     
-    glBindVertexArray(0);
+	glBindVertexArray(0); 
     glBindTexture(GL_TEXTURE_2D, 0);
     gl_has_errors();
 }
 
-static std::vector<glm::vec2> generateCircleVertices(float centerX, float centerY, float radius, int segments = 32) {
-	std::vector<glm::vec2> vertices;
-	for (int i = 0; i < segments; i++) {
-		float theta = 2.0f * 3.14159f * float(i) / float(segments);
-		float x = centerX + radius * cos(theta);
-		float y = centerY + radius * sin(theta);
-		vertices.emplace_back(x, y);
-	}
-	return vertices;
-}
-
-std::vector<glm::vec2> generateRectVertices(float centerX, float centerY, float width, float height) {
-	float halfW = width / 2.0f;
-	float halfH = height / 2.0f;
-	return {
-		{centerX - halfW, centerY - halfH},
-		{centerX + halfW, centerY - halfH},
-		{centerX + halfW, centerY + halfH},
-		{centerX - halfW, centerY + halfH}
-	};
-}
-
+// TODO: fix debug rendering later
+/*
 void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform) {
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
 	gl_has_errors();
@@ -271,6 +249,7 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 
 	glBindVertexArray(defaultVAO);
 }
+*/
 
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
@@ -494,6 +473,34 @@ void RenderSystem::renderGamePlay()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
+	// render all the textboxes
+	// std::vector<entt::entity> textBoxesUI;
+	// auto textboxes = registry.view<Motion, RenderRequest, TextData>();
+	// for (auto entity : textboxes) {
+	// 	auto& textData = registry.get<TextData>(entity);
+	// 	// Only process active text boxes
+	// 	if (textData.active) {
+	// 		textBoxesUI.push_back(entity);
+	// 	}
+	// }
+
+	// for (auto entity : textBoxesUI) {
+	// 	drawTexturedMesh(entity, projection_2D);
+
+	// 	auto& motion = registry.get<Motion>(entity);
+	// 	auto& textData = registry.get<TextData>(entity);
+
+	// 	mat3 flippedProjection = projection_2D;
+    // 	flippedProjection[1][1] *= -1.0f;
+
+	// 	renderText(textData.content, 
+	// 		motion.position.x - 230, 
+	// 		-motion.position.y, 
+	// 		textData.scale, 
+	// 		textData.color, 
+	// 		flippedProjection);
+	// }
+
 	// Render huge background texture
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
@@ -502,37 +509,70 @@ void RenderSystem::renderGamePlay()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
     });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background>);
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
 
 	// Render dynamic UI
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, Title>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
-
+	
+	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
 	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>)) {
-		drawTexturedMesh(entity, ui_projection_2D);
+		if (registry.all_of<TextData>(entity)) {
+			auto& textData = registry.get<TextData>(entity);
+			if (textData.active) {
+				drawTexturedMesh(entity, projection_2D);
+
+				auto& motion = registry.get<Motion>(entity);
+		
+				mat3 flippedUIProjection = projection_2D;
+				flippedUIProjection[1][1] *= -1.0f;
+				
+				textsToRender.push_back(
+					std::make_tuple(
+						textData.content,
+						vec2(motion.position.x - 230, -motion.position.y),
+						textData.scale,
+						textData.color,
+						flippedUIProjection
+					)
+				);
+			}
+		} else {
+			// This is a regular UI element, not a textbox
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
 	}
 	
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
-
+	
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
 	drawToScreen(true);
-	// DEBUG
-	auto debugView = registry.view<Debug>();
-	if (!debugView.empty()) {
-		glm::mat3 projection = createProjectionMatrix();
-		glm::mat3 transform = glm::mat3(1.0f);
-		drawDebugHitBoxes(projection, transform);
+
+	// RENDERING ALL THE TEXT
+	for (const auto& [content, position, scale, color, projection] : textsToRender) {
+		renderText(content, position.x, position.y, scale, color, projection);
 	}
+
+	
+	// DEBUG
+	// auto debugView = registry.view<Debug>();
+	// if (!debugView.empty()) {
+	// 	glm::mat3 projection = createProjectionMatrix();
+	// 	glm::mat3 transform = glm::mat3(1.0f);
+	// 	drawDebugHitBoxes(projection, transform);
+	// }
+
+
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();

@@ -163,8 +163,7 @@ vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
-        get_terrain(tile) != Terrain::WATER &&
-        get_decoration(tile) != Decoration::TREE 
+        get_terrain(tile) != Terrain::WATER
     );
 };
 

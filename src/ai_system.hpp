@@ -3,7 +3,7 @@
 #include "common.hpp"
 #include "render_system.hpp"
 #include <entt.hpp>
-#include "collision_system.hpp"
+#include "collision/collision_system.hpp"
 
 class AISystem {
 public:

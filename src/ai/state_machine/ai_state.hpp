@@ -19,4 +19,9 @@ public:
 
     // handle events (for later)
     virtual void onEvent(entt::registry& registry, entt::entity entity, const std::string &event) {}
+
+    virtual std::string getId() const { return id; }
+
+protected:
+    std::string id;
 };

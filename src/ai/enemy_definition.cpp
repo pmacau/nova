@@ -14,7 +14,7 @@ void initializeEnemyDefinitions() {
         def.creatureType = CreatureType::Mob;
         def.spawnProbability = 0.5f;
         def.group.minSize = 1;
-        def.group.maxSize = 3;
+        def.group.maxSize = 2;
         def.biomes = {Biome::B_FOREST, Biome::B_BEACH};
 
         // Basic stats

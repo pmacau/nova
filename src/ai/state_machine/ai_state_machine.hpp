@@ -2,33 +2,33 @@
 
 #include "ai_state.hpp"
 #include <entt.hpp>
+#include <ai/state_machine/transition.hpp>
 
 class AIStateMachine {
 public:
-    AIStateMachine(entt::registry& registry, entt::entity entity)
-        : registry(registry), entity(entity), currentState(nullptr) {}
+    // Constructor: takes a reference to the registry and the entity owning this state machine.
+    AIStateMachine(entt::registry& registry, entt::entity entity, const AIConfig& config, const TransitionTable& transitions);
+
+    // Destructor.
+    ~AIStateMachine();
 
     // Update the current state.
-    void update(float deltaTime) {
-        if (currentState)
-            currentState->onUpdate(registry, entity, deltaTime);
-    }
+    void update(float deltaTime);
 
-    // Transition to a new state.
-    void changeState(AIState* newState) {
-        if (currentState) {
-            currentState->onExit(registry, entity);
-        }
-        currentState = newState;
-        if (currentState) {
-            currentState->onEnter(registry, entity);
-        }
-    }
+    // Change the current state.
+    void changeState(AIState* newState);
 
-    AIState* getCurrentState() const { return currentState; }
+    // Get the current state.
+    AIState* getCurrentState() const;
+
+    const AIConfig& getConfig() const { return config; }
 
 private:
     entt::registry& registry;
     entt::entity entity;
     AIState* currentState;
+
+    AIConfig config;
+
+    TransitionTable transitions;
 };
