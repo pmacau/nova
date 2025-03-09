@@ -139,7 +139,7 @@ void CollisionSystem::step(float elapsed_ms)
 		auto& m2 = registry.get<Motion>(e2);
 		auto& h2 = registry.get<HitBox>(e2);
 		 //might want to refactor but for now here
-		const float MAX_ALLOWED_PENETRATION = 0.f; // Threshold for penetration this is for clipping
+		// const float MAX_ALLOWED_PENETRATION = 0.f; // Threshold for penetration this is for clipping
 		float overlapX = 0.f;
 		float overlapY = 0.f;
 		glm::vec2 mtv(0.f);
