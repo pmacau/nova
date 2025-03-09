@@ -222,36 +222,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// TODO: freeze everything if in ship_ui
 	
-	
-	
-
-	// TODO: move player out-of-bounds script
 	MapSystem::update_location(registry, player_entity);
-
-	// auto& player_motion = registry.get<Motion>(player_entity);
-	// int tile_x = std::round((player_motion.position.x) / 16.f);
-	// int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
-	// int former_x = std::round((player_motion.formerPosition.x) / 16.f);
-	// int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
-
-	// auto valid_tile = [this](int tile_x, int tile_y) {
-	// 	bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < MAP_TILE_WIDTH && tile_y < MAP_TILE_HEIGHT);
-	// 	if (in_bounds) {
-	// 		bool in_water = gameMap[tile_y][tile_x] == 0;
-	// 		return !in_water;
-	// 	}
-	// 	return false;
-	// };
-
-	// if (!valid_tile(tile_x, tile_y)) {
-	// 	if (valid_tile(tile_x, former_y)) {
-	// 		player_motion.position = {player_motion.position.x, player_motion.formerPosition.y};
-	// 	} else if (valid_tile(former_x, tile_y)) {
-	// 		player_motion.position = {player_motion.formerPosition.x, player_motion.position.y};
-	// 	} else {
-	// 		player_motion.position = player_motion.formerPosition;
-	// 	}
-	// }
   
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
@@ -266,6 +237,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: move attack cooldown system
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
+
+	// TODO: move enemy attack cooldown system
+	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
+		mob.hit_time -= elapsed_s;
+	}
 
 	return true;
 }

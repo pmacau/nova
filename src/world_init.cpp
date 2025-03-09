@@ -18,11 +18,12 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
     animComp.currentFrameIndex = 0;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = PLAYER_SPRITESHEET.dims;
 	sprite.sheet_dims = PLAYER_SPRITESHEET.sheet_dims;
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
- 
+	 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
@@ -92,15 +93,16 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 43.f, 55.f };	
 	sprite.sheet_dims = {43.f, 55.f};
-
+	
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
+	// motion.position = position;
 	motion.position.x = position.x + sprite.dims[0] / 2;
 	motion.position.y = position.y + sprite.dims[1] / 2;
 	motion.scale = vec2(100, 120);
-	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
+	// HITBOX
 	float w = motion.scale.x;
 	float h = motion.scale.y;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
@@ -109,6 +111,10 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
 	hitbox.depth = 50;
+
+	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
+	//motion.scale = vec2(38*3, 54*3);
+	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 	
 	auto& drop = registry.emplace<Drop>(entity);
 	drop.item_type = ITEM_TYPE::POTION;
@@ -240,7 +246,6 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 
 entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum)
 {
-
 	auto entity = registry.create();
 	registry.emplace<UIShip>(entity);
 	registry.emplace<UI>(entity);
@@ -339,7 +344,6 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 		{w * -0.5f, g + h * -0.5f}, {w * 0.5f, g + h * -0.5f},
 		{w * 0.5f, g + h * 0.5f},   {w * -0.5f, g + h * 0.5f}
 	};
-	hitbox.depth = 10;
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
