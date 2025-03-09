@@ -126,6 +126,7 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
+	createMobHealthBar(registry, entity, 15.f);
 	// ai set up
 	// TODO: create a generic enemy creation
 	auto& aiComp = registry.emplace<AIComponent>(entity);
@@ -134,13 +135,10 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, bossConfig, goblinTransitions);
    
 	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
-
-
-	createMobHealthBar(registry, entity);
 	return entity; 
 }
 
-entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity) {
+entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust) {
 	auto entity = registry.create();
 
 	registry.emplace<UI>(entity);
@@ -150,14 +148,15 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	auto& mob = registry.get<Mob>(mob_entity);
 	healthbar.entity = mob_entity;
 	healthbar.initial_health = mob.health;
+	healthbar.y_adjust = y_adjust;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;
-	motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2 - 15;
+	motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2 - 15 - healthbar.y_adjust;
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
-	motion.scale = vec2({ std::max(40.f, abs(mob_motion.scale.x) / 2.f), 8.f}); // for boss we may want bigger health bar hence max function
+	motion.scale = vec2({ 40.0f, 8.f}); // for boss we may want bigger health bar hence max function
 	motion.offset_to_ground = { 0, motion.scale.y / 2.f };
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 1152.f, 648.f };
@@ -225,7 +224,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	static PatrolState patrolState;
 	aiComp.stateMachine->changeState(&patrolState);
 
-	createMobHealthBar(registry, entity);
+	createMobHealthBar(registry, entity, -40.0f);
 	return entity; 
 }
 
@@ -537,4 +536,52 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
     // For example: createMobHealthBar(registry, entity);
 
     return entity;
+}
+
+entt::entity createTitleScreen(entt::registry& registry) {
+	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+	registry.emplace<Title>(entity);
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = { WINDOW_WIDTH_PX / 2.f, WINDOW_HEIGHT_PX / 2.f };
+	motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX};
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = { 0, 0 };
+	sprite.dims = { 120.f, 68.f };
+	sprite.sheet_dims = { 120.f, 68.f };
+	auto& render_request = registry.emplace<RenderRequest>(entity);;
+	render_request.used_texture = TEXTURE_ASSET_ID::TITLE;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	// TODO refactor so that each button is a separate texture 
+	auto play = registry.create();
+	auto& play_option = registry.emplace<TitleOption>(play);
+	play_option.type = TitleOption::Option::PLAY;
+	play_option.text = "Play"; 
+	play_option.position = { 23 * WINDOW_WIDTH_PX / 120.F, 57.5 * WINDOW_HEIGHT_PX / 68.f};
+	play_option.size = { 10.0 * WINDOW_WIDTH_PX / 120.f, 11.0f * WINDOW_HEIGHT_PX / 68.f};
+
+	auto exit = registry.create();
+	auto& exit_option = registry.emplace<TitleOption>(exit);
+	exit_option.type = TitleOption::Option::EXIT;
+	exit_option.text = "Exit";
+	exit_option.position = { 95.5 * WINDOW_WIDTH_PX / 120.F, 58 * WINDOW_HEIGHT_PX / 68.f };
+	exit_option.size = { 9.0 * WINDOW_WIDTH_PX / 120.f, 12.0f * WINDOW_HEIGHT_PX / 68.f };
+
+	auto save = registry.create();
+	auto& save_option = registry.emplace<TitleOption>(save);
+	save_option.type = TitleOption::Option::SAVE;
+	save_option.text = "Save";
+	save_option.position = { 48.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
+	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
+
+	auto load = registry.create();
+	auto& load_option = registry.emplace<TitleOption>(load);
+	load_option.type = TitleOption::Option::LOAD;
+	load_option.text = "Load";
+	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
+	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
+	return entity;
 }
