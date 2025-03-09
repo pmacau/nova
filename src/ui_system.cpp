@@ -79,7 +79,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	}
 }
 
-entt::entity& UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y) {
+entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y) {
 	auto entity = registry.create();
 	auto& item_to_copy = registry.get<Item>(item_to_copy_entity);
 	registry.emplace<UI>(entity);
@@ -113,7 +113,7 @@ void UISystem::resetDragItem(entt::registry& registry) {
 		inventory_slot.no += registry.get<Item>(drag_entity).no;
 	}
 	else {
-		auto& item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f);
+		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f);
 		inventory_slot.hasItem = true;
 		inventory_slot.no = registry.get<Item>(drag_entity).no;
 		inventory_slot.item = item;
@@ -160,7 +160,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				else {
 					// create item at mouse position if no item is being dragged
 					if (registry.view<Drag>().empty()) {
-						auto& item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
+						auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
 						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 						drag.slot = inventory_entity;
 					}
@@ -173,7 +173,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						// put the held item back to original inventory slot and drag a new item
 						else {
 							resetDragItem(registry);
-							auto& item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
+							auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.slot = inventory_entity;
 						}
@@ -194,7 +194,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				if (!registry.view<Drag>().empty()) {
 					auto& drag_entity = *registry.view<Drag>().begin();
 					auto& drag_item = registry.get<Item>(drag_entity);
-					auto& item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f);
+					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f);
 					inventory_slot.hasItem = true;
 					inventory_slot.no = drag_item.no;
 					inventory_slot.item = item;
