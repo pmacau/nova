@@ -20,6 +20,8 @@
 #include "flag_system.hpp"
 #include "map/generate.hpp"
 #include "map/image_gen.hpp"
+#include "animation_system.hpp"
+#include "player/player_system.hpp"
 
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
@@ -37,7 +39,7 @@ int main()
 	entt::registry reg;
 
 	// assets and constants
-	initializeSpawnDefinitions();
+	initializeEnemyDefinitions();
 
 	// global systems
 	PhysicsSystem physics_system(reg);
@@ -46,9 +48,11 @@ int main()
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system);
-	CameraSystem camera_system(reg, world_system);
+	CameraSystem camera_system(reg);
 	SpawnSystem spawn_system(reg);
-	
+	// FlagSystem flag_system(reg); 
+	AnimationSystem animationSystem(reg);
+	PlayerSystem playerSystem(reg);
 
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
@@ -105,15 +109,15 @@ int main()
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		if (!flag_system.is_paused) {
-            physics_system.step(elapsed_ms);
-            world_system.step(elapsed_ms);
-            if (flag_system.done) {
-                spawn_system.update(elapsed_ms);
-            }
-            collision_system.step(elapsed_ms);
-            camera_system.step(elapsed_ms);
-            ai_system.step(elapsed_ms); // AI system should be before physics system
-        }
+			physics_system.step(elapsed_ms);
+			world_system.step(elapsed_ms);
+			playerSystem.update(elapsed_ms);
+			animationSystem.update(elapsed_ms);
+			spawn_system.update(elapsed_ms);
+			collision_system.step(elapsed_ms);
+			camera_system.step(elapsed_ms);
+			ai_system.step(elapsed_ms); // AI system should be before physics system
+		}
 		
 		flag_system.step(elapsed_ms);
 		renderer_system.draw();

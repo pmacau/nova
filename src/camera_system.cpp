@@ -1,9 +1,8 @@
 
 #include "camera_system.hpp"
 
-CameraSystem::CameraSystem(entt::registry& reg, WorldSystem& world) :
-	registry(reg),
-	world(world)
+CameraSystem::CameraSystem(entt::registry& reg) :
+	registry(reg)
 {
 }
 

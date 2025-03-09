@@ -72,15 +72,18 @@ Map decoration helpers
 -----------------------
 */
 
-std::pair<int, int> player_spawn(
-    const GameMap& terrain, int width, int height
+std::pair<int, int> find_valid_area(
+    const GameMap& terrain,
+    const std::pair<int, int>& start,
+    int range
 ) {
-    int c_row = height / 2, c_col = width / 2;
+    int height = terrain.size(), width = terrain[0].size();
+
     std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
     std::queue<std::pair<int, int>> queue;
 
-    queue.push({c_row, c_col});
-    visited[c_row][c_col] = true;
+    queue.push(start);
+    visited[start.first][start.second] = true;
 
     auto process = [&queue, &visited, width, height](int row, int col) {
         if (
@@ -93,23 +96,58 @@ std::pair<int, int> player_spawn(
         }
     };
 
+    auto is_valid = [&terrain, width, height](std::pair<int, int> curr, int range) {
+        int min_row = max(0, curr.first - range / 2);
+        int max_row = min(height, curr.first + range / 2);
+
+        int min_col = max(0, curr.second - range / 2);
+        int max_col = min(width, curr.second + range / 2);
+
+        for (int i = min_row; i < max_row; i++) {
+            for (int j = min_col; j < max_col; j++) {
+                if (
+                    get_terrain(terrain[i][j]) == Terrain::WATER ||
+                    get_decoration(terrain[i][j]) == Decoration::SPAWN
+                ) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
     while (!queue.empty()) {
         auto curr = queue.front();
         queue.pop();
 
-        if (terrain[curr.first][curr.second] != 0) {
-            return curr;
-        }
+        if (is_valid(curr, range)) return curr;
 
         int row = curr.first, col = curr.second;
-        
         process(row - 1, col - 1);
         process(row - 1, col + 1);
         process(row + 1, col - 1);
         process(row + 1, col + 1);
     }
 
-    return {c_row, c_col};
+    debug_printf(DebugType::GAME_INIT, "Bad news, aborting\n");
+    return start;
+}
+
+std::pair<int, int> player_spawn(
+    const GameMap& terrain, int width, int height
+) {
+    int c_row = height / 2, c_col = width / 2;
+    return find_valid_area(terrain, {c_row, c_col}, 5);
+}
+
+std::pair<int, int> ship_spawn(
+    const GameMap& terrain, const std::pair<int, int>& player_spawn
+) {
+    return find_valid_area(
+        terrain,
+        {player_spawn.first - 15, player_spawn.second},
+        10
+    );
 }
 
 
@@ -206,9 +244,26 @@ std::vector<std::pair<int, int>> get_trees(const GameMap& terrain, int num_trees
     std::vector<std::pair<int, int>> land_positions;
     std::vector<std::pair<int, int>> trees;
 
+    auto is_valid = [&terrain, width, height](int r, int c) {
+        if (get_terrain(terrain[r][c]) == Terrain::WATER) return false;
+
+        int range = 10;
+        int min_row = max(0, r - range), max_row = min(height, r + range);
+        int min_col = max(0, c - range), max_col = min(width, c + range);
+
+        for (int i = min_row; i < max_row; i++) {
+            for (int j = min_col; j < max_col; j++) {
+                if (get_decoration(terrain[i][j]) != Decoration::NO_DECOR) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
     for (int r = 0; r < height; r++) {
         for (int c = 0; c < width; c++) {
-            if (get_terrain(terrain[r][c]) != Terrain::WATER) {
+            if (is_valid(r, c)) {
                 land_positions.emplace_back(r, c);
             }
         }
@@ -250,6 +305,11 @@ GameMap create_map(int width, int height) {
 
     auto spawn = player_spawn(terrain, width, height);
     set_decoration(terrain[spawn.first][spawn.second], Decoration::SPAWN);
+    debug_printf(DebugType::WORLD_INIT, "Setting player spawn at: (%d, %d)\n", spawn.first, spawn.second);
+
+    auto ship = ship_spawn(terrain, spawn);
+    set_decoration(terrain[ship.first][ship.second], Decoration::SHIP);
+    debug_printf(DebugType::WORLD_INIT, "Setting ship spawn at: (%d, %d)\n", ship.first, ship.second);
 
     auto mainland = find_mainland(terrain, spawn);
     auto biome_seeds = find_biome_seeds(mainland, spawn, 4);
@@ -271,8 +331,15 @@ GameMap create_map(int width, int height) {
 
 void save_map(const GameMap& map, const char* filepath) {
     std::ofstream file(filepath, std::ios::binary);
+
+    // Store map dimensions first
+    uint32_t rows = map.size();
+    uint32_t cols = rows > 0 ? map[0].size() : 0;
+    file.write(reinterpret_cast<const char*>(&rows), sizeof(rows));
+    file.write(reinterpret_cast<const char*>(&cols), sizeof(cols));
+
     for (const auto& row : map) {
-        file.write(reinterpret_cast<const char*>(row.data()), row.size());
+        file.write(reinterpret_cast<const char*>(row.data()), row.size() * sizeof(Tile));
     }
     file.close();
 }

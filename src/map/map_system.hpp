@@ -14,11 +14,11 @@ class MapSystem {
 public:
     static void init(entt::registry& reg);
     static void generate_new_map();
-    static vec2 populate_ecs(entt::registry& reg);
+    static vec2 populate_ecs(entt::registry& reg, vec2& p_pos, vec2& s_pos);
     static void update_location(entt::registry& reg, entt::entity ent);
 
-    static constexpr int MAP_WIDTH = 200;
-    static constexpr int MAP_HEIGHT = 200;
+    inline static int map_width  = -1;
+    inline static int map_height = -1;
 
     static Tile get_tile(vec2 pos);
     static Tile get_tile_type_by_indices(int x, int y);
@@ -27,11 +27,9 @@ public:
     static bool walkable_tile(Tile tile);
 
     static std::vector<vec2>& getBossSpawnIndices();
-    //static void removeBossSpawnIndex(const vec2& tileIndices);
-
 
 private:
-    static inline std::vector<std::vector<uint8_t>> game_map;
+    static inline GameMap game_map;
 
     static void loadMap();
 

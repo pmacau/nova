@@ -124,7 +124,7 @@ bool RenderSystem::initFreetype() {
 
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
     // Activate corresponding render state	
-    glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
     gl_has_errors();
 
     // Validate VAO and VBO
@@ -135,11 +135,9 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     // Set projection
     GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
     glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
     // Set text color
     GLuint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "textColor");
     glUniform3f(colorLoc, color.x, color.y, color.z);
@@ -200,7 +198,7 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
         x += (ch.Advance >> 6) * scale;
     }
     
-    glBindVertexArray(0);
+	glBindVertexArray(0); 
     glBindTexture(GL_TEXTURE_2D, 0);
     gl_has_errors();
 }
@@ -384,7 +382,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	GLuint sheetDims_loc = glGetUniformLocation(currProgram, "sheetDims");
 	const auto& s = registry.get<Sprite>(entity);
 
-	glUniform4f(spriteData_loc, s.coord.x, s.coord.y, s.dims.x, s.dims.y);
+	glUniform4f(spriteData_loc, s.coord.row, s.coord.col, s.dims.x, s.dims.y);
 	glUniform2f(sheetDims_loc, s.sheet_dims.x, s.sheet_dims.y);
 	gl_has_errors();
 
@@ -476,23 +474,16 @@ void RenderSystem::renderGamePlay()
 	glViewport(0, 0, w, h);
 	// glDepthRange(0.00001, 10);
 	glDepthRange(0.0, 1.0);
-	// white background
-	//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	// water-colored background
 	glClearColor(0.0f, 0.58431373f, 0.91372549f, 1.0f);
 
 	// Debug: claer depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-// Debug
-	// glClearDepth(10.f);
-	// glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Debug
-	glEnable(GL_DEPTH_TEST);
 	// glDisable(GL_DEPTH_TEST); // native OpenGL does not work with a depth buffer
 							  // and alpha blending, one would have to sort
 							  // sprites back to front
@@ -502,123 +493,96 @@ void RenderSystem::renderGamePlay()
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	// render all the textboxes
-	std::vector<entt::entity> textBoxesUI;
-	auto textboxes = registry.view<Motion, RenderRequest, TextData>();
-	int count = 0;
-	for (auto entity : textboxes) {
-		auto& textData = registry.get<TextData>(entity);
-		// Only process active text boxes
-		if (textData.active) {
-			count++;
-			textBoxesUI.push_back(entity);
-		}
-	}
+	// std::vector<entt::entity> textBoxesUI;
+	// auto textboxes = registry.view<Motion, RenderRequest, TextData>();
+	// for (auto entity : textboxes) {
+	// 	auto& textData = registry.get<TextData>(entity);
+	// 	// Only process active text boxes
+	// 	if (textData.active) {
+	// 		textBoxesUI.push_back(entity);
+	// 	}
+	// }
 
-	for (auto entity : textBoxesUI) {
-		drawTexturedMesh(entity, projection_2D);
+	// for (auto entity : textBoxesUI) {
+	// 	drawTexturedMesh(entity, projection_2D);
 
-		auto& motion = registry.get<Motion>(entity);
-		auto& textData = registry.get<TextData>(entity);
+	// 	auto& motion = registry.get<Motion>(entity);
+	// 	auto& textData = registry.get<TextData>(entity);
 
-		mat3 flippedProjection = projection_2D;
-    	flippedProjection[1][1] *= -1.0f;
+	// 	mat3 flippedProjection = projection_2D;
+    // 	flippedProjection[1][1] *= -1.0f;
 
-		renderText(textData.content, 
-			motion.position.x - 230, 
-			-motion.position.y, 
-			textData.scale, 
-			textData.color, 
-			flippedProjection);
-	}
-
-	std::vector<entt::entity> UIRenderEntities;
-	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
-	for (auto entity : ui) {
-		UIRenderEntities.push_back(entity);
-	}
-	for (auto entity : UIRenderEntities) {
-		if (registry.any_of<FixedUI>(entity)) {
-			drawTexturedMesh(entity, ui_projection_2D);
-		}
-		else {
-			drawTexturedMesh(entity, projection_2D);
-		}
-	}
-
-	// render projectiles
-	std::vector<entt::entity> ProjectileRenderEntities;
-	auto projectiles = registry.view<Projectile, Motion, RenderRequest>();
-
-	for (auto entity : projectiles) {
-		ProjectileRenderEntities.push_back(entity);
-	}
-
-	for (auto entity : ProjectileRenderEntities) {
-		drawTexturedMesh(entity, projection_2D);
-	}
-
-	// render players and mobs
-	std::vector<entt::entity> PlayerMobsRenderEntities;
-	// get all mob and player entities with motion and render request components
-	auto mobs = registry.view<Mob, Motion, RenderRequest>();
-	auto players = registry.view<Player, Motion, RenderRequest>();
-	auto ships = registry.view<Ship, Motion, RenderRequest>();
-	auto trees = registry.view<Tree, Motion, RenderRequest>();
-
-	for (auto entity : mobs)    PlayerMobsRenderEntities.push_back(entity);
-	for (auto entity : players) PlayerMobsRenderEntities.push_back(entity);
-	for (auto entity : ships)   PlayerMobsRenderEntities.push_back(entity);
-	for (auto entity : trees)   PlayerMobsRenderEntities.push_back(entity);
-
-	// Sort entities based on Y position of the "ground offset"
-	std::sort(PlayerMobsRenderEntities.begin(), PlayerMobsRenderEntities.end(), [this](entt::entity a, entt::entity b) {
-		auto& motionA = registry.get<Motion>(a);
-		auto& motionB = registry.get<Motion>(b);
-		vec2 groundA = motionA.position + motionA.offset_to_ground;
-		vec2 groundB = motionB.position + motionB.offset_to_ground;
-
-		// if y vlue the same, check if either is a player
-		if (groundA.y == groundB.y) {
-			if (registry.any_of<Player>(a)) {
-				return true;
-			}
-			if (registry.any_of<Player>(b)) {
-				return false;
-			}
-
-			// else sort by x
-			return groundA.x > groundB.x;
-		}
-
-		return groundA.y > groundB.y; // Lower Y should render later (on top)
-	});
-
-	// Render entities in sorted order
-	for (auto entity : PlayerMobsRenderEntities) {
-		drawTexturedMesh(entity, projection_2D);
-	}
-
-  // items
-	std::vector<entt::entity> ItemRenderEntities;
-	auto items = registry.view<Item, Motion, RenderRequest>();
-
-	for (auto entity : items) {
-		if (!registry.any_of<FixedUI>(entity)) {
-			ItemRenderEntities.push_back(entity);
-		}
-	}
-
-	for (auto entity : ItemRenderEntities) {
-		drawTexturedMesh(entity, projection_2D);
-	}
+	// 	renderText(textData.content, 
+	// 		motion.position.x - 230, 
+	// 		-motion.position.y, 
+	// 		textData.scale, 
+	// 		textData.color, 
+	// 		flippedProjection);
+	// }
 
 	// Render huge background texture
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D);
 
+	// Render main entities
+	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
+        return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
+    });
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData>);
+    spriteRenders.use<Motion>();
+    for (auto entity : spriteRenders) {
+        drawTexturedMesh(entity, projection_2D);
+    }
+
+	// Render dynamic UI
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData>)) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+	
+	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
+	// Render static UI
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item>)) {
+		if (registry.all_of<TextData>(entity)) {
+			auto& textData = registry.get<TextData>(entity);
+			if (textData.active) {
+				drawTexturedMesh(entity, projection_2D);
+
+				auto& motion = registry.get<Motion>(entity);
+		
+				mat3 flippedUIProjection = projection_2D;
+				flippedUIProjection[1][1] *= -1.0f;
+				
+				textsToRender.push_back(
+					std::make_tuple(
+						textData.content,
+						vec2(motion.position.x - 230, -motion.position.y),
+						textData.scale,
+						textData.color,
+						flippedUIProjection
+					)
+				);
+			}
+		} else {
+			// This is a regular UI element, not a textbox
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+	}
+	
+	// Render items on static UI
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData>)) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+	
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
 	drawToScreen();
+
+	// RENDERING ALL THE TEXT
+	for (const auto& [content, position, scale, color, projection] : textsToRender) {
+		renderText(content, position.x, position.y, scale, color, projection);
+	}
+
+	
 	// DEBUG
 	auto debugView = registry.view<Debug>();
 	if (!debugView.empty()) {

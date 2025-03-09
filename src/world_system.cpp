@@ -20,8 +20,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	flag_system(flag_system)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
-	player_entity = createPlayer(registry, player_spawn);
-	ship_entity = createShip(registry, player_spawn);
+	player_entity = createPlayer(registry, {0, 0});
+	ship_entity = createShip(registry, {0, 0});
 	main_camera_entity = createCamera(registry, player_entity);
 
 	screen_entity = registry.create();
@@ -34,7 +34,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 
 
 	// init all the ui ships to use
-	entt::entity UISHIP = createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
 
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
@@ -47,19 +47,19 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(5);
     vec2 size = {0.4f, 3.0f};
-    textBoxEntities[0] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+    textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
     
-    textBoxEntities[1] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+    textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "Great! Press 'F' near the ship to access or leave the ship upgrade", 0.35f, {1.0f, 1.0f, 1.0f});
     
-    textBoxEntities[2] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
-        "Good job! Now use left click to firing your weapon now.", 0.35f, {1.0f, 1.0f, 1.0f});
+    textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Good job! Now use left click to firing your weapon.", 0.35f, {1.0f, 1.0f, 1.0f});
     
-    textBoxEntities[3] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
-        "Nice shot! Go explore the universe.", 0.35f, {1.0f, 1.0f, 1.0f});
+    textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Nice shot! Go explore the planet.", 0.35f, {1.0f, 1.0f, 1.0f});
     
-    textBoxEntities[4] = createTextBox(registry, player_spawn + vec2(1.0f, 200.0f), size, 
+    textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
     
     // make them all inactive initially
@@ -195,12 +195,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			float x_scale = abs(motion.scale.x);
 
 			if (abs(velo.y) > 0) {
-				sprite.coord.x = (velo.y > 0) ? sprite.down_row : sprite.up_row;
+				sprite.coord.row = (velo.y > 0) ? sprite.down_row : sprite.up_row;
 				motion.scale.x = x_scale;
 			}
 
 			if (abs(velo.x) > 0) {
-				sprite.coord.x = sprite.right_row;
+				sprite.coord.row = sprite.right_row;
 				motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
 			}
 		}
@@ -214,32 +214,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float x_scale = abs(p_motion.scale.x);
 
 		if (abs(velo.x) > 0) {
-			p_sprite.coord.x = 1.f;
+			p_sprite.coord.row = 1;
 			p_motion.scale.x = (velo.x < 0) ? -1.f * x_scale : x_scale;
 		}
 
 		if (abs(velo.y) > 0) {
-			p_sprite.coord.x = (velo.y > 0) ? 0.f : 2.f;
+			p_sprite.coord.row = (velo.y > 0) ? 0 : 2;
 			p_motion.scale.x = x_scale;
-		}
-	}
-
-	// TODO: move this animation system
-	auto animations = registry.view<Animation, Sprite, Motion>();
-	for (auto entity : animations) {
-		auto& sprite = registry.get<Sprite>(entity);
-		auto& animation = registry.get<Animation>(entity);
-		auto& motion = registry.get<Motion>(entity);
-
-		animation.frameTime += elapsed_ms_since_last_update;
-		if (animation.frameTime >= animation.frameDuration) {
-			if (length(motion.velocity) <= 0.5f) {
-				sprite.coord.y = 0;
-			} else {
-				int numFrames = (int) (sprite.sheet_dims.x / sprite.dims.x);
-				sprite.coord.y = ((int) (sprite.coord.y + 1)) % numFrames;
-			}
-			animation.frameTime = 0.0f;
 		}
 	}
 
@@ -327,10 +308,9 @@ void WorldSystem::player_respawn() {
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 
-	player_motion.position = player_spawn;
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
-	player_motion.formerPosition = player_spawn;
+	player_motion.formerPosition = player_motion.position;
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
@@ -393,15 +373,13 @@ void WorldSystem::restart_game() {
 	registry.destroy(motions.begin(), motions.end());
 	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
+	vec2& p_pos = registry.get<Motion>(player_entity).position;
+	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
-	player_spawn = MapSystem::populate_ecs(registry);
-	debug_printf(DebugType::WORLD, "Spawning player at: (%.1f, %.1f)\n", player_spawn.x, player_spawn.y);
-
-	auto& ship_motion = registry.get<Motion>(ship_entity);
-	ship_motion.position = player_spawn - vec2(0, 200);
+	MapSystem::populate_ecs(registry, p_pos, s_pos);
 
 	player_respawn();
-	createPlayerHealthBar(registry, player_spawn);
+	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
 
 	// reset the screen

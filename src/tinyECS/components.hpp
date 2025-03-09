@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <entt.hpp>
+#include <animation/animation_definition.hpp>
 
 struct Tree{};
 struct Background{};
@@ -270,6 +271,7 @@ enum class TEXTURE_ASSET_ID {
 	POTION,
 	INVENTORY_SLOT,
 	TREE,
+	GOBLIN_TORCH_BLUE,
 	TEXTBOX_BACKGROUND,
 	TEXTURE_COUNT
 };
@@ -305,19 +307,24 @@ struct RenderRequest
 
 struct Sprite 
 {
-	vec2 coord = {0.0f, 0.0f};
+	FrameIndex coord = {0, 0};
 	vec2 dims;
 	vec2 sheet_dims;
 
-	float up_row = 0.f;
-	float down_row = 0.f;
-	float right_row = 0.f;
+	int up_row = 0;
+	int down_row = 0;
+	int right_row = 0;
 };
 
 struct Animation
 {
-	float frameDuration;
-	float frameTime = 0.0f;
+    float frameDuration;       // Duration of each frame in milliseconds.
+    float frameTime = 0.0f;      // Time accumulator.
+    int totalFrames;           // Total number of frames in the current animation.
+    int currentFrameIndex;     // Current frame index.
+    int row;                   // The row in the spritesheet for this animation.
+	float frameWidth;          // Width of a single frame (set during creation)
+    float frameHeight;         // Height of a single frame (set during creation)
 };
 
 // Camera
@@ -332,5 +339,5 @@ struct Camera
 };
 
 const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 30.f}, {152.f, 90.f}, 3.f, 0.f, 1.f
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3, 0, 1
 };

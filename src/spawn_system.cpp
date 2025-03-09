@@ -7,6 +7,8 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
+#include "ai/enemy_definition.hpp"
+#include <map/tile.hpp>
 
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
@@ -67,15 +69,15 @@ void SpawnSystem::processNaturalSpawning()
 
     // Convert the spawn area boundaries from world coordinates to tile indices
     int spawnTileMinX = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.x / TILE_SIZE));
-    int spawnTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(spawnAreaWorldMax.x / TILE_SIZE));
+    int spawnTileMaxX = std::min<int>(MapSystem::map_width - 1, static_cast<int>(spawnAreaWorldMax.x / TILE_SIZE));
     int spawnTileMinY = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.y / TILE_SIZE));
-    int spawnTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(spawnAreaWorldMax.y / TILE_SIZE));
+    int spawnTileMaxY = std::min<int>(MapSystem::map_height - 1, static_cast<int>(spawnAreaWorldMax.y / TILE_SIZE));
 
     // Convert the safe area boundaries from world coordinates to tile indices
     int safeTileMinX = std::max<int>(0, static_cast<int>(safeAreaWorldMin.x / TILE_SIZE));
-    int safeTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(safeAreaWorldMax.x / TILE_SIZE));
+    int safeTileMaxX = std::min<int>(MapSystem::map_width - 1, static_cast<int>(safeAreaWorldMax.x / TILE_SIZE));
     int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / TILE_SIZE));
-    int safeTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
+    int safeTileMaxY = std::min<int>(MapSystem::map_height - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
 
     std::vector<vec2> validTiles;
 
@@ -112,14 +114,14 @@ void SpawnSystem::processNaturalSpawning()
 
     // Assume candidate's biome is 0 for now
     // TODO: biome system
-    int candidateBiome = 0;
+    Biome candidateBiome = Biome::B_FOREST;
 
     // Get all eligible spawn definitions for the given location
-    std::vector<const SpawnDefinition *> eligibleDefs;
-    for (const auto &def : spawnDefinitions)
+    std::vector<const EnemyDefinition *> eligibleDefs;
+    for (const auto &def : enemyDefinitions)
     {
         bool allowedBiome = false;
-        for (int biome : def.biomeIDs)
+        for (Biome biome : def.biomes)
         {
             if (biome == candidateBiome)
             {
@@ -149,7 +151,7 @@ void SpawnSystem::processNaturalSpawning()
     // Perform weighted random selection.
     std::uniform_real_distribution<float> weightedDist(0.0f, totalWeight);
     float weightedRoll = weightedDist(rng);
-    const SpawnDefinition *chosenDef = nullptr;
+    const EnemyDefinition *chosenDef = nullptr;
     for (const auto *def : eligibleDefs)
     {
         weightedRoll -= def->spawnProbability;
@@ -198,7 +200,7 @@ void SpawnSystem::processNaturalSpawning()
 }
 
 
-void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const vec2 &tileIndices, int groupSize)
+void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const vec2 &tileIndices, int groupSize)
 {
     std::vector<vec2> validNeighborTiles;
 
@@ -207,9 +209,9 @@ void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const 
 
     // TODO: change later for customizable radius
     int spawnAreaMinX = std::max(0, baseTileX - 1);
-    int spawnAreaMaxX = std::min(MapSystem::MAP_WIDTH - 1, baseTileX + 1);
+    int spawnAreaMaxX = std::min(MapSystem::map_width - 1, baseTileX + 1);
     int spawnAreaMinY = std::max(0, baseTileY - 1);
-    int spawnAreaMaxY = std::min(MapSystem::MAP_HEIGHT - 1, baseTileY + 1);
+    int spawnAreaMaxY = std::min(MapSystem::map_height - 1, baseTileY + 1);
 
     // Loop through neighbor tiles (include itself)
     for (int y = spawnAreaMinY; y <= spawnAreaMaxY; y++)
@@ -254,7 +256,7 @@ void SpawnSystem::spawnCreaturesByTileIndices(const SpawnDefinition &def, const 
         {
         case CreatureType::Mob:
         case CreatureType::Mutual:
-            createMob(registry, spawnPos, 50); 
+            createMob2(registry, spawnPos, 50); 
             break;
         case CreatureType::Boss:
             createBoss(registry, spawnPos);
