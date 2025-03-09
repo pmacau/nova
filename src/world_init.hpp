@@ -18,7 +18,7 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
 entt::entity createMob2(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
 
-entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity);
+entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);
