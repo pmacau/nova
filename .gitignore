@@ -17,6 +17,7 @@ ext/project_path.hpp
 
 # exclude python script libraries
 scripts/.venv/
+scripts/env/
 
 # exclude project_path.hpp
 project_path.hpp
@@ -24,5 +25,6 @@ project_path.hpp
 # exclude executables
 nova
 
-# python env
-scripts/env/
+# exclude game save-state
+data/maps/map.bin
+data/maps/textured_map.png

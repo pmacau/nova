@@ -3,7 +3,7 @@
 #include <ai/state_machine/transition.hpp>
 
 AIStateMachine::AIStateMachine(entt::registry &registry, entt::entity entity, const AIConfig &config, const TransitionTable &transitions)
-    : registry(registry), entity(entity), config(config), transitions(transitions), currentState(nullptr)
+    : registry(registry), entity(entity), currentState(nullptr), config(config), transitions(transitions)
 {
 }
 

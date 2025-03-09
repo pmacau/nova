@@ -413,13 +413,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	// // Debugging - not used in A1, but left intact for the debug lines
-	// if (key == GLFW_KEY_D) {
-	// 	if (action == GLFW_RELEASE) {
-	// 		if (debugging.in_debug_mode) {
-	// 			debugging.in_debug_mode = false;
-	// 		}
-	// 		else {
-	// 			debugging.in_debug_mode = true;
 	// if (key == GLFW_KEY_P) {
 	// 	auto debugView = registry.view<Debug>();
 	// 	if (debugView.empty()) {
@@ -433,7 +426,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// 	}
 	// }
 
-	// E to toggle opening/closign ship ui
+	// F to toggle opening/closing ship ui
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {

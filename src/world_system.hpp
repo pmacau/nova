@@ -69,9 +69,6 @@ private:
 
 	void handleTextBoxes(float elapsed_ms_since_last_update);
 
-	// restart level
-	// void restart_game();
-
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -80,7 +77,7 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
-	float currentFlag = 0.0f;
+	// float currentFlag = 0.0f;
 	std::vector<entt::entity> textBoxEntities;
 	float mobKilledTextTimer = 0.0f;
 };
