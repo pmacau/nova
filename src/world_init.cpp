@@ -343,13 +343,14 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.scale = size;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
-	// TODO: make hexagonal hitbox
 	float w = motion.scale.x;
 	float h = motion.scale.y;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = {
-		{w * 0, h * -0.5f},
-		{w * 0.5f, h * 0.5f}, {w * -0.5f, h * 0.5f}
+		{w * -0.25f, h * -0.50f}, {w *  0.25f, h * -0.50f}, // Top pts
+		{w *  0.50f, h * -0.25f}, {w *  0.50f, h *  0.25f}, // Right pts
+		{w *  0.25f, h *  0.50f}, {w * -0.25f, h *  0.50f}, // Bot pts
+		{w * -0.50f, h *  0.25f}, {w * -0.50f, h * -0.25f}, // Left pts
 	};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
