@@ -42,6 +42,8 @@ public:
 	// player respawn
 	void player_respawn();
 
+	// restart level
+	void restart_game();
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
@@ -62,9 +64,6 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button_pressed(int button, int action, int mods);
 	void left_mouse_click();
-
-	// restart level
-	void restart_game();
 
 	// OpenGL window handle
 	GLFWwindow* window;
