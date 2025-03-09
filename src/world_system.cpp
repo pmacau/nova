@@ -460,13 +460,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         }
     }
 
-	// TODO: testing sound system. remove this later
-	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
-	if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
-	if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
-	if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
-	if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
-	if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
+	//// TODO: testing sound system. remove this later
+	//if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
+	//if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
+	//if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
+	//if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
+	//if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
+	//if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
+
+	if (key == GLFW_KEY_1) UISystem::useItemFromInventory(registry, 50.f, 50.f, false);
+	if (key == GLFW_KEY_2) UISystem::useItemFromInventory(registry, 95.f, 50.f, false);
+	if (key == GLFW_KEY_3) UISystem::useItemFromInventory(registry, 140.f, 50.f, false);
+	if (key == GLFW_KEY_4) UISystem::useItemFromInventory(registry, 185.f, 50.f, false);
+	if (key == GLFW_KEY_5) UISystem::useItemFromInventory(registry, 230.f, 50.f, false);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
