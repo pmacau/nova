@@ -344,7 +344,6 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 }
 
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor) {
-	std::cout << "creating Textbox" << std::endl;
 	auto entity = registry.create();
 
 	// registry.emplace<UI>(entity);
