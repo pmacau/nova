@@ -380,22 +380,6 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
-
-	// reset all the text boxes
-    for (auto entity : textBoxEntities) {
-        auto& textData = registry.get<TextData>(entity);
-        textData.active = false;
-    }
-    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
-    firstTextData.active = true;
-	flag_system.reset();
-
-	// reset the timer for the last box
-	mobKilledTextTimer = 0.0;
-
-	// reset the screen
-	auto& screen_state = registry.get<ScreenState>(screen_entity);
-	screen_state.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
