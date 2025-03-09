@@ -88,11 +88,17 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 			auto& inventory_entity = inventory.slots[i];
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
+				std::cout << "using item from inventory\n";
 				useItem(registry, inventory_slot.item);
-				inventory_slot.hasItem = false;
-
-				debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-				registry.destroy(inventory_slot.item);
+				if (inventory_slot.no == 1) {
+					inventory_slot.no = 0;
+					inventory_slot.hasItem = false;
+					debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
+					registry.destroy(inventory_slot.item);
+				}
+				else {
+					inventory_slot.no -= 1;
+				}
 				return true;
 			}
 		}
@@ -102,10 +108,26 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 
 void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	auto& item = registry.get<Item>(item_entity);
+	// check for existing slots having same item type
+	for (int i = 0; i < inventory.slots.size(); i++) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+		if (inventory_slot.hasItem) {
+			auto& inventory_item = registry.get<Item>(inventory_slot.item);
+			if (inventory_item.item_type == item.item_type) {
+				inventory_slot.no += 1;
+				MusicSystem::playSoundEffect(SFX::PICKUP);
+				registry.destroy(item_entity);
+				return;
+			}
+		}
+	}
+	// add item to empty slot
 	for (int i = 0; i < inventory.slots.size(); i++) {
 		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 		if (!inventory_slot.hasItem) {
 			inventory_slot.hasItem = true;
+			inventory_slot.no = 1;
 			inventory_slot.item = item_entity;
 			registry.emplace<UI>(item_entity);
 			registry.emplace<FixedUI>(item_entity);

@@ -472,6 +472,10 @@ void RenderSystem::renderGamePlay()
 
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
+	mat3 flippedProjection = projection_2D;
+	flippedProjection[1][1] *= -1.0f;
+	mat3 flippedUIProjection = ui_projection_2D;
+	flippedUIProjection[1][1] *= -1.0f;
 
 	// render all the textboxes
 	// std::vector<entt::entity> textBoxesUI;
@@ -528,18 +532,14 @@ void RenderSystem::renderGamePlay()
 			if (textData.active) {
 				drawTexturedMesh(entity, projection_2D);
 
-				auto& motion = registry.get<Motion>(entity);
-		
-				mat3 flippedUIProjection = projection_2D;
-				flippedUIProjection[1][1] *= -1.0f;
-				
+				auto& motion = registry.get<Motion>(entity);				
 				textsToRender.push_back(
 					std::make_tuple(
 						textData.content,
 						vec2(motion.position.x - 230, -motion.position.y),
 						textData.scale,
 						textData.color,
-						flippedUIProjection
+						flippedProjection
 					)
 				);
 			}
@@ -552,6 +552,23 @@ void RenderSystem::renderGamePlay()
 	// Render items on static UI
 	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	for (int i = 0; i < inventory.slots.size(); i++) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+		if (inventory_slot.hasItem) {
+			textsToRender.push_back(
+				std::make_tuple(
+					std::to_string(inventory_slot.no),
+					vec2({ 60.f + 45.f * i, -45.f }),
+					0.3f,
+					vec3({ 1.f, 1.f, 1.f }),
+					flippedUIProjection
+				)
+			);
+		}
 	}
 	
 	// draw framebuffer to screen

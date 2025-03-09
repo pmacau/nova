@@ -503,12 +503,17 @@ void WorldSystem::left_mouse_click() {
 				else if (title_option.type == TitleOption::Option::EXIT) {
 					close_window();
 				}
+				else if (title_option.type == TitleOption::Option::RESTART) {
+					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+					restart_game();
+					return;
+				}
 			}
 			
 		}
 	}
 
-	if (UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+	if (projectile_shooting_delay > 0.5f && UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
 		projectile_shooting_delay = 0.0f;
 	}
 	

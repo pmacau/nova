@@ -146,6 +146,7 @@ struct InventorySlot
 {
 	bool hasItem = false;
 	entt::entity item;
+	int no = 0;
 };
 
 struct Title
@@ -159,7 +160,8 @@ struct TitleOption
 		PLAY, 
 		LOAD, 
 		SAVE, 
-		EXIT
+		EXIT, 
+		RESTART
 	};
 	Option type;
 	std::string text;

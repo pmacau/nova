@@ -578,7 +578,14 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto load = registry.create();
-	auto& load_option = registry.emplace<TitleOption>(load);
+	auto& restart_option = registry.emplace<TitleOption>(load);
+	restart_option.type = TitleOption::Option::RESTART;
+	restart_option.text = "Restart";
+	restart_option.position = { 109.5 * WINDOW_WIDTH_PX / 120.F, 57.f * WINDOW_HEIGHT_PX / 68.f };
+	restart_option.size = { 9.f * WINDOW_WIDTH_PX / 120.f, 10.f * WINDOW_HEIGHT_PX / 68.f };
+
+	auto restart = registry.create();
+	auto& load_option = registry.emplace<TitleOption>(restart);
 	load_option.type = TitleOption::Option::LOAD;
 	load_option.text = "Load";
 	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
