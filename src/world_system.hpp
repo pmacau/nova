@@ -43,6 +43,8 @@ public:
 	// player respawn
 	void player_respawn();
 
+	// restart level
+	void restart_game();
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
@@ -68,7 +70,7 @@ private:
 	void handleTextBoxes(float elapsed_ms_since_last_update);
 
 	// restart level
-	void restart_game();
+	// void restart_game();
 
 	// OpenGL window handle
 	GLFWwindow* window;

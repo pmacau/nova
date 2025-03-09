@@ -251,36 +251,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// TODO: freeze everything if in ship_ui
 	
-	
-	
-
-	// TODO: move player out-of-bounds script
 	MapSystem::update_location(registry, player_entity);
-
-	// auto& player_motion = registry.get<Motion>(player_entity);
-	// int tile_x = std::round((player_motion.position.x) / 16.f);
-	// int tile_y = std::round((player_motion.position.y + player_motion.scale.y / 2) / 16.f);
-	// int former_x = std::round((player_motion.formerPosition.x) / 16.f);
-	// int former_y = std::round((player_motion.formerPosition.y + player_motion.scale.y / 2) / 16.f);
-
-	// auto valid_tile = [this](int tile_x, int tile_y) {
-	// 	bool in_bounds = (tile_x >= 0 && tile_y >= 0 && tile_x < MAP_TILE_WIDTH && tile_y < MAP_TILE_HEIGHT);
-	// 	if (in_bounds) {
-	// 		bool in_water = gameMap[tile_y][tile_x] == 0;
-	// 		return !in_water;
-	// 	}
-	// 	return false;
-	// };
-
-	// if (!valid_tile(tile_x, tile_y)) {
-	// 	if (valid_tile(tile_x, former_y)) {
-	// 		player_motion.position = {player_motion.position.x, player_motion.formerPosition.y};
-	// 	} else if (valid_tile(former_x, tile_y)) {
-	// 		player_motion.position = {player_motion.formerPosition.x, player_motion.position.y};
-	// 	} else {
-	// 		player_motion.position = player_motion.formerPosition;
-	// 	}
-	// }
   
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
@@ -296,6 +267,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& player_comp = registry.get<Player>(player_entity);
 	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
 
+	// TODO: move enemy attack cooldown system
+	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
+		mob.hit_time -= elapsed_s;
+	}
+
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
 
@@ -307,10 +283,8 @@ void WorldSystem::player_respawn() {
 	player.health = PLAYER_HEALTH;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
-
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
-	player_motion.formerPosition = player_motion.position;
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
@@ -371,7 +345,6 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, TextData>);	
 	registry.destroy(motions.begin(), motions.end());
-	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;

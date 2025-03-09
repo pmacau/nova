@@ -203,28 +203,8 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
     gl_has_errors();
 }
 
-static std::vector<glm::vec2> generateCircleVertices(float centerX, float centerY, float radius, int segments = 32) {
-	std::vector<glm::vec2> vertices;
-	for (int i = 0; i < segments; i++) {
-		float theta = 2.0f * 3.14159f * float(i) / float(segments);
-		float x = centerX + radius * cos(theta);
-		float y = centerY + radius * sin(theta);
-		vertices.emplace_back(x, y);
-	}
-	return vertices;
-}
-
-std::vector<glm::vec2> generateRectVertices(float centerX, float centerY, float width, float height) {
-	float halfW = width / 2.0f;
-	float halfH = height / 2.0f;
-	return {
-		{centerX - halfW, centerY - halfH},
-		{centerX + halfW, centerY - halfH},
-		{centerX + halfW, centerY + halfH},
-		{centerX - halfW, centerY + halfH}
-	};
-}
-
+// TODO: fix debug rendering later
+/*
 void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform) {
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
 	gl_has_errors();
@@ -269,6 +249,7 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 
 	glBindVertexArray(defaultVAO);
 }
+*/
 
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
@@ -577,6 +558,8 @@ void RenderSystem::renderGamePlay()
 	// adding "vignette" effect when applied
 	drawToScreen();
 
+	// TODO: fix debug hitbox rendering
+
 	// RENDERING ALL THE TEXT
 	for (const auto& [content, position, scale, color, projection] : textsToRender) {
 		renderText(content, position.x, position.y, scale, color, projection);
@@ -584,12 +567,14 @@ void RenderSystem::renderGamePlay()
 
 	
 	// DEBUG
-	auto debugView = registry.view<Debug>();
-	if (!debugView.empty()) {
-		glm::mat3 projection = createProjectionMatrix();
-		glm::mat3 transform = glm::mat3(1.0f);
-		drawDebugHitBoxes(projection, transform);
-	}
+	// auto debugView = registry.view<Debug>();
+	// if (!debugView.empty()) {
+	// 	glm::mat3 projection = createProjectionMatrix();
+	// 	glm::mat3 transform = glm::mat3(1.0f);
+	// 	drawDebugHitBoxes(projection, transform);
+	// }
+
+
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
