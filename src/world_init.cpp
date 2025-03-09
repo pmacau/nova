@@ -1,12 +1,14 @@
 #include "world_init.hpp"
 #include "util/debug.hpp"
 #include <iostream>
-#include "ai/ai_common.hpp"
-#include "ai/ai_component.hpp"
+#include <ai/ai_common.hpp>
+#include <ai/ai_component.hpp>
 #include "ai/state_machine/ai_state_machine.hpp"
 #include "animation/animation_component.hpp"
+#include "ai/state_machine/idle_state.hpp"
+#include "ai/state_machine/patrol_state.hpp"
+#include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
-
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
@@ -124,6 +126,16 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
+	// ai set up
+	// TODO: create a generic enemy creation
+	auto& aiComp = registry.emplace<AIComponent>(entity);
+	AIConfig bossConfig = getBossAIConfig();
+	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, bossConfig, goblinTransitions);
+   
+	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
+
+
 	createMobHealthBar(registry, entity);
 	return entity; 
 }
@@ -199,6 +211,19 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
     animComp.currentAnimationId = "mob2_idle";
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
+
+	// TODO: create a generic enemy creation
+	// set up ai for goblin
+	auto& aiComp = registry.emplace<AIComponent>(entity);
+	AIConfig goblinConfig = getGoblinAIConfig();
+	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, goblinConfig, goblinTransitions);
+   
+	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
+
+	//initial state
+	static PatrolState patrolState;
+	aiComp.stateMachine->changeState(&patrolState);
 
 	createMobHealthBar(registry, entity);
 	return entity; 
@@ -456,8 +481,8 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
 
     // --- AI Component ---
     // Attach our AI state machine to control creature behavior.
-    auto& aiComp = registry.emplace<AIComponent>(entity);
-    aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
+    // auto& aiComp = registry.emplace<AIComponent>(entity);
+    // aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity);
     // Set initial state to Idle. (Using a static instance for now; can later be created per entity if needed.)
     // static IdleState idleState;
     // aiComp.stateMachine->changeState(&idleState);

@@ -21,7 +21,8 @@ struct DebugData {
 
 enum class DebugType {
     WORLD_INIT, WORLD, PHYSICS, COLLISION, GAME_INIT, FLAG,
-    SPAWN,
+    SPAWN, 
+    AI,
     USER_INPUT,
     DEBUG_TYPE_COUNT
 };

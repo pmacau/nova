@@ -17,8 +17,8 @@ private:
     std::default_random_engine rng;
 
     float spawnTimer = 0.0f;
-    float spawnRate = 10000.0f;
-    size_t spawnCap = 2;       // max mobs
+    float spawnRate = 5000.0f;
+    size_t spawnCap = 10;       // max mobs
 
     void processNaturalSpawning();
 
