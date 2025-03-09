@@ -79,8 +79,55 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	}
 }
 
+entt::entity& UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y) {
+	auto entity = registry.create();
+	auto& item_to_copy = registry.get<Item>(item_to_copy_entity);
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+	if (item_to_copy.item_type == ITEM_TYPE::POTION) {
+		auto& item = registry.emplace<Item>(entity);
+		item.item_type = item_to_copy.item_type;
+		auto& potion = registry.emplace<Potion>(entity);
+		potion.heal = 20;
+		auto& motion = registry.emplace<Motion>(entity);
+		motion.angle = 0.f;
+		motion.position = { x, y };
+		motion.scale = vec2(512.f, 508.f) / 15.f;
+		motion.velocity = { 0.f, 0.f };
+		auto& sprite = registry.emplace<Sprite>(entity);
+		sprite.coord = { 0, 0 };
+		sprite.dims = { 512.f, 508.f };
+		sprite.sheet_dims = { 512.f, 508.f };
+		auto& render_request = registry.emplace<RenderRequest>(entity);
+		render_request.used_texture = TEXTURE_ASSET_ID::POTION;
+		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	}
+	return entity;
+}
 
-bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
+void UISystem::resetDragItem(entt::registry& registry) {
+	auto& drag_entity = *registry.view<Drag>().begin();
+	auto& inventory_slot = registry.get<InventorySlot>(registry.get<Drag>(drag_entity).slot);
+	if (inventory_slot.hasItem) {
+		inventory_slot.no += registry.get<Item>(drag_entity).no;
+	}
+	else {
+		auto& item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f);
+		inventory_slot.hasItem = true;
+		inventory_slot.no = registry.get<Item>(drag_entity).no;
+		inventory_slot.item = item;
+	}
+	registry.destroy(drag_entity);
+}
+
+void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
+	auto& entity = *registry.view<Drag>().begin();
+	auto& motion = registry.get<Motion>(entity);
+	motion.position = { mouse_pos_x, mouse_pos_y };
+}
+
+bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y, bool pick) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
 		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
@@ -88,8 +135,50 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 			auto& inventory_entity = inventory.slots[i];
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
-				std::cout << "using item from inventory\n";
-				useItem(registry, inventory_slot.item);
+				// left mouse click
+				if (!pick) {
+					// use item if no item is being dragged
+					if (registry.view<Drag>().empty()) {
+						useItem(registry, inventory_slot.item);
+					}
+					else {
+						auto& drag_entity = *registry.view<Drag>().begin();
+						auto& drag_item = registry.get<Item>(drag_entity);
+						// add dragged item to inventory slot if of the same type
+						if (registry.get<Item>(inventory_slot.item).item_type == drag_item.item_type) {
+							inventory_slot.no += drag_item.no; 
+							registry.destroy(drag_entity);
+						}
+						// put the dragged item to original inventory slot if the item is of different type
+						else {
+							resetDragItem(registry);
+						}
+						return true;
+					}
+				}
+				// right mouse click
+				else {
+					// create item at mouse position if no item is being dragged
+					if (registry.view<Drag>().empty()) {
+						auto& item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
+						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
+						drag.slot = inventory_entity;
+					}
+					else {
+						auto& item_on_mouse = registry.get<Item>(*registry.view<Drag>().begin());
+						// increase the number of items currently being dragged if same type item is picked
+						if (item_on_mouse.item_type == registry.get<Item>(inventory_slot.item).item_type) {
+							item_on_mouse.no += 1;
+						}
+						// put the held item back to original inventory slot and drag a new item
+						else {
+							resetDragItem(registry);
+							auto& item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
+							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
+							drag.slot = inventory_entity;
+						}
+					}
+				}
 				if (inventory_slot.no == 1) {
 					inventory_slot.no = 0;
 					inventory_slot.hasItem = false;
@@ -99,8 +188,20 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				else {
 					inventory_slot.no -= 1;
 				}
-				return true;
 			}
+			else {
+				// place drag item at the empty inventory slot
+				if (!registry.view<Drag>().empty()) {
+					auto& drag_entity = *registry.view<Drag>().begin();
+					auto& drag_item = registry.get<Item>(drag_entity);
+					auto& item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f);
+					inventory_slot.hasItem = true;
+					inventory_slot.no = drag_item.no;
+					inventory_slot.item = item;
+					registry.destroy(drag_entity);
+				}
+			}
+			return true;
 		}
 	}
 	return false;

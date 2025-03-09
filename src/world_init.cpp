@@ -417,7 +417,8 @@ void createInventory(entt::registry& registry) {
 	for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
 		auto entity = registry.create();
 		inventory.slots.push_back(entity);
-		registry.emplace<InventorySlot>(entity);
+		auto& inventory_slot = registry.emplace<InventorySlot>(entity);
+		inventory_slot.id = i;
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
 		auto& motion = registry.emplace<Motion>(entity);

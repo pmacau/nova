@@ -135,6 +135,7 @@ struct Drop
 struct Item
 {
 	ITEM_TYPE item_type;
+	int no = 1;
 };
 
 struct Potion
@@ -144,6 +145,7 @@ struct Potion
 
 struct InventorySlot
 {
+	int id = -1;
 	bool hasItem = false;
 	entt::entity item;
 	int no = 0;
@@ -168,6 +170,10 @@ struct TitleOption
 	vec2 position;
 	vec2 size;
 	bool hover = false;
+};
+
+struct Drag {
+	entt::entity slot;
 };
 
 struct Inventory

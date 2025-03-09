@@ -482,6 +482,25 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 				abs(mouse_pos_y - title_option.position.y) <= title_option.size.y / 2;
 		}
 	}
+	if (!registry.view<Drag>().empty()) {
+		UISystem::updateDragItem(registry, mouse_pos_x, mouse_pos_y);
+	}
+}
+
+void WorldSystem::right_mouse_click() {
+	bool itemUsed = false;
+
+	if (projectile_shooting_delay > 0.5f) {
+		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, true);
+		if (itemUsed) {
+			projectile_shooting_delay = 0.0f;
+		}
+	}
+
+	if (!registry.view<Drag>().empty() && !itemUsed) {
+		UISystem::resetDragItem(registry);
+		projectile_shooting_delay = 0.0f;
+	}
 }
 
 void WorldSystem::left_mouse_click() {
@@ -513,7 +532,17 @@ void WorldSystem::left_mouse_click() {
 		}
 	}
 
-	if (projectile_shooting_delay > 0.5f && UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+	bool itemUsed = false;
+
+	if (projectile_shooting_delay > 0.5f) {
+		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, false);
+		if (itemUsed) {
+			projectile_shooting_delay = 0.0f;
+		}
+	}
+
+	if (!registry.view<Drag>().empty() && !itemUsed) {
+		UISystem::resetDragItem(registry);
 		projectile_shooting_delay = 0.0f;
 	}
 	
@@ -534,7 +563,11 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 			debug_printf(DebugType::USER_INPUT, "Mouse clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
 			left_mouse_click();
 		}
-	}
+		else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+			debug_printf(DebugType::USER_INPUT, "Mouse right clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
+			right_mouse_click();
+		}
+	} 
 }
 
 

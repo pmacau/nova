@@ -559,16 +559,43 @@ void RenderSystem::renderGamePlay()
 	for (int i = 0; i < inventory.slots.size(); i++) {
 		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 		if (inventory_slot.hasItem) {
-			textsToRender.push_back(
-				std::make_tuple(
-					std::to_string(inventory_slot.no),
-					vec2({ 60.f + 45.f * i, -45.f }),
-					0.3f,
-					vec3({ 1.f, 1.f, 1.f }),
-					flippedUIProjection
-				)
-			);
+			if (inventory_slot.no < 10) {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(inventory_slot.no),
+						vec2({ 60.f + 45.f * i, -45.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedUIProjection
+					)
+				);
+			}
+			else {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(inventory_slot.no),
+						vec2({ 53.f + 45.f * i, -45.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedUIProjection
+					)
+				);
+			}
 		}
+	}
+
+	for (auto entity : registry.view<Drag>()) {
+		auto& motion = registry.get<Motion>(entity);
+		auto& item = registry.get<Item>(entity);
+		textsToRender.push_back(
+			std::make_tuple(
+				std::to_string(item.no),
+				vec2({motion.position.x + motion.scale.x / 2.f - 5.f, -motion.position.y + motion.scale.y / 2.f - 10.f}),
+				0.3f,
+				vec3({ 1.f, 1.f, 1.f }),
+				flippedUIProjection
+			)
+		);
 	}
 	
 	// draw framebuffer to screen
