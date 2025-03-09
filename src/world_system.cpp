@@ -27,7 +27,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	screen_entity = registry.create();
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+	screen_state.current_screen = ScreenState::ScreenType::TITLE;
+	createTitleScreen(registry);
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -42,7 +43,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 - 155), vec2(1.5f, 1.5f), 5);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
-
 
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(5);
@@ -157,10 +157,16 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	projectile_shooting_delay = projectile_shooting_delay + elapsed_ms_since_last_update / 1000.f;
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
+	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		projectile_shooting_delay = 0;
+		return true; 
+	}
+	
 
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
@@ -343,7 +349,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, TextData>);	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
 	registry.destroy(motions.begin(), motions.end());
 
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
@@ -354,7 +360,6 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
-
 	// reset the screen
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.darken_screen_factor = 0;
@@ -379,10 +384,19 @@ bool WorldSystem::is_over() const {
 
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
-	// exit game w/ ESC
+	// title screen
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
-		close_window();
+		//close_window();
+		if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+			debug_printf(DebugType::USER_INPUT, "Closing pause title screen\n");
+			screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+		}
+		else {
+			debug_printf(DebugType::USER_INPUT, "Opening pause title screen\n");
+			screen_state.current_screen = ScreenState::ScreenType::TITLE;
+		}
 	}
 
 	// Resetting game
@@ -434,7 +448,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// }
 
 	// E to toggle opening/closign ship ui
-	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
             auto& player_motion = registry.get<Motion>(player_entity);
@@ -468,6 +481,14 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// record the current mouse position
 	mouse_pos_x = mouse_position.x;
 	mouse_pos_y = mouse_position.y;
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		for (auto entity : registry.view<TitleOption>()) {
+			auto& title_option = registry.get<TitleOption>(entity);
+			title_option.hover = abs(mouse_pos_x - title_option.position.x) <= title_option.size.x / 2 &&
+				abs(mouse_pos_y - title_option.position.y) <= title_option.size.y / 2;
+		}
+	}
 }
 
 void WorldSystem::left_mouse_click() {
@@ -477,17 +498,30 @@ void WorldSystem::left_mouse_click() {
 	vec2 velocity = direction * PROJECTILE_SPEED;
 
 	auto& player_comp = registry.get<Player>(player_entity);
-	auto screens = registry.view<ScreenState>();
-	bool isUI = false; 
-	for (auto& screen : screens) {
-		auto& screen_state = registry.get<ScreenState>(screen); 
-		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
-			isUI = true; 
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		for (auto entity : registry.view<TitleOption>()) {
+			auto& title_option = registry.get<TitleOption>(entity);
+			if (title_option.hover) {
+				if (title_option.type == TitleOption::Option::PLAY) {
+					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+					return;
+				}
+				else if (title_option.type == TitleOption::Option::EXIT) {
+					close_window();
+				}
+			}
+			
 		}
 	}
 
-	if ( !UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0 && !isUI ) {
+	if (UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+		projectile_shooting_delay = 0.0f;
+	}
+	
+	if (player_comp.weapon_cooldown <= 0 && 
+		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
+		projectile_shooting_delay > 0.5f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
