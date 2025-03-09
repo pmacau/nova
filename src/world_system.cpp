@@ -152,6 +152,23 @@ void WorldSystem::init() {
 	MusicSystem::playMusic(Music::FOREST);
 	// Set all states to default
 
+	// TODO: can move this next block into restart_game, but needs some debugging...
+	//       it put the player perma-stuck on the intiial tutorial screen on death
+
+    //---------------------------------------
+	// reset all the text boxes
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
+    firstTextData.active = true;
+	flag_system.reset();
+
+	// reset the timer for the last box
+	mobKilledTextTimer = 0.0;
+	//---------------------------------------
+
     restart_game();
 }
 
@@ -375,6 +392,10 @@ void WorldSystem::restart_game() {
 
 	// reset the timer for the last box
 	mobKilledTextTimer = 0.0;
+
+	// reset the screen
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	screen_state.darken_screen_factor = 0;
 }
 
 // Should the game be over ?
@@ -496,6 +517,7 @@ void WorldSystem::left_mouse_click() {
 		for (auto entity : registry.view<TitleOption>()) {
 			auto& title_option = registry.get<TitleOption>(entity);
 			if (title_option.hover) {
+				MusicSystem::playSoundEffect(SFX::SELECT);
 				if (title_option.type == TitleOption::Option::PLAY) {
 					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 					return;
