@@ -347,6 +347,9 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 void WorldSystem::restart_game() {
 	debug_printf(DebugType::WORLD, "Restarting...\n");
 
+	auto& screen_state = registry.get<ScreenState>(registry.view<ScreenState>().front());
+	screen_state.darken_screen_factor = 0;
+
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
@@ -360,9 +363,6 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
-	// reset the screen
-	auto screen_state = registry.get<ScreenState>(screen_entity);
-	screen_state.darken_screen_factor = 0;
 
 	// reset all the text boxes
     for (auto entity : textBoxEntities) {
