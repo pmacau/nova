@@ -14,7 +14,7 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 
 
 void CollisionSystem::step(float elapsed_ms) {
-	//processed.clear();
+	processed.clear();
 	destroy_entities.clear();
 
 	for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
