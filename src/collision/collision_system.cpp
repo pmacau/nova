@@ -7,8 +7,8 @@
 
 CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
 	registry(reg),
-	world(world), 
-	physics(physics)
+	physics(physics),
+	world(world)
 {
 }
 
@@ -113,7 +113,7 @@ void CollisionSystem::handle<Projectile, Mob>(
 
 // could've probably written the logic much clearer. 
 template<>
-void CollisionSystem::handle<Obstacle, Motion>(
+void CollisionSystem::handle<Obstacle, Player>(
 	entt::entity obs_ent, entt::entity e2, float elapsed_ms
 ) {
 	auto& obstacle = registry.get<Obstacle>(obs_ent);
@@ -140,8 +140,6 @@ template<>
 void CollisionSystem::handle<Projectile, Obstacle>(
 	entt::entity proj_ent, entt::entity obs_ent, float elapsed_ms
 ) {
-	std::cout << "entered " << std::endl; 
-	glm::vec2 normal; 
 	destroy_entities.push_back(proj_ent);
 }
 
@@ -149,5 +147,6 @@ void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms
 	if      (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Mob>(e1, e2))  handle<Projectile, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms); 
-	else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);
+	// TODO: when AI gets improved, make all mobs unable to walk into obstacles
+	else if (collision_type<Obstacle, Player>(e1, e2)) handle<Obstacle, Player>(e1, e2, elapsed_ms);
 }

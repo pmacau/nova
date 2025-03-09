@@ -16,29 +16,11 @@ struct Boss{
 	vec2 spawn;
 };
 
-enum HitBoxType {
-	HITBOX_CIRCLE,
-	HITBOX_RECT
-};
-
 struct InputState {
 	bool up = false;
 	bool down = false;
 	bool left = false;
 	bool right = false;
-};
-
-struct HitBox {
-	HitBoxType type;
-	union {
-		struct {
-			float radius;
-		} circle;
-		struct {
-			float width;
-			float height;
-		} rect;
-	} shape;
 };
 
 struct Obstacle {
@@ -266,12 +248,6 @@ enum class TEXTURE_ASSET_ID {
 	GOBLIN_TORCH_BLUE,
 	TEXTURE_COUNT
 };
-
-//enum class hitBoxType {
-//	Mob,
-//	Projectile, 
-//	Player
-//};
 
 
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
