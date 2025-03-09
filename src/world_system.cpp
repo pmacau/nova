@@ -251,10 +251,8 @@ void WorldSystem::player_respawn() {
 	player.health = PLAYER_HEALTH;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
-
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
-	player_motion.formerPosition = player_motion.position;
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
@@ -267,7 +265,6 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);	
 	registry.destroy(motions.begin(), motions.end());
-	debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: restart_game)\n");
 
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;

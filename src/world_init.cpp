@@ -177,8 +177,8 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
 	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.9f};
 
-	float w = motion.scale.x;
-	float h = motion.scale.y;
+	float w = motion.scale.x * 0.4;
+	float h = motion.scale.y * 0.5;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = {
 		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
@@ -219,7 +219,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.scale = vec2(19 * 14, 35 * 4.5);
 	motion.offset_to_ground = vec2(0, motion.scale.y / 2);
 
-	float w = motion.scale.x;
+	float w = motion.scale.x * 0.8;
 	float h = motion.scale.y;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = {
