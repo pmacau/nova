@@ -393,6 +393,7 @@ void WorldSystem::restart_game() {
     }
     auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
     firstTextData.active = true;
+	flag_system.reset();
 
 	// reset the timer for the last box
 	mobKilledTextTimer = 0.0;
