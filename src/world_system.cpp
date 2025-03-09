@@ -364,6 +364,9 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 void WorldSystem::restart_game() {
 	debug_printf(DebugType::WORLD, "Restarting...\n");
 
+	auto& screen_state = registry.get<ScreenState>(registry.view<ScreenState>().front());
+	screen_state.darken_screen_factor = 0;
+
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
@@ -377,8 +380,21 @@ void WorldSystem::restart_game() {
 	player_respawn();
 	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
+
+	// reset all the text boxes
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
+    firstTextData.active = true;
+	flag_system.reset();
+
+	// reset the timer for the last box
+	mobKilledTextTimer = 0.0;
+
 	// reset the screen
-	auto screen_state = registry.get<ScreenState>(screen_entity);
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.darken_screen_factor = 0;
 }
 
@@ -432,13 +448,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	// // Debugging - not used in A1, but left intact for the debug lines
-	// if (key == GLFW_KEY_D) {
-	// 	if (action == GLFW_RELEASE) {
-	// 		if (debugging.in_debug_mode) {
-	// 			debugging.in_debug_mode = false;
-	// 		}
-	// 		else {
-	// 			debugging.in_debug_mode = true;
 	// if (key == GLFW_KEY_P) {
 	// 	auto debugView = registry.view<Debug>();
 	// 	if (debugView.empty()) {
@@ -452,7 +461,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// 	}
 	// }
 
-	// E to toggle opening/closign ship ui
+	// F to toggle opening/closing ship ui
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
             auto& player_motion = registry.get<Motion>(player_entity);

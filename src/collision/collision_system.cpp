@@ -75,10 +75,10 @@ void CollisionSystem::handle<Player, Mob>(
 	// TODO: should probably move player respawning into the world system;
 	//       but I'm going to leave the coupling for now
 	screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
-	if (player.health <= 0) {
-		screen.darken_screen_factor = 0;
-		world.restart_game();
-	}
+	//if (player.health <= 0) {
+	//	screen.darken_screen_factor = 0;
+	//	world.restart_game();
+	//}
 }
 
 template<>

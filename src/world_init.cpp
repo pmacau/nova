@@ -136,9 +136,6 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, bossConfig, goblinTransitions);
    
 	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
-
-
-	createMobHealthBar(registry, entity, 15.f);
 	return entity; 
 }
 
