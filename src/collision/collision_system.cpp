@@ -37,10 +37,15 @@ void CollisionSystem::step(float elapsed_ms) {
 
 void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {
 	auto obs = registry.view<Obstacle>();
-	if (obs.find(e1) == obs.end()) {
+	auto mobs = registry.view<Mob>(); 
+
+	if (mobs.find(e1) != mobs.end() && mobs.find(e2) != mobs.end()) {
+		return; 
+	}
+	if (obs.find(e1) != obs.end()) {
 		proccessed.insert(e1);
 	} 
-	if (obs.find(e2) == obs.end()) {
+	if (obs.find(e2) != obs.end()) {
 		proccessed.insert(e2);
 	}
 }
@@ -65,7 +70,7 @@ void CollisionSystem::handle<Player, Mob>(
 	auto& player = registry.get<Player>(play_ent);
 	auto& mob = registry.get<Mob>(mob_ent);
 	auto& screen = registry.get<ScreenState>(registry.view<ScreenState>().front());
-
+	std::cout << "CONTACT" << std::endl; 
 	if (mob.hit_time > 0) return;
 
 	debug_printf(DebugType::COLLISION, "Player-mob collision!\n");
