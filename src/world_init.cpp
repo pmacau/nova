@@ -131,11 +131,11 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
-	createMobHealthBar(registry, entity);
+	createMobHealthBar(registry, entity, 15.f);
 	return entity; 
 }
 
-entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity) {
+entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust) {
 	auto entity = registry.create();
 
 	registry.emplace<UI>(entity);
@@ -145,14 +145,15 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	auto& mob = registry.get<Mob>(mob_entity);
 	healthbar.entity = mob_entity;
 	healthbar.initial_health = mob.health;
+	healthbar.y_adjust = y_adjust;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
 	motion.position.x = mob_motion.position.x;
-	motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2 - 15;
+	motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2 - 15 - healthbar.y_adjust;
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
-	motion.scale = vec2({ std::max(40.f, abs(mob_motion.scale.x) / 2.f), 8.f}); // for boss we may want bigger health bar hence max function
+	motion.scale = vec2({ 40.0f, 8.f}); // for boss we may want bigger health bar hence max function
 	motion.offset_to_ground = { 0, motion.scale.y / 2.f };
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = { 1152.f, 648.f };
@@ -216,7 +217,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
-	createMobHealthBar(registry, entity);
+	createMobHealthBar(registry, entity, -40.0f);
 	return entity; 
 }
 

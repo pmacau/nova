@@ -137,6 +137,8 @@ struct MobHealthBar
 	entt::entity entity;
 	int initial_health;
 	float left_adjust = 0.f;
+	float y_adjust = 0.f;
+	float width = 0.0f;
 };
 
 enum class ITEM_TYPE {

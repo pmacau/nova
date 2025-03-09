@@ -449,8 +449,7 @@ void WorldSystem::left_mouse_click() {
 
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0 && screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY
-	) {
+		player_comp.weapon_cooldown <= 0) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
