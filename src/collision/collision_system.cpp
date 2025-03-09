@@ -60,7 +60,7 @@ void CollisionSystem::handle<Player, Mob>(
 	auto& player = registry.get<Player>(play_ent);
 	auto& mob = registry.get<Mob>(mob_ent);
 	auto& screen = registry.get<ScreenState>(registry.view<ScreenState>().front());
-	std::cout << "CONTACT" << std::endl; 
+
 	if (mob.hit_time > 0) return;
 
 	debug_printf(DebugType::COLLISION, "Player-mob collision!\n");
