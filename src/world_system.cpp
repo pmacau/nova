@@ -128,13 +128,13 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-	title_off_time = max(title_off_time + elapsed_ms_since_last_update / 1000.f, 0.5f);
+	projectile_shooting_delay = projectile_shooting_delay + elapsed_ms_since_last_update / 1000.f;
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		title_off_time = 0;
+		projectile_shooting_delay = 0;
 		return true; 
 	}
 	
@@ -434,13 +434,11 @@ void WorldSystem::left_mouse_click() {
 
 	auto& player_comp = registry.get<Player>(player_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-	bool resumeClicked = false;
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 		for (auto entity : registry.view<TitleOption>()) {
 			auto& title_option = registry.get<TitleOption>(entity);
 			if (title_option.hover) {
 				if (title_option.type == TitleOption::Option::PLAY) {
-					resumeClicked = true;
 					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 					return;
 				}
@@ -452,12 +450,13 @@ void WorldSystem::left_mouse_click() {
 		}
 	}
 
+	if (UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
+		projectile_shooting_delay = 0.0f;
+	}
 	
-	if (
-		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0 && screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && title_off_time > 0.65f
-
-	) {
+	if (player_comp.weapon_cooldown <= 0 && 
+		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
+		projectile_shooting_delay > 0.5f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;

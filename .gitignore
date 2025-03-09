@@ -3,7 +3,6 @@ out/
 build/
 Makefile
 data/retextures/
-data/maps
 
 # exclude cache data
 .vs/
