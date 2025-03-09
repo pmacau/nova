@@ -1,4 +1,4 @@
-# 5 People (Team 12) - Milestone 1
+# 5 People (Team 12) - Milestone 2
 
 _Follow the hyperlinks to see the code location_
 
