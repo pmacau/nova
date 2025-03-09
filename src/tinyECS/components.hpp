@@ -170,6 +170,21 @@ struct Title
 
 };
 
+struct TitleOption
+{
+	enum class Option {
+		PLAY, 
+		LOAD, 
+		SAVE, 
+		EXIT
+	};
+	Option type;
+	std::string text;
+	vec2 position;
+	vec2 size;
+	bool hover = false;
+};
+
 struct Inventory
 {
 	std::vector<entt::entity> slots;

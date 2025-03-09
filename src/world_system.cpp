@@ -26,7 +26,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	screen_entity = registry.create();
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+	screen_state.current_screen = ScreenState::ScreenType::TITLE;
+	createTitleScreen(registry);
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -41,8 +42,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 - 155), vec2(1.5f, 1.5f), 5);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
-
-	createTitleScreen(registry);
 }
 
 WorldSystem::~WorldSystem() {
@@ -415,6 +414,14 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// record the current mouse position
 	mouse_pos_x = mouse_position.x;
 	mouse_pos_y = mouse_position.y;
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		for (auto entity : registry.view<TitleOption>()) {
+			auto& title_option = registry.get<TitleOption>(entity);
+			title_option.hover = abs(mouse_pos_x - title_option.position.x) <= title_option.size.x / 2 &&
+				abs(mouse_pos_y - title_option.position.y) <= title_option.size.y / 2;
+		}
+	}
 }
 
 void WorldSystem::left_mouse_click() {
@@ -424,19 +431,28 @@ void WorldSystem::left_mouse_click() {
 	vec2 velocity = direction * PROJECTILE_SPEED;
 
 	auto& player_comp = registry.get<Player>(player_entity);
-	auto screens = registry.view<ScreenState>();
-	bool isUI = false; 
-	for (auto& screen : screens) {
-		auto& screen_state = registry.get<ScreenState>(screen); 
-		if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
-			screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-			isUI = true; 
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	bool resumeClicked = false;
+	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		for (auto entity : registry.view<TitleOption>()) {
+			auto& title_option = registry.get<TitleOption>(entity);
+			if (title_option.hover) {
+				if (title_option.type == TitleOption::Option::PLAY) {
+					resumeClicked = true;
+					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+					return;
+				}
+				else if (title_option.type == TitleOption::Option::EXIT) {
+					close_window();
+				}
+			}
+			
 		}
 	}
 
 	if (
 		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0 && !isUI
+		player_comp.weapon_cooldown <= 0 && screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY
 	) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);

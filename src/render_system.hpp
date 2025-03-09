@@ -72,6 +72,7 @@ public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
 	bool initFreetype();
+	void renderTitle();
 	bool debugModeEnabled;
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
@@ -103,7 +104,7 @@ private:
 
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
-	void drawToScreen();
+	void drawToScreen(bool vignette);
 	void renderGamePlay();
 	void renderShipUI();
 

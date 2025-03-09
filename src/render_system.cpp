@@ -397,7 +397,7 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 // first draw to an intermediate texture,
 // apply the "vignette" texture, when requested
 // then draw the intermediate texture
-void RenderSystem::drawToScreen()
+void RenderSystem::drawToScreen(bool vignette)
 {
 	// Setting shaders
 	// get the vignette texture, sprite mesh, and program
@@ -440,7 +440,7 @@ void RenderSystem::drawToScreen()
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
 	
 	auto& screen = registry.get<ScreenState>(screen_state_entity);
-	glUniform1f(dead_timer_uloc, screen.darken_screen_factor);
+	glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
@@ -501,13 +501,7 @@ void RenderSystem::renderGamePlay()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
-	auto title = registry.view<Title, Motion, RenderRequest>();
-
-	for (auto entity : title) {
-		drawTexturedMesh(entity, ui_projection_2D);
-	}
-
-	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip>);
+	auto ui = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, Title>);
 	for (auto entity : ui) {
 		if (registry.any_of<FixedUI>(entity)) {
 			drawTexturedMesh(entity, ui_projection_2D);
@@ -580,7 +574,7 @@ void RenderSystem::renderGamePlay()
 
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
-	drawToScreen();
+	drawToScreen(true);
 	// DEBUG
 	auto debugView = registry.view<Debug>();
 	if (!debugView.empty()) {
@@ -592,6 +586,58 @@ void RenderSystem::renderGamePlay()
 	glfwSwapBuffers(window);
 	gl_has_errors();
 
+}
+
+
+void RenderSystem::renderTitle()
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+		return;
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	auto title = registry.view<Title, Motion, RenderRequest>();
+
+	for (auto entity : title) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	drawToScreen(false);
+
+	mat3 flippedProjection = ui_projection_2D;
+	flippedProjection[1][1] *= -1.0f;
+	for (auto entity : registry.view<TitleOption>()) {
+		auto& title_option = registry.get<TitleOption>(entity);
+		if (title_option.hover) {
+			renderText(title_option.text, title_option.position.x - title_option.size.x / 2.f, -title_option.position.y - title_option.size.y / 2.f - 25.f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+		}
+	}
+
+
+	glfwSwapBuffers(window);
+	gl_has_errors();
 }
 
 void RenderSystem::renderShipUI() 
@@ -635,10 +681,11 @@ void RenderSystem::renderShipUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	drawToScreen();
+	drawToScreen(false);
 
 	mat3 flippedProjection = projection_2D;
 	flippedProjection[1][1] *= -1.0f; 
+	//renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 	renderText("Current ship", -348.0f, -35.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
@@ -679,6 +726,9 @@ void RenderSystem::draw()
 	// auto& screen_state = registry.get<ScreenState>(screens.front());
 
     switch (screen_state.current_screen) {
+		case ScreenState::ScreenType::TITLE:
+			renderTitle();
+			break;
 		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
             renderShipUI();
             break;

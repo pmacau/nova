@@ -551,11 +551,12 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
 
 entt::entity createTitleScreen(entt::registry& registry) {
 	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
 	registry.emplace<Title>(entity);
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.position = { WINDOW_WIDTH_PX / 2.f, WINDOW_HEIGHT_PX / 2.f };
-	motion.scale = { 500.f, 500.f};
-	motion.offset_to_ground = { 0, motion.scale.y / 2.f };
+	motion.scale = { WINDOW_WIDTH_PX, WINDOW_HEIGHT_PX};
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = { 0, 0 };
 	sprite.dims = { 120.f, 68.f };
@@ -564,5 +565,34 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	render_request.used_texture = TEXTURE_ASSET_ID::TITLE;
 	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	// TODO refactor so that each button is a separate texture 
+	auto play = registry.create();
+	auto& play_option = registry.emplace<TitleOption>(play);
+	play_option.type = TitleOption::Option::PLAY;
+	play_option.text = "Play"; 
+	play_option.position = { 23 * WINDOW_WIDTH_PX / 120.F, 57.5 * WINDOW_HEIGHT_PX / 68.f};
+	play_option.size = { 10.0 * WINDOW_WIDTH_PX / 120.f, 11.0f * WINDOW_HEIGHT_PX / 68.f};
+
+	auto exit = registry.create();
+	auto& exit_option = registry.emplace<TitleOption>(exit);
+	exit_option.type = TitleOption::Option::EXIT;
+	exit_option.text = "Exit";
+	exit_option.position = { 95.5 * WINDOW_WIDTH_PX / 120.F, 58 * WINDOW_HEIGHT_PX / 68.f };
+	exit_option.size = { 9.0 * WINDOW_WIDTH_PX / 120.f, 12.0f * WINDOW_HEIGHT_PX / 68.f };
+
+	auto save = registry.create();
+	auto& save_option = registry.emplace<TitleOption>(save);
+	save_option.type = TitleOption::Option::SAVE;
+	save_option.text = "Save";
+	save_option.position = { 48.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
+	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
+
+	auto load = registry.create();
+	auto& load_option = registry.emplace<TitleOption>(load);
+	load_option.type = TitleOption::Option::LOAD;
+	load_option.text = "Load";
+	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
+	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 	return entity;
 }
