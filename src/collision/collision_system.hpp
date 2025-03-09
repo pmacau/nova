@@ -19,7 +19,7 @@ private:
     WorldSystem& world;
 
     std::vector<entt::entity> destroy_entities;
-    std::unordered_set<entt::entity> proccessed;
+    std::unordered_set<entt::entity> processed;
 
     void processHandler(entt::entity& e1, entt::entity& e2); 
 

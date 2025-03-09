@@ -14,15 +14,15 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 
 
 void CollisionSystem::step(float elapsed_ms) {
-	proccessed.clear();
+	//processed.clear();
 	destroy_entities.clear();
 
 	for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
 		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
 			if (
 				e1 == e2 ||
-				proccessed.find(e1) != proccessed.end() ||
-				proccessed.find(e2) != proccessed.end() ||
+				processed.find(e1) != processed.end() ||
+				processed.find(e2) != processed.end() ||
 				!collides(h1, m1, h2, m2)
 			) continue;
 
@@ -36,13 +36,8 @@ void CollisionSystem::step(float elapsed_ms) {
 }
 
 void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {
-	auto obs = registry.view<Obstacle>();
-	if (obs.find(e1) == obs.end()) {
-		proccessed.insert(e1);
-	} 
-	if (obs.find(e2) == obs.end()) {
-		proccessed.insert(e2);
-	}
+	if (registry.all_of<Projectile>(e1)) processed.insert(e1);
+	if (registry.all_of<Projectile>(e2)) processed.insert(e2);
 }
 
 template<typename C1, typename C2>
@@ -74,7 +69,7 @@ void CollisionSystem::handle<Player, Mob>(
 	MusicSystem::playSoundEffect(SFX::HIT);
 
 	UISystem::updatePlayerHealthBar(registry, player.health);
-	//physics.knockback(play_ent, mob_ent, 400);
+	physics.knockback(play_ent, mob_ent, 300);
 	physics.suppress(play_ent, mob_ent);
 
 	// TODO: should probably move player respawning into the world system;
