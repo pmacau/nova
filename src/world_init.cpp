@@ -196,7 +196,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
-	hitbox.depth = 50;
+	hitbox.depth = 60;
 	
 	auto& drop = registry.emplace<Drop>(entity);
 	drop.item_type = ITEM_TYPE::POTION;
