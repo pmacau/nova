@@ -41,6 +41,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
+	hitbox.depth = 50; // TODO: change this back to unset (epsilon)
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::PLAYER;
