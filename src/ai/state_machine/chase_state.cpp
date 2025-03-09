@@ -15,36 +15,23 @@ void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
 void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
     // Get player data.
     auto playerView = registry.view<Player, Motion>();
-    if (playerView.begin() == playerView.end()) return;
+    if (playerView.size_hint() == 0) return;
     
     auto playerEntity = *playerView.begin();
     auto& playerMotion = registry.get<Motion>(playerEntity);
     auto& motion = registry.get<Motion>(entity);
+
+    auto& aiComp = registry.get<AIComponent>(entity);
+    const AIConfig& config = aiComp.stateMachine->getConfig();
     
     // Compute direction vector toward the player.
     vec2 toPlayer = playerMotion.position - motion.position;
     float dist = std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y);
 
-    if (dist > config.detectionRange) {
-        // Transition to patrol if player is out of detection range.
-        static PatrolState patrolState;
-        auto& aiComp = registry.get<AIComponent>(entity);
-        aiComp.stateMachine->changeState(&patrolState);
-        return;
-    }
-    
     if (dist > 0.0f) {
         vec2 direction = toPlayer / dist;
-        // Set chase speed.
-        const float chaseSpeed = config.chaseSpeed;
-        motion.velocity = direction * chaseSpeed;
-    }
-    
-    // Transition to AttackState if within attack range.
-    if (dist < config.attackRange) {
-        static AttackState attackState;
-        auto& aiComp = registry.get<AIComponent>(entity);
-        aiComp.stateMachine->changeState(&attackState);
+        // Use the chaseSpeed from the shared configuration stored in the state machine.
+        motion.velocity = direction * config.chaseSpeed;
     }
 }
 

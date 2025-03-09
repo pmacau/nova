@@ -3,19 +3,15 @@
 
 #include "ai_state.hpp"
 
-struct IdleStateConfig {
-    float detectionRange = 400.0f;
-};
-
 class IdleState : public AIState {
 public:
-    IdleState(): config() {}
-    IdleState(const IdleStateConfig& config) : config(config) {}
+    IdleState() {
+        id = "idle";
+    }
+    // IdleState(const IdleStateConfig& config) : config(config) {}
     void onEnter(entt::registry& registry, entt::entity entity) override;
 
     void onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) override;
 
     void onExit(entt::registry& registry, entt::entity entity) override;
-protected:
-    IdleStateConfig config;
 };

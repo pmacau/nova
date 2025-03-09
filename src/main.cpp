@@ -22,6 +22,9 @@
 #include "map/image_gen.hpp"
 #include "animation_system.hpp"
 #include "player/player_system.hpp"
+#include <ai/ai_initializer.hpp>
+#include <ai/state_machine/state_factory.hpp>
+
 
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
@@ -40,6 +43,7 @@ int main()
 
 	// assets and constants
 	initializeEnemyDefinitions();
+	initializeAIStates(g_stateFactory);
 
 	// global systems
 	PhysicsSystem physics_system(reg);
