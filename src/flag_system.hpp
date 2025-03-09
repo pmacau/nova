@@ -17,8 +17,8 @@ public:
     };
     bool is_paused;
     float time_spent_s; 
-private:
     bool done; 
+private:
     entt::registry& registry;
     TutorialStep tutorial_step;
 
@@ -131,6 +131,7 @@ public:
         if (value && tutorial_step == TutorialStep::Accessed) {
             tutorial_step = TutorialStep::Shot;
             time_spent_s = 0;
+            done = true;
             debug_printf(DebugType::FLAG, "setShot: stepped from accessed to shot\n");
         }
     }

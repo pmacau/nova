@@ -67,7 +67,7 @@ private:
 	void on_mouse_button_pressed(int button, int action, int mods);
 	void left_mouse_click();
 
-	void handleTextBoxes();
+	void handleTextBoxes(float elapsed_ms_since_last_update);
 
 	// restart level
 	void restart_game();
@@ -82,4 +82,5 @@ private:
 
 	float currentFlag = 0.0f;
 	std::vector<entt::entity> textBoxEntities;
+	float mobKilledTextTimer = 0.0f;
 };

@@ -520,9 +520,6 @@ void RenderSystem::renderGamePlay()
 		auto& motion = registry.get<Motion>(entity);
 		auto& textData = registry.get<TextData>(entity);
 
-		// float textX = motion.position.x - (motion.scale.x / 4.0f);
-    	// float textY = motion.position.y;
-
 		mat3 flippedProjection = projection_2D;
     	flippedProjection[1][1] *= -1.0f;
 
