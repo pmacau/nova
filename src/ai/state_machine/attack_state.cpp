@@ -5,15 +5,13 @@
 #include <iostream>
 
 void AttackState::onEnter(entt::registry& registry, entt::entity entity) {
-    std::cout << "AttackState: onEnter\n";
-    // Start attack animation, reset attack timer, etc.
+    // debug_printf(DebugType::AI, "AttackState: onEnter\n");
 }
 
 void AttackState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
-    std::cout << "AttackState: onUpdate (deltaTime: " << deltaTime << ")\n";
+    // debug_printf(DebugType::AI, "AttackState: onUpdate (deltaTime: %f)\n", deltaTime);
 }
 
 void AttackState::onExit(entt::registry& registry, entt::entity entity) {
-    std::cout << "AttackState: onExit\n";
-    // Cleanup attack state if needed.
+    // debug_printf(DebugType::AI, "AttackState: onExit\n");
 }

@@ -7,15 +7,11 @@
 #include <cmath>
 
 void IdleState::onEnter(entt::registry& registry, entt::entity entity) {
-    std::cout << "IdleState: onEnter\n";
-    // Reset or initialize any idle-specific data if needed.
 }
 
 void IdleState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
-    
+
 }
 
 void IdleState::onExit(entt::registry& registry, entt::entity entity) {
-    std::cout << "IdleState: onExit\n";
-    // Cleanup idle-specific state if needed.
 }

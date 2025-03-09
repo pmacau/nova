@@ -16,7 +16,6 @@ PatrolState::PatrolState()
 }
 
 void PatrolState::onEnter(entt::registry& registry, entt::entity entity) {
-    std::cout << "Entering Patrol State\n";
     // When entering patrol, choose a new target within the patrol radius.
     auto& motion = registry.get<Motion>(entity);
 
@@ -62,7 +61,6 @@ void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float 
 }
 
 void PatrolState::onExit(entt::registry& registry, entt::entity entity) {
-    std::cout << "Exiting Patrol State\n";
     auto& motion = registry.get<Motion>(entity);
     motion.velocity = {0.f, 0.f};
 }

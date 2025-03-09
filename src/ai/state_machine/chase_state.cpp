@@ -8,8 +8,6 @@
 #include "patrol_state.hpp"
 
 void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
-    std::cout << "ChaseState: onEnter\n";
-    // Initialize chase-specific parameters if needed.
 }
 
 void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
@@ -36,8 +34,7 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
 }
 
 void ChaseState::onExit(entt::registry& registry, entt::entity entity) {
-    std::cout << "ChaseState: onExit\n";
-    // Stop movement on exit.
+    // Stop movement on exit
     auto& motion = registry.get<Motion>(entity);
     motion.velocity = {0, 0};
 }
