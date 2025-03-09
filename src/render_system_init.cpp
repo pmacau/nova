@@ -173,7 +173,6 @@ void RenderSystem::initializeGlGeometryBuffers()
 	};
 	point_indices = {0};
 
-	int geom_index = (int)GEOMETRY_BUFFER_ID::DEBUG_POINT;
 	// meshes[geom_index].vertices = point_vertices;
 	// meshes[geom_index].vertex_indices = point_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::DEBUG_POINT, point_vertices, point_indices);

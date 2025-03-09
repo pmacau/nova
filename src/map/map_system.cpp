@@ -39,18 +39,22 @@ Public methods
 
 void MapSystem::init(entt::registry& reg) {
     loadMap();
-    createBackground(reg, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE);
+    createBackground(reg, map_width, map_height, TILE_SIZE);
 };
 
 void MapSystem::generate_new_map() {
     // TODO: port python map generator to cpp
 }
 
-vec2 MapSystem::populate_ecs(entt::registry& reg) {
+vec2 MapSystem::populate_ecs(
+    entt::registry& reg,
+    vec2& p_pos,
+    vec2& s_pos
+) {
     vec2 spawn_pos = {0, 0};
 
-    for (int i = 0; i < MAP_HEIGHT; i++) {
-        for (int j = 0; j < MAP_WIDTH; j++) {
+    for (int i = 0; i < map_height; i++) {
+        for (int j = 0; j < map_width; j++) {
             vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
 
             switch (get_decoration(game_map[i][j])) {
@@ -58,7 +62,7 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
                     bossSpawnIndices.push_back(vec2(j, i));
                     break;
                 case Decoration::SPAWN:
-                    spawn_pos = map_pos;
+                    p_pos = map_pos;
                     break;
                 case Decoration::TREE:
                     if (get_terrain(game_map[i][j]) == Terrain::SAND) {
@@ -66,6 +70,9 @@ vec2 MapSystem::populate_ecs(entt::registry& reg) {
                     } else {
                         createTree(reg, map_pos, {0, 0});
                     }
+                    break;
+                case Decoration::SHIP:
+                    s_pos = map_pos;
                     break;
                 default:
                     break;
@@ -106,16 +113,26 @@ Private methods
 */
 
 void MapSystem::loadMap() {
-    game_map.assign(MAP_HEIGHT, std::vector<uint8_t>(MAP_WIDTH));
-
     std::ifstream file(map_path("map.bin"), std::ios::binary);
-    if (file) {
-        for (int y = 0; y < MAP_HEIGHT; y++) {
-            file.read(reinterpret_cast<char*>(game_map[y].data()), MAP_WIDTH);
-        }
-    } else {
+    if (!file) {
         debug_printf(DebugType::WORLD_INIT, "Could not find map file!\n");
+        return;
     }
+
+    // Read dimensions
+    uint32_t rows, cols;
+    file.read(reinterpret_cast<char*>(&rows), sizeof(rows));
+    file.read(reinterpret_cast<char*>(&cols), sizeof(cols));
+
+    map_height = rows;
+    map_width  = cols;
+
+    // Read data
+    game_map.assign(rows, std::vector<Tile>(cols));
+    for (auto& row: game_map) {
+        file.read(reinterpret_cast<char*>(row.data()), cols * sizeof(Tile));
+    }
+    file.close();
 };
 
 Tile MapSystem::get_tile(vec2 pos) {
@@ -131,7 +148,7 @@ vec2 MapSystem::get_tile_indices(vec2 pos) {
 };
 
 Tile MapSystem::get_tile_type_by_indices(int tile_x, int tile_y) {
-    if (tile_x >= 0 && tile_x < MAP_WIDTH && tile_y >= 0 && tile_y < MAP_HEIGHT) {
+    if (tile_x >= 0 && tile_x < map_width && tile_y >= 0 && tile_y < map_height) {
         return game_map[tile_y][tile_x];
     }
     Tile t;
@@ -155,9 +172,3 @@ bool MapSystem::walkable_tile(Tile tile) {
 std::vector<vec2>& MapSystem::getBossSpawnIndices() {
     return bossSpawnIndices;
 }
-
-// void MapSystem::removeBossSpawnIndex(const vec2& tileIndices) {
-//     auto it = std::find(bossSpawnIndices.begin(), bossSpawnIndices.end(), tileIndices);
-//     if (it != bossSpawnIndices.end())
-//         bossSpawnIndices.erase(it);
-// }

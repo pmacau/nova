@@ -25,10 +25,10 @@ private:
 public:
     FlagSystem(entt::registry& reg)
         : is_paused(false)
-        , done(false)
-        , tutorial_step(TutorialStep::None) 
-        , registry(reg)
         , time_spent_s(0)
+        , done(false)
+        , registry(reg)
+        , tutorial_step(TutorialStep::None)
     {
     }
 

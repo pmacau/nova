@@ -69,15 +69,15 @@ void SpawnSystem::processNaturalSpawning()
 
     // Convert the spawn area boundaries from world coordinates to tile indices
     int spawnTileMinX = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.x / TILE_SIZE));
-    int spawnTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(spawnAreaWorldMax.x / TILE_SIZE));
+    int spawnTileMaxX = std::min<int>(MapSystem::map_width - 1, static_cast<int>(spawnAreaWorldMax.x / TILE_SIZE));
     int spawnTileMinY = std::max<int>(0, static_cast<int>(spawnAreaWorldMin.y / TILE_SIZE));
-    int spawnTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(spawnAreaWorldMax.y / TILE_SIZE));
+    int spawnTileMaxY = std::min<int>(MapSystem::map_height - 1, static_cast<int>(spawnAreaWorldMax.y / TILE_SIZE));
 
     // Convert the safe area boundaries from world coordinates to tile indices
     int safeTileMinX = std::max<int>(0, static_cast<int>(safeAreaWorldMin.x / TILE_SIZE));
-    int safeTileMaxX = std::min<int>(MapSystem::MAP_WIDTH - 1, static_cast<int>(safeAreaWorldMax.x / TILE_SIZE));
+    int safeTileMaxX = std::min<int>(MapSystem::map_width - 1, static_cast<int>(safeAreaWorldMax.x / TILE_SIZE));
     int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / TILE_SIZE));
-    int safeTileMaxY = std::min<int>(MapSystem::MAP_HEIGHT - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
+    int safeTileMaxY = std::min<int>(MapSystem::map_height - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
 
     std::vector<vec2> validTiles;
 
@@ -209,9 +209,9 @@ void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const 
 
     // TODO: change later for customizable radius
     int spawnAreaMinX = std::max(0, baseTileX - 1);
-    int spawnAreaMaxX = std::min(MapSystem::MAP_WIDTH - 1, baseTileX + 1);
+    int spawnAreaMaxX = std::min(MapSystem::map_width - 1, baseTileX + 1);
     int spawnAreaMinY = std::max(0, baseTileY - 1);
-    int spawnAreaMaxY = std::min(MapSystem::MAP_HEIGHT - 1, baseTileY + 1);
+    int spawnAreaMaxY = std::min(MapSystem::map_height - 1, baseTileY + 1);
 
     // Loop through neighbor tiles (include itself)
     for (int y = spawnAreaMinY; y <= spawnAreaMaxY; y++)

@@ -2,6 +2,7 @@
 
 #include "animation_definition.hpp" 
 #include <string>
+#include <unordered_map>
 
 
 
