@@ -12,7 +12,7 @@
 #include "world_system.hpp"
 #include "camera_system.hpp"
 #include "ai_system.hpp"
-#include "collision_system.hpp"
+#include "collision/collision_system.hpp"
 #include "physics_system.hpp"
 #include "music_system.hpp"
 #include "spawn_system.hpp"
