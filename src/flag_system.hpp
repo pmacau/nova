@@ -36,12 +36,17 @@ public:
 
         //if () screenstate no longer
         // set unpaused to false. 
-     
+        
+        
+        //debug_printf(DebugType::FLAG, "time is now %f\n", time_spent_s);
+        
+
         if (tutorial_step != TutorialStep::Moved) {
             auto view = registry.view<ScreenState>();
             for (auto entity : view) {
                 auto& screen_state = registry.get<ScreenState>(entity);
-                if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+                if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+                    screen_state.current_screen == ScreenState::ScreenType::TITLE) {
                     is_paused = true;
                     return;
                 }
@@ -70,7 +75,8 @@ public:
             auto view = registry.view<ScreenState>();
             for (auto entity : view) { 
                 auto& screen = registry.get<ScreenState>(entity);
-                if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) { 
+                if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+                    screen.current_screen == ScreenState::ScreenType::TITLE) { 
                     is_paused = true; 
                     setAccessed(true);
                     break;

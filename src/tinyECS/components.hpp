@@ -119,6 +119,7 @@ struct MobHealthBar
 	entt::entity entity;
 	int initial_health;
 	float left_adjust = 0.f;
+	float y_adjust = 0.f;
 };
 
 enum class ITEM_TYPE {
@@ -145,6 +146,26 @@ struct InventorySlot
 {
 	bool hasItem = false;
 	entt::entity item;
+};
+
+struct Title
+{
+
+};
+
+struct TitleOption
+{
+	enum class Option {
+		PLAY, 
+		LOAD, 
+		SAVE, 
+		EXIT
+	};
+	Option type;
+	std::string text;
+	vec2 position;
+	vec2 size;
+	bool hover = false;
 };
 
 struct Inventory
@@ -181,6 +202,7 @@ struct ScreenState
 	enum class ScreenType {
         GAMEPLAY,
         SHIP_UPGRADE_UI,
+		TITLE
     };
 
     ScreenType current_screen;
@@ -254,6 +276,7 @@ enum class TEXTURE_ASSET_ID {
 	INVENTORY_SLOT,
 	TREE,
 	GOBLIN_TORCH_BLUE,
+	TITLE, 
 	TEXTBOX_BACKGROUND,
 	TEXTURE_COUNT
 };
