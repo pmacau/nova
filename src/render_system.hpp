@@ -108,7 +108,7 @@ private:
 	void renderGamePlay();
 	void renderShipUI();
 
-	void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
+	// void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
 	// Window handle

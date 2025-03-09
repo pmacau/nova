@@ -25,10 +25,6 @@ void AISystem::step(float elapsed_ms)
 	Motion& player_motion = registry.get<Motion>(player_entity); // position to base pathing
 	for (auto entity : mobs) {
 		Motion& mob_motion = registry.get<Motion>(entity); // gets motion component of mob
-		if (CollisionSystem::isContact(entity, player_entity, registry, 10)) {
-			mob_motion.velocity = vec2(0, 0);
-			continue; 
-		}
 
 		vec2 velo_to_player = MOB_SPEED * normalize(
 			(player_motion.position + player_motion.offset_to_ground) -
