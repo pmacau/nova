@@ -39,8 +39,8 @@ class RenderSystem {
 		textures_path("items/potion.png"), 
 		textures_path("inventory/inventory-slot.png"),
 		textures_path("terrain/tree.png"),
-		textures_path("mob/goblin_torch_blue.png")
-
+		textures_path("mob/goblin_torch_blue.png"),
+		textures_path("textBackground/textbox.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

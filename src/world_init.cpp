@@ -296,6 +296,34 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 	return entity;
 }
 
+entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor) {
+	auto entity = registry.create();
+
+	// registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+	registry.emplace<TextData>(entity, text, scale, textColor);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	// motion.scale = GAME_SCALE * size;
+	motion.scale = GAME_SCALE * vec2(120.f / size.x, 128.f / size.y);
+	// motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.position = position;
+	motion.velocity = {0.f, 0.f};
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	// sprite.coord = position;
+	sprite.coord = {0, 0};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::TEXTBOX_BACKGROUND;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity)
 {
 	debug_printf(DebugType::WORLD_INIT, "Projectile created: (%.1f, %.1f)\n", pos.x, pos.y);

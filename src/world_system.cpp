@@ -14,9 +14,10 @@
 #include <glm/glm.hpp>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system) :
 	registry(reg),
-	physics_system(physics_system)
+	physics_system(physics_system),
+	flag_system(flag_system)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 	player_entity = createPlayer(registry, {0, 0});
@@ -42,6 +43,34 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system) :
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
 
+
+	// init all of the text boxes for the tutorial
+	textBoxEntities.resize(5);
+    vec2 size = {0.4f, 3.0f};
+    textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Great! Press 'F' near the ship to access or leave the ship upgrade", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Good job! Now use left click to firing your weapon.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Nice shot! Go explore the planet.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    // make them all inactive initially
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    
+    // then set only the first one to active
+    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
+    firstTextData.active = true;
 }
 
 WorldSystem::~WorldSystem() {
@@ -243,6 +272,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		mob.hit_time -= elapsed_s;
 	}
 
+	// handle the text boxes for tutorial
+	handleTextBoxes(elapsed_ms_since_last_update);
+
 	return true;
 }
 
@@ -256,6 +288,54 @@ void WorldSystem::player_respawn() {
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
+void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
+	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
+    
+	// gets rid of the last text box after 5 seconds
+	if (currentStep == FlagSystem::TutorialStep::Shot) {
+		mobKilledTextTimer += elapsed_ms_since_last_update / 1000.0f;
+		if (mobKilledTextTimer > 5.0f) {
+			for (auto entity : textBoxEntities) {
+				auto& textData = registry.get<TextData>(entity);
+				textData.active = false;
+			}
+			return;
+		}
+	}
+
+    // make all text boxes inactive
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    
+    // activate only the appropriate one
+    int activeIndex = -1;
+    switch (currentStep) {
+        case FlagSystem::TutorialStep::None:
+            activeIndex = 0;
+            break;
+        case FlagSystem::TutorialStep::Moved:
+            activeIndex = 1;
+            break;
+        case FlagSystem::TutorialStep::Accessed:
+            activeIndex = 2;
+            break;
+        case FlagSystem::TutorialStep::Shot:
+            activeIndex = 3;
+            break;
+        case FlagSystem::TutorialStep::MobKilled:
+            activeIndex = 4;
+            break;
+    }
+    
+	// activate specific text box to true
+    if (activeIndex >= 0 && activeIndex < textBoxEntities.size()) {
+        auto& textData = registry.get<TextData>(textBoxEntities[activeIndex]);
+        textData.active = true;
+    }
+}
+
 
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
@@ -263,7 +343,7 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background>);	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, TextData>);	
 	registry.destroy(motions.begin(), motions.end());
 
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
@@ -278,6 +358,18 @@ void WorldSystem::restart_game() {
 	// reset the screen
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.darken_screen_factor = 0;
+
+	// reset all the text boxes
+    for (auto entity : textBoxEntities) {
+        auto& textData = registry.get<TextData>(entity);
+        textData.active = false;
+    }
+    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
+    firstTextData.active = true;
+	flag_system.reset();
+
+	// reset the timer for the last box
+	mobKilledTextTimer = 0.0;
 }
 
 // Should the game be over ?
@@ -394,10 +486,8 @@ void WorldSystem::left_mouse_click() {
 		}
 	}
 
-	if (
-		!UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
-		player_comp.weapon_cooldown <= 0 && !isUI
-	) {
+	if ( !UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y) &&
+		player_comp.weapon_cooldown <= 0 && !isUI ) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
