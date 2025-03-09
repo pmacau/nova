@@ -441,7 +441,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// }
 
 	// F to toggle opening/closing ship ui
-	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
         if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY) {
             auto& player_motion = registry.get<Motion>(player_entity);
