@@ -138,7 +138,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
 				// left mouse click
-				if (click == Click::LEFT) {
+				if (click == Click::LEFT || click == Click::CTRLLEFT || click == Click::SHIFTLEFT || click == Click::ALTLEFT) {
 					// use item if no item is being dragged
 					if (registry.view<Drag>().empty()) {
 						useItem(registry, inventory_slot.item);
