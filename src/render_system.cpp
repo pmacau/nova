@@ -554,16 +554,17 @@ void RenderSystem::renderGamePlay()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-
-	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
-	for (int i = 0; i < inventory.slots.size(); i++) {
-		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
-		if (inventory_slot.hasItem) {
-			if (inventory_slot.no < 10) {
+	// multiple quantity item on ground and on the inventory system should have a text next to it
+	for (auto entity : registry.view<Item>()) {
+		auto& motion = registry.get<Motion>(entity);
+		auto& item = registry.get<Item>(entity);
+		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no >= 10) {
+			if (registry.all_of<UI>(entity)) {
 				textsToRender.push_back(
 					std::make_tuple(
-						std::to_string(inventory_slot.no),
-						vec2({ 60.f + 45.f * i, -45.f }),
+						std::to_string(item.no),
+						vec2({ motion.position.x + motion.scale.x / 2.f - 13.f, -motion.position.y + motion.scale.y / 2.f - 10.f }),
 						0.3f,
 						vec3({ 1.f, 1.f, 1.f }),
 						flippedUIProjection
@@ -573,29 +574,39 @@ void RenderSystem::renderGamePlay()
 			else {
 				textsToRender.push_back(
 					std::make_tuple(
-						std::to_string(inventory_slot.no),
-						vec2({ 53.f + 45.f * i, -45.f }),
+						std::to_string(item.no),
+						vec2({ motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f, -motion.position.y + camera.offset.y + motion.scale.y / 2.f - 10.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedProjection
+					)
+				);
+			}
+		}
+		else {
+			if (registry.any_of<UI>(entity)) {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(item.no),
+						vec2({ motion.position.x + motion.scale.x / 2.f - 8.f, -motion.position.y + motion.scale.y / 2.f - 10.f }),
 						0.3f,
 						vec3({ 1.f, 1.f, 1.f }),
 						flippedUIProjection
 					)
 				);
 			}
+			else if (item.no != 1) {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(item.no),
+						vec2({ motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f, -motion.position.y + camera.offset.y + motion.scale.y / 2.f - 10.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedProjection
+					)
+				);
+			}
 		}
-	}
-
-	for (auto entity : registry.view<Drag>()) {
-		auto& motion = registry.get<Motion>(entity);
-		auto& item = registry.get<Item>(entity);
-		textsToRender.push_back(
-			std::make_tuple(
-				std::to_string(item.no),
-				vec2({motion.position.x + motion.scale.x / 2.f - 5.f, -motion.position.y + motion.scale.y / 2.f - 10.f}),
-				0.3f,
-				vec3({ 1.f, 1.f, 1.f }),
-				flippedUIProjection
-			)
-		);
 	}
 	
 	// draw framebuffer to screen
