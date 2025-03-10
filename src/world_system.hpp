@@ -45,6 +45,7 @@ public:
 
 	// restart level
 	void restart_game();
+
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
@@ -56,7 +57,7 @@ private:
 	entt::entity screen_entity;
 	
 	bool key_state[KeyboardState::NUM_STATES];
-	float projectile_shooting_delay; 
+	float click_delay; 
 	float mouse_pos_x = 0.0f;
 	float mouse_pos_y = 0.0f;
 

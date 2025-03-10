@@ -3,6 +3,7 @@
 #include <iostream>
 #include "util/debug.hpp"
 
+float UISystem::equip_delay = 0.0f;
 
 void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
@@ -79,14 +80,19 @@ void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	}
 }
 
-entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y) {
+entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y, bool ui) {
 	auto entity = registry.create();
 	auto& item_to_copy = registry.get<Item>(item_to_copy_entity);
-	registry.emplace<UI>(entity);
-	registry.emplace<FixedUI>(entity);
+	if (ui) {
+		registry.emplace<UI>(entity);
+		registry.emplace<FixedUI>(entity);
+	}
 	if (item_to_copy.item_type == ITEM_TYPE::POTION) {
 		auto& item = registry.emplace<Item>(entity);
 		item.item_type = item_to_copy.item_type;
+		if (!ui) {
+			item.no = item_to_copy.no;
+		}
 		auto& potion = registry.emplace<Potion>(entity);
 		potion.heal = 20;
 		auto& motion = registry.emplace<Motion>(entity);
@@ -106,6 +112,17 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 	return entity;
 }
 
+void UISystem::dropItem(entt::registry& registry) {
+	if (!registry.view<Drag>().empty()) {
+		auto& drag_entity = *registry.view<Drag>().begin();
+		auto& player_entity = *registry.view<Player>().begin();
+		auto& motion = registry.get<Motion>(player_entity);
+		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+		MusicSystem::playSoundEffect(SFX::PICKUP); // TODO change it to drop
+		registry.destroy(drag_entity);
+	}
+}
+
 void UISystem::resetDragItem(entt::registry& registry) {
 	auto& drag_entity = *registry.view<Drag>().begin();
 	auto& inventory_slot = registry.get<InventorySlot>(registry.get<Drag>(drag_entity).slot);
@@ -114,7 +131,7 @@ void UISystem::resetDragItem(entt::registry& registry) {
 		inventory_item.no += registry.get<Item>(drag_entity).no;
 	}
 	else {
-		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f);
+		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f, true);
 		inventory_slot.hasItem = true;
 		inventory_slot.item = item;
 		auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -190,7 +207,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				else {
 					// create item at mouse position if no item is being dragged
 					if (registry.view<Drag>().empty()) {
-						auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
+						auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y, true);
 						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 						drag.slot = inventory_entity;
 						auto& item = registry.get<Item>(item_entity_on_mouse);
@@ -224,7 +241,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						// put the held item back to original inventory slot and drag a new item
 						else {
 							resetDragItem(registry);
-							auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
+							auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y, true);
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.slot = inventory_entity;
 							auto& item = registry.get<Item>(item_entity_on_mouse);
@@ -285,7 +302,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				if (!registry.view<Drag>().empty()) {
 					auto& drag_entity = *registry.view<Drag>().begin();
 					auto& drag_item = registry.get<Item>(drag_entity);
-					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f);
+					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f, true);
 					inventory_slot.hasItem = true;
 					inventory_slot.item = item;
 					auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -352,11 +369,13 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 }
 
 void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
-	for (auto entity : registry.view<Motion, Item>()) {
-		auto& motion = registry.get<Motion>(entity);
-		if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
-			addToInventory(registry, entity);
-			break;
+	if (equip_delay > 2.f) {
+		for (auto entity : registry.view<Motion, Item>()) {
+			auto& motion = registry.get<Motion>(entity);
+			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
+				addToInventory(registry, entity);
+				break;
+			}
 		}
 	}
 }

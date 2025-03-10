@@ -157,13 +157,14 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-	projectile_shooting_delay = projectile_shooting_delay + elapsed_ms_since_last_update / 1000.f;
+	click_delay += elapsed_ms_since_last_update / 1000.f;
+	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		projectile_shooting_delay = 0;
+		click_delay = 0;
 		return true; 
 	}
 	
@@ -496,7 +497,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::right_mouse_click(int mods) {
 	bool itemUsed = false;
 
-	if (projectile_shooting_delay > 0.5f) {
+	if (click_delay > 0.5f) {
 		if (mods & GLFW_MOD_CONTROL) {
 			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLRIGHT);
 		}
@@ -510,13 +511,13 @@ void WorldSystem::right_mouse_click(int mods) {
 			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::RIGHT);
 		}
 		if (itemUsed) {
-			projectile_shooting_delay = 0.0f;
+			click_delay = 0.0f;
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && projectile_shooting_delay && !itemUsed) {
+	if (!registry.view<Drag>().empty() && click_delay && !itemUsed) {
 		UISystem::resetDragItem(registry);
-		projectile_shooting_delay = 0.0f;
+		click_delay = 0.0f;
 	}
 }
 
@@ -551,7 +552,7 @@ void WorldSystem::left_mouse_click(int mods) {
 
 	bool itemUsed = false;
 
-	if (projectile_shooting_delay > 0.5f) {
+	if (click_delay > 0.5f) {
 		if (mods & GLFW_MOD_CONTROL) {
 			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLLEFT);
 		}
@@ -565,18 +566,19 @@ void WorldSystem::left_mouse_click(int mods) {
 			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
 		}
 		if (itemUsed) {
-			projectile_shooting_delay = 0.0f;
+			click_delay = 0.0f;
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && projectile_shooting_delay > 0.5f && !itemUsed) {
-		UISystem::resetDragItem(registry);
-		projectile_shooting_delay = 0.0f;
+	if (!registry.view<Drag>().empty() && click_delay > 0.5f && !itemUsed) {
+		UISystem::dropItem(registry);
+		UISystem::equip_delay = 0.0f;
+		click_delay = 0.0f;
 	}
 	
 	if (player_comp.weapon_cooldown <= 0 && 
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
-		projectile_shooting_delay > 0.5f) {
+		click_delay > 0.5f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
