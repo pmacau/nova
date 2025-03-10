@@ -468,11 +468,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	//if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
 	//if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
 
-	if (key == GLFW_KEY_1) UISystem::useItemFromInventory(registry, 50.f, 50.f, false);
-	if (key == GLFW_KEY_2) UISystem::useItemFromInventory(registry, 95.f, 50.f, false);
-	if (key == GLFW_KEY_3) UISystem::useItemFromInventory(registry, 140.f, 50.f, false);
-	if (key == GLFW_KEY_4) UISystem::useItemFromInventory(registry, 185.f, 50.f, false);
-	if (key == GLFW_KEY_5) UISystem::useItemFromInventory(registry, 230.f, 50.f, false);
+	if (key == GLFW_KEY_1 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 50.f, 50.f, false);
+	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 95.f, 50.f, false);
+	if (key == GLFW_KEY_3 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 140.f, 50.f, false);
+	if (key == GLFW_KEY_4 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 185.f, 50.f, false);
+	if (key == GLFW_KEY_5 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 230.f, 50.f, false);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
