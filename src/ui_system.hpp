@@ -15,5 +15,5 @@ class UISystem {
 		static entt::entity renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float mouse_pos_x, float mouse_pos_y, bool ui);
 		static void updateDragItem(entt::registry& registry, float mouse_pos_x, float mouse_pos_y);
 		static void resetDragItem(entt::registry& registry);
-		static void dropItem(entt::registry& registry);
+		static void dropItem(entt::registry& registry, Click click);
 };

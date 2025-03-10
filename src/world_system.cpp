@@ -571,7 +571,18 @@ void WorldSystem::left_mouse_click(int mods) {
 	}
 
 	if (!registry.view<Drag>().empty() && click_delay > 0.5f && !itemUsed) {
-		UISystem::dropItem(registry);
+		if (mods & GLFW_MOD_CONTROL) {
+			UISystem::dropItem(registry, Click::CTRLLEFT);
+		}
+		else if (mods & GLFW_MOD_SHIFT) {
+			UISystem::dropItem(registry, Click::SHIFTLEFT);
+		}
+		else if (mods & GLFW_MOD_ALT) {
+			UISystem::dropItem(registry, Click::ALTLEFT);
+		}
+		else {
+			UISystem::dropItem(registry, Click::LEFT);
+		}
 		UISystem::equip_delay = 0.0f;
 		click_delay = 0.0f;
 	}

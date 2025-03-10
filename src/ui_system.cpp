@@ -112,14 +112,38 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 	return entity;
 }
 
-void UISystem::dropItem(entt::registry& registry) {
+void UISystem::dropItem(entt::registry& registry, Click click) {
 	if (!registry.view<Drag>().empty()) {
 		auto& drag_entity = *registry.view<Drag>().begin();
 		auto& player_entity = *registry.view<Player>().begin();
 		auto& motion = registry.get<Motion>(player_entity);
-		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+		auto& item = registry.get<Item>(drag_entity);
+		if (click == Click::CTRLLEFT) {
+			renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+			item.no = 0;
+		}
+		else if (click == Click::SHIFTLEFT) {
+			int item_no = item.no;
+			item.no = std::max(1, item.no / 2);
+			renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+			item.no = item_no - std::max(1, item_no / 2);
+		}
+		else if (click == Click::ALTLEFT) {
+			int item_no = item.no;
+			item.no = std::min(item.no, 5);
+			renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+			item.no = item_no - std::min(item_no, 5);
+		}
+		else {
+			int item_no = item.no;
+			item.no = 1;
+			renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+			item.no = item_no - 1;
+		}
+		if (item.no == 0) {
+			registry.destroy(drag_entity);
+		}
 		MusicSystem::playSoundEffect(SFX::PICKUP); // TODO change it to drop
-		registry.destroy(drag_entity);
 	}
 }
 
