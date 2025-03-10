@@ -468,11 +468,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	//if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
 	//if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
 
-	if (key == GLFW_KEY_1 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 50.f, 50.f, false);
-	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 95.f, 50.f, false);
-	if (key == GLFW_KEY_3 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 140.f, 50.f, false);
-	if (key == GLFW_KEY_4 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 185.f, 50.f, false);
-	if (key == GLFW_KEY_5 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 230.f, 50.f, false);
+	if (key == GLFW_KEY_1 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 50.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 95.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_3 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 140.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_4 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 185.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_5 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 230.f, 50.f, Click::LEFT);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -493,11 +493,22 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	}
 }
 
-void WorldSystem::right_mouse_click() {
+void WorldSystem::right_mouse_click(int mods) {
 	bool itemUsed = false;
 
 	if (projectile_shooting_delay > 0.5f) {
-		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, true);
+		if (mods & GLFW_MOD_CONTROL) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLRIGHT);
+		}
+		else if (mods & GLFW_MOD_SHIFT) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::SHIFTRIGHT);
+		}
+		else if (mods & GLFW_MOD_ALT) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::ALTRIGHT);
+		}
+		else {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::RIGHT);
+		}
 		if (itemUsed) {
 			projectile_shooting_delay = 0.0f;
 		}
@@ -541,7 +552,7 @@ void WorldSystem::left_mouse_click() {
 	bool itemUsed = false;
 
 	if (projectile_shooting_delay > 0.5f) {
-		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, false);
+		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
 		if (itemUsed) {
 			projectile_shooting_delay = 0.0f;
 		}
@@ -571,7 +582,7 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 		}
 		else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 			debug_printf(DebugType::USER_INPUT, "Mouse right clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
-			right_mouse_click();
+			right_mouse_click(mods);
 		}
 	} 
 }

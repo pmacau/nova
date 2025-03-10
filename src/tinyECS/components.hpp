@@ -172,6 +172,14 @@ struct TitleOption
 	bool hover = false;
 };
 
+enum class Click {
+	LEFT, 
+	RIGHT, 
+	CTRLRIGHT, 
+	SHIFTRIGHT,
+	ALTRIGHT
+};
+
 struct Drag {
 	entt::entity slot;
 };

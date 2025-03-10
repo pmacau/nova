@@ -127,7 +127,7 @@ void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float
 	motion.position = { mouse_pos_x, mouse_pos_y };
 }
 
-bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y, bool pick) {
+bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y, Click click) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
 		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
@@ -136,10 +136,19 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
 				// left mouse click
-				if (!pick) {
+				if (click == Click::LEFT) {
 					// use item if no item is being dragged
 					if (registry.view<Drag>().empty()) {
 						useItem(registry, inventory_slot.item);
+						if (inventory_slot.no == 1) {
+							inventory_slot.no = 0;
+							inventory_slot.hasItem = false;
+							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
+							registry.destroy(inventory_slot.item);
+						}
+						else {
+							inventory_slot.no -= 1;
+						}
 					}
 					else {
 						auto& drag_entity = *registry.view<Drag>().begin();
@@ -153,7 +162,6 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						else {
 							resetDragItem(registry);
 						}
-						return true;
 					}
 				}
 				// right mouse click
@@ -163,12 +171,33 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
 						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 						drag.slot = inventory_entity;
+						auto& item = registry.get<Item>(item_entity_on_mouse);
+						if (click == Click::CTRLRIGHT) {
+							item.no = inventory_slot.no;
+						}
+						else if (click == Click::SHIFTRIGHT) {
+							item.no = std::max(1, inventory_slot.no / 2);
+						}
+						else if (click == Click::ALTRIGHT) {
+							item.no = std::min(inventory_slot.no, 5);
+						}
 					}
 					else {
 						auto& item_on_mouse = registry.get<Item>(*registry.view<Drag>().begin());
 						// increase the number of items currently being dragged if same type item is picked
 						if (item_on_mouse.item_type == registry.get<Item>(inventory_slot.item).item_type) {
-							item_on_mouse.no += 1;
+							if (click == Click::CTRLRIGHT) {
+								item_on_mouse.no += inventory_slot.no;
+							}
+							else if (click == Click::SHIFTRIGHT) {
+								item_on_mouse.no += std::max(1, inventory_slot.no / 2);
+							}
+							else if (click == Click::ALTRIGHT) {
+								item_on_mouse.no += std::min(inventory_slot.no, 5);
+							}
+							else {
+								item_on_mouse.no += 1;
+							}
 						}
 						// put the held item back to original inventory slot and drag a new item
 						else {
@@ -176,17 +205,57 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y);
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.slot = inventory_entity;
+							auto& item = registry.get<Item>(item_entity_on_mouse);
+							if (click == Click::CTRLRIGHT) {
+								item.no = inventory_slot.no;
+							}
+							else if (click == Click::SHIFTRIGHT) {
+								item.no = std::max(1, inventory_slot.no / 2);
+							}
+							else if (click == Click::ALTRIGHT) {
+								item.no = std::min(inventory_slot.no, 5);
+							}
 						}
 					}
-				}
-				if (inventory_slot.no == 1) {
-					inventory_slot.no = 0;
-					inventory_slot.hasItem = false;
-					debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-					registry.destroy(inventory_slot.item);
-				}
-				else {
-					inventory_slot.no -= 1;
+					if (click == Click::CTRLRIGHT) {
+						inventory_slot.no = 0;
+						inventory_slot.hasItem = false;
+						debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
+						registry.destroy(inventory_slot.item);
+					}
+					else if (click == Click::SHIFTRIGHT) {
+						if (inventory_slot.no == 1) {
+							inventory_slot.no = 0;
+							inventory_slot.hasItem = false;
+							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
+							registry.destroy(inventory_slot.item);
+						}
+						else {
+							inventory_slot.no -= std::max(1, inventory_slot.no / 2);
+						}
+					}
+					else if (click == Click::ALTRIGHT) {
+						if (inventory_slot.no <= 5) {
+							inventory_slot.no = 0;
+							inventory_slot.hasItem = false;
+							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
+							registry.destroy(inventory_slot.item);
+						}
+						else {
+							inventory_slot.no -= std::min(inventory_slot.no, 5);
+						}
+					}
+					else {
+						if (inventory_slot.no == 1) {
+							inventory_slot.no = 0;
+							inventory_slot.hasItem = false;
+							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
+							registry.destroy(inventory_slot.item);
+						}
+						else {
+							inventory_slot.no -= 1;
+						}
+					}
 				}
 			}
 			else {
