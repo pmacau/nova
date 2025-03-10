@@ -185,7 +185,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	mouse_click_poll -= elapsed_ms_since_last_update;
 	if (mouse_click_poll < 0) {
 		int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
-		if (state == GLFW_PRESS) left_mouse_click();
+		if (state == GLFW_PRESS) left_mouse_click(0);
 		mouse_click_poll = MOUSE_POLL_RATE;
 	}
 
@@ -514,13 +514,13 @@ void WorldSystem::right_mouse_click(int mods) {
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && !itemUsed) {
+	if (!registry.view<Drag>().empty() && projectile_shooting_delay && !itemUsed) {
 		UISystem::resetDragItem(registry);
 		projectile_shooting_delay = 0.0f;
 	}
 }
 
-void WorldSystem::left_mouse_click() {
+void WorldSystem::left_mouse_click(int mods) {
 	auto& player_motion = registry.get<Motion>(player_entity);
 	vec2 player_to_mouse_direction = vec2(mouse_pos_x, mouse_pos_y) - vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2);
 	vec2 direction = normalize(player_to_mouse_direction); // player position is always at (0, 0) in camera space
@@ -552,13 +552,24 @@ void WorldSystem::left_mouse_click() {
 	bool itemUsed = false;
 
 	if (projectile_shooting_delay > 0.5f) {
-		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
+		if (mods & GLFW_MOD_CONTROL) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLLEFT);
+		}
+		else if (mods & GLFW_MOD_SHIFT) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::SHIFTLEFT);
+		}
+		else if (mods & GLFW_MOD_ALT) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::ALTLEFT);
+		}
+		else {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
+		}
 		if (itemUsed) {
 			projectile_shooting_delay = 0.0f;
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && !itemUsed) {
+	if (!registry.view<Drag>().empty() && projectile_shooting_delay > 0.5f && !itemUsed) {
 		UISystem::resetDragItem(registry);
 		projectile_shooting_delay = 0.0f;
 	}
@@ -578,7 +589,7 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 	if (action == GLFW_PRESS) {
 		if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			debug_printf(DebugType::USER_INPUT, "Mouse clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
-			left_mouse_click();
+			left_mouse_click(mods);
 		}
 		else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
 			debug_printf(DebugType::USER_INPUT, "Mouse right clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
