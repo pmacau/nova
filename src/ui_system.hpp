@@ -16,4 +16,5 @@ class UISystem {
 		static void updateDragItem(entt::registry& registry, float mouse_pos_x, float mouse_pos_y);
 		static void resetDragItem(entt::registry& registry);
 		static void dropItem(entt::registry& registry, Click click);
+		static void clearInventoryAndDrop(entt::registry& registry, float x, float y);
 };

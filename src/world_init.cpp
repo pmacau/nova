@@ -50,7 +50,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
-entt::entity createPlayerHealthBar(entt::registry& registry, vec2 position) {
+entt::entity createPlayerHealthBar(entt::registry& registry) {
 	auto entity = registry.create();
 	registry.emplace<FixedUI>(entity);
 	registry.emplace<UI>(entity);
@@ -298,7 +298,7 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor) {
 	auto entity = registry.create();
 
-	// registry.emplace<UI>(entity);
+	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
 	registry.emplace<TextData>(entity, text, scale, textColor);
 

@@ -123,13 +123,23 @@ struct MobHealthBar
 };
 
 enum class ITEM_TYPE {
-	POTION
+	POTION, 
+	LASTDEATHGRAVE
+};
+
+struct DeathItems {
+
+};
+
+struct Grave {
+
 };
 
 // used for entities which when killed will drop items (usually bosses)
 struct Drop
 {
 	ITEM_TYPE item_type;
+	int no = 1;
 };
 
 struct Item
@@ -288,6 +298,7 @@ enum class TEXTURE_ASSET_ID {
 	HEALTHBAR_GREEN,
 	HEALTHBAR_RED,
 	POTION,
+	GRAVE,
 	INVENTORY_SLOT,
 	TREE,
 	GOBLIN_TORCH_BLUE,

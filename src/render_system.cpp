@@ -513,7 +513,7 @@ void RenderSystem::renderGamePlay()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
     });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData>);
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
@@ -555,7 +555,7 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// multiple quantity item on ground and on the inventory system should have a text next to it
-	for (auto entity : registry.view<Item>()) {
+	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
 		auto& motion = registry.get<Motion>(entity);
 		auto& item = registry.get<Item>(entity);
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());

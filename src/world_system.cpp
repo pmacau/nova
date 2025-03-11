@@ -29,6 +29,9 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.current_screen = ScreenState::ScreenType::TITLE;
 	createTitleScreen(registry);
+	createPlayerHealthBar(registry);
+	createInventory(registry);
+
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -172,6 +175,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		debug_printf(DebugType::WORLD, "Game over; restarting game now...\n");
+		if (!registry.view<Grave>().empty()) {
+			registry.destroy(*registry.view<Grave>().begin());
+		}
+		if (!registry.view<DeathItems>().empty()) {
+			for (auto entity : registry.view<DeathItems>()) {
+				registry.destroy(entity);
+			}
+		}
+		auto& motion = registry.get<Motion>(player_entity);
+		UISystem::clearInventoryAndDrop(registry, motion.position.x, motion.position.y);
 		restart_game();
 	}
 
@@ -353,17 +366,15 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
+	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave>);
 	registry.destroy(motions.begin(), motions.end());
-
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	MapSystem::populate_ecs(registry, p_pos, s_pos);
 
 	player_respawn();
-	createPlayerHealthBar(registry, p_pos);
-	createInventory(registry);
 
 	// reset all the text boxes
     for (auto entity : textBoxEntities) {

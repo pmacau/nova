@@ -41,6 +41,7 @@ void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
 		if (drop.item_type == ITEM_TYPE::POTION) {
 			auto& item = registry.emplace<Item>(entity);
 			item.item_type = drop.item_type;
+			item.no = drop.no;
 			auto& potion = registry.emplace<Potion>(entity);
 			potion.heal = 20;
 			auto& mob_motion = registry.get<Motion>(mob_entity);
@@ -147,8 +148,6 @@ void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float
 	motion.position = { mouse_pos_x, mouse_pos_y };
 }
 
-
-// what's single responsibilty principle :|
 bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y, Click click) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
@@ -303,36 +302,72 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	auto& item = registry.get<Item>(item_entity);
-	// check for existing slots having same item type
-	for (int i = 0; i < inventory.slots.size(); i++) {
-		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
-		if (inventory_slot.hasItem) {
-			auto& inventory_item = registry.get<Item>(inventory_slot.item);
-			if (inventory_item.item_type == item.item_type) {
-				inventory_item.no += item.no;
+	if (registry.all_of<DeathItems>(item_entity)) {
+		registry.remove<DeathItems>(item_entity);
+	}
+	if (item.item_type != ITEM_TYPE::LASTDEATHGRAVE) {
+		// check for existing slots having same item type
+		for (int i = 0; i < inventory.slots.size(); i++) {
+			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+			if (inventory_slot.hasItem) {
+				auto& inventory_item = registry.get<Item>(inventory_slot.item);
+				if (inventory_item.item_type == item.item_type) {
+					inventory_item.no += item.no;
+					MusicSystem::playSoundEffect(SFX::PICKUP);
+					registry.destroy(item_entity);
+					return;
+				}
+			}
+		}
+		// add item to empty slot
+		for (int i = 0; i < inventory.slots.size(); i++) {
+			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+			if (!inventory_slot.hasItem) {
+				inventory_slot.hasItem = true;
+				inventory_slot.item = item_entity;
+				auto& inventory_item = registry.get<Item>(inventory_slot.item);
+				inventory_item.no = item.no;
+				registry.emplace<UI>(item_entity);
+				registry.emplace<FixedUI>(item_entity);
+				auto& motion = registry.get<Motion>(item_entity);
+				motion.position = { 50.f + 45.f * i, 50.f };
 				MusicSystem::playSoundEffect(SFX::PICKUP);
-				registry.destroy(item_entity);
-				return;
+				break;
 			}
 		}
 	}
-	// add item to empty slot
+	else {
+		registry.destroy(item_entity);
+	}
+}
+
+void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y) {
+	auto entity = registry.create();
+	auto& item = registry.emplace<Item>(entity);
+	item.item_type = ITEM_TYPE::LASTDEATHGRAVE;
+	registry.emplace<Grave>(entity);
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	for (int i = 0; i < inventory.slots.size(); i++) {
 		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
-		if (!inventory_slot.hasItem) {
-			inventory_slot.hasItem = true;
-			inventory_slot.item = item_entity;
-			auto& inventory_item = registry.get<Item>(inventory_slot.item);
-			inventory_item.no = item.no;
-			registry.emplace<UI>(item_entity);
-			registry.emplace<FixedUI>(item_entity);
-			auto& motion = registry.get<Motion>(item_entity);
-			motion.position = { 50.f + 45.f * i, 50.f };
-
-			MusicSystem::playSoundEffect(SFX::PICKUP);
-			break;
+		if (inventory_slot.hasItem) {
+			registry.remove<UI>(inventory_slot.item);
+			registry.remove<FixedUI>(inventory_slot.item);
+			auto& motion = registry.get<Motion>(inventory_slot.item);
+			motion.position = { x, y };
+			registry.emplace<DeathItems>(inventory_slot.item);
+			inventory_slot.hasItem = false;
 		}
 	}
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = { x, y };
+	motion.scale = vec2({ 512.f, 512.f }) / 10.f;
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 512.f, 512.f };
+	sprite.sheet_dims = { 512.f, 512.f };
+	auto& render_request = registry.emplace<RenderRequest>(entity);
+	render_request.used_texture = TEXTURE_ASSET_ID::GRAVE;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 }
 
 void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
@@ -341,7 +376,6 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 			auto& motion = registry.get<Motion>(entity);
 			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 				addToInventory(registry, entity);
-				break;
 			}
 		}
 	}
