@@ -29,6 +29,9 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.current_screen = ScreenState::ScreenType::TITLE;
 	createTitleScreen(registry);
+	createPlayerHealthBar(registry);
+	createInventory(registry);
+
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -174,13 +177,14 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
-	projectile_shooting_delay = projectile_shooting_delay + elapsed_ms_since_last_update / 1000.f;
+	click_delay += elapsed_ms_since_last_update / 1000.f;
+	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		projectile_shooting_delay = 0;
+		click_delay = 0;
 		return true; 
 	}
 	
@@ -188,6 +192,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto player = registry.get<Player>(player_entity);
 	if (player.health <= 0) {
 		debug_printf(DebugType::WORLD, "Game over; restarting game now...\n");
+		if (!registry.view<Grave>().empty()) {
+			registry.destroy(*registry.view<Grave>().begin());
+		}
+		if (!registry.view<DeathItems>().empty()) {
+			for (auto entity : registry.view<DeathItems>()) {
+				registry.destroy(entity);
+			}
+		}
+		auto& motion = registry.get<Motion>(player_entity);
+		UISystem::clearInventoryAndDrop(registry, motion.position.x, motion.position.y);
 		restart_game();
 	}
 
@@ -369,17 +383,15 @@ void WorldSystem::restart_game() {
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
+	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave>);
 	registry.destroy(motions.begin(), motions.end());
-
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	MapSystem::populate_ecs(registry, p_pos, s_pos);
 
 	player_respawn();
-	createPlayerHealthBar(registry, p_pos);
-	createInventory(registry);
 }
 
 // Should the game be over ?
@@ -465,13 +477,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         }
     }
 
-	// TODO: testing sound system. remove this later
-	if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
-	if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
-	if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
-	if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
-	if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
-	if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
+	//// TODO: testing sound system. remove this later
+	//if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
+	//if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
+	//if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
+	//if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
+	//if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
+	//if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
+
+	if (key == GLFW_KEY_1 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 50.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 95.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_3 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 140.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_4 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 185.f, 50.f, Click::LEFT);
+	if (key == GLFW_KEY_5 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 230.f, 50.f, Click::LEFT);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -486,6 +504,36 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			title_option.hover = abs(mouse_pos_x - title_option.position.x) <= title_option.size.x / 2 &&
 				abs(mouse_pos_y - title_option.position.y) <= title_option.size.y / 2;
 		}
+	}
+	if (!registry.view<Drag>().empty()) {
+		UISystem::updateDragItem(registry, mouse_pos_x, mouse_pos_y);
+	}
+}
+
+void WorldSystem::right_mouse_click(int mods) {
+	bool itemUsed = false;
+
+	if (click_delay > 0.5f) {
+		if (mods & GLFW_MOD_CONTROL) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLRIGHT);
+		}
+		else if (mods & GLFW_MOD_SHIFT) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::SHIFTRIGHT);
+		}
+		else if (mods & GLFW_MOD_ALT) {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::ALTRIGHT);
+		}
+		else {
+			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::RIGHT);
+		}
+		if (itemUsed) {
+			click_delay = 0.0f;
+		}
+	}
+
+	if (!registry.view<Drag>().empty() && click_delay && !itemUsed) {
+		UISystem::resetDragItem(registry);
+		click_delay = 0.0f;
 	}
 }
 
@@ -509,18 +557,34 @@ void WorldSystem::left_mouse_click() {
 				else if (title_option.type == TitleOption::Option::EXIT) {
 					close_window();
 				}
+				else if (title_option.type == TitleOption::Option::RESTART) {
+					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+					restart_game();
+					return;
+				}
 			}
 			
 		}
 	}
 
-	if (UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y)) {
-		projectile_shooting_delay = 0.0f;
+	bool itemUsed = false;
+
+	if (click_delay > 0.5f) {
+		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
+		if (itemUsed) {
+			click_delay = 0.0f;
+		}
+	}
+
+	if (!registry.view<Drag>().empty() && click_delay > 0.5f && !itemUsed) {
+		UISystem::dropItem(registry, Click::LEFT);
+		UISystem::equip_delay = 0.0f;
+		click_delay = 0.0f;
 	}
 	
 	if (player_comp.weapon_cooldown <= 0 && 
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
-		projectile_shooting_delay > 0.5f) {
+		click_delay > 0.5f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
@@ -535,7 +599,11 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 			debug_printf(DebugType::USER_INPUT, "Mouse clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
 			left_mouse_click();
 		}
-	}
+		else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+			debug_printf(DebugType::USER_INPUT, "Mouse right clicked at: (%.1f, %.1f)\n", mouse_pos_x, mouse_pos_y);
+			right_mouse_click(mods);
+		}
+	} 
 }
 
 

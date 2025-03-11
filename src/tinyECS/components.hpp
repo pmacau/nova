@@ -123,18 +123,29 @@ struct MobHealthBar
 };
 
 enum class ITEM_TYPE {
-	POTION
+	POTION, 
+	LASTDEATHGRAVE
+};
+
+struct DeathItems {
+
+};
+
+struct Grave {
+
 };
 
 // used for entities which when killed will drop items (usually bosses)
 struct Drop
 {
 	ITEM_TYPE item_type;
+	int no = 1;
 };
 
 struct Item
 {
 	ITEM_TYPE item_type;
+	int no = 1;
 };
 
 struct Potion
@@ -144,6 +155,7 @@ struct Potion
 
 struct InventorySlot
 {
+	int id = -1;
 	bool hasItem = false;
 	entt::entity item;
 };
@@ -159,13 +171,26 @@ struct TitleOption
 		PLAY, 
 		LOAD, 
 		SAVE, 
-		EXIT
+		EXIT, 
+		RESTART
 	};
 	Option type;
 	std::string text;
 	vec2 position;
 	vec2 size;
 	bool hover = false;
+};
+
+enum class Click {
+	LEFT, 
+	RIGHT, 
+	CTRLRIGHT, 
+	SHIFTRIGHT,
+	ALTRIGHT
+};
+
+struct Drag {
+	entt::entity slot;
 };
 
 struct Inventory
@@ -273,6 +298,7 @@ enum class TEXTURE_ASSET_ID {
 	HEALTHBAR_GREEN,
 	HEALTHBAR_RED,
 	POTION,
+	GRAVE,
 	INVENTORY_SLOT,
 	TREE,
 	GOBLIN_TORCH_BLUE,
