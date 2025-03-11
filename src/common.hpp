@@ -41,8 +41,8 @@ inline std::string map_path(const std::string& name)  {return data_path() + "/ma
 //
 // const int WINDOW_WIDTH_PX = 840;
 // const int WINDOW_HEIGHT_PX = 600;
-const int WINDOW_WIDTH_PX = 960;
-const int WINDOW_HEIGHT_PX = 540;
+const int WINDOW_WIDTH_PX = 1980;
+const int WINDOW_HEIGHT_PX = 1080;
 
 const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
