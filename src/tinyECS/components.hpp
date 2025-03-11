@@ -173,9 +173,6 @@ struct TitleOption
 
 enum class Click {
 	LEFT, 
-	CTRLLEFT, 
-	SHIFTLEFT, 
-	ALTLEFT,
 	RIGHT, 
 	CTRLRIGHT, 
 	SHIFTRIGHT,
