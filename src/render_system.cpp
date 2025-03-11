@@ -6,6 +6,7 @@
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "collision/hitbox.hpp"
 // for the text rendering
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -13,6 +14,7 @@
 #include <string>
 #include <filesystem>
 #include <sstream>
+
 
 RenderSystem::RenderSystem(entt::registry& reg) :
 	registry(reg)
@@ -250,6 +252,106 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 	glBindVertexArray(defaultVAO);
 }
 */
+
+void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection) {
+	// Skip if debug mode is not enabled
+	//if (!debugModeEnabled) return;
+
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
+	gl_has_errors();
+
+	// Set shader uniforms
+	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
+	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	gl_has_errors();
+
+	// Get camera entity for offset
+	auto camera_entity = registry.view<Camera>().front();
+	auto& camera = registry.get<Camera>(camera_entity);
+
+	// Process all entities with HitBox and Motion components
+	auto view = registry.view<Hitbox, Motion>();
+	for (auto entity : view) {
+		auto& hitbox = registry.get<Hitbox>(entity);
+		auto& motion = registry.get<Motion>(entity);
+
+		// Skip drawing if entity is too far from camera view
+		vec2 entityPos = motion.position - camera.offset;
+		if (entityPos.x < -200 || entityPos.x > WINDOW_WIDTH_PX + 200 ||
+			entityPos.y < -200 || entityPos.y > WINDOW_HEIGHT_PX + 200) {
+			continue;
+		}
+
+		// Create transform matrix for this entity
+		glm::mat4 transform = glm::mat4(1.0f);
+		transform = glm::translate(transform, glm::vec3(motion.position, 0.0f));
+		transform = glm::rotate(transform, glm::radians(motion.angle), glm::vec3(0.0f, 0.0f, 1.0f));
+		transform = glm::scale(transform, glm::vec3(motion.scale, 1.0f));
+		// Convert back to mat3 if needed
+		glm::mat3 final_transform = glm::mat3(transform);
+
+
+		// Apply camera transform
+		glm::mat3 cameraTransform = glm::mat3(1.0f);
+		if (!registry.any_of<FixedUI>(entity)) {
+			//cameraTransform = glm::translate(cameraTransform, -camera.offset);
+		}
+
+		// Set transform uniform
+		GLint transformLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
+		//glUniformMatrix3fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cameraTransform * transform));
+
+		// Set color based on entity type
+		vec3 color = { 1.0f, 0.0f, 0.0f }; // Default red
+		if (registry.any_of<Player>(entity)) {
+			color = { 0.0f, 1.0f, 0.0f }; // Green for player
+		}
+		else if (registry.any_of<Mob>(entity)) {
+			color = { 1.0f, 0.5f, 0.0f }; // Orange for mobs
+		}
+		else if (registry.any_of<Projectile>(entity)) {
+			color = { 0.0f, 0.0f, 1.0f }; // Blue for projectiles
+		}
+
+		GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
+		glUniform3fv(colorLoc, 1, glm::value_ptr(color));
+		gl_has_errors();
+
+		// Create and bind VAO/VBO for this hitbox
+		GLuint debugVAO, debugVBO;
+		glGenVertexArrays(1, &debugVAO);
+		glGenBuffers(1, &debugVBO);
+
+		glBindVertexArray(debugVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, debugVBO);
+
+		// Convert hitbox points to vertices
+		std::vector<float> vertices;
+		for (const auto& pt : hitbox.pts) {
+			vertices.push_back(pt.x);
+			vertices.push_back(pt.y);
+		}
+
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+		// Draw the hitbox as a line loop
+		glDrawArrays(GL_LINE_LOOP, 0, hitbox.pts.size());
+
+		// Clean up
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		glDeleteBuffers(1, &debugVBO);
+		glDeleteVertexArrays(1, &debugVAO);
+	}
+
+	// Restore default VAO
+	glBindVertexArray(defaultVAO);
+	gl_has_errors();
+}
+
 
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)

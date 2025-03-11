@@ -419,6 +419,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
 
+	//TODO
 	if (key == GLFW_KEY_P) {
 		auto debugView = registry.view<Debug>();
 		if (debugView.empty()) {
@@ -431,19 +432,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-	// // Debugging - not used in A1, but left intact for the debug lines
-	// if (key == GLFW_KEY_P) {
-	// 	auto debugView = registry.view<Debug>();
-	// 	if (debugView.empty()) {
-	// 		registry.emplace<Debug>(player_entity);
-	// 	}
-	// 	else {
-	// 		for (auto entity : debugView) {
-	// 			std::cout << "Removing debug" << std::endl;
-	// 			registry.remove<Debug>(entity);
-	// 		}
-	// 	}
-	// }
+
+	
 
 	// F to toggle opening/closing ship ui
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
@@ -522,6 +512,7 @@ void WorldSystem::left_mouse_click() {
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
 		projectile_shooting_delay > 0.5f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			MusicSystem::playSoundEffect(SFX::SHOOT);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
 	}
