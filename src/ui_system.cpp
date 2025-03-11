@@ -120,7 +120,7 @@ void UISystem::dropItem(entt::registry& registry, Click click) {
 		auto& item = registry.get<Item>(drag_entity);
 		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
 		registry.destroy(drag_entity);
-		MusicSystem::playSoundEffect(SFX::PICKUP); // TODO change it to drop
+		MusicSystem::playSoundEffect(SFX::DROP); 
 	}
 }
 
