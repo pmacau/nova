@@ -15,7 +15,7 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 }
 
 void CollisionSystem::initTree(int mapWidth, int mapHeight) {
-	quadTree = new QuadTree(0.0f, 0.0f, mapWidth * 32.f, mapHeight * 32.f);
+	quadTree = new QuadTree(0.0f, 0.0f, mapWidth * 16.f, mapHeight * 16.f);
 	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
 	for (auto entity : view) {
 		//std::cout << "woo" << std::endl;
@@ -27,7 +27,7 @@ void CollisionSystem::initTree(int mapWidth, int mapHeight) {
 void CollisionSystem::step(float elapsed_ms) {
 	processed.clear();
 	destroy_entities.clear();
-
+	//quadTree->clear(); 
 
 	
 	
@@ -36,28 +36,28 @@ void CollisionSystem::step(float elapsed_ms) {
 	if (playerView.begin() == playerView.end()) {
 		return;
 	}
-
+	//quadTree = new QuadTree(0.0f, 0.0f, 200 * 32.f, 200 * 32.f);
 	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
-	/*for (auto entity : view) {
+	for (auto entity : view) {
 		auto motion = registry.get<Motion>(entity); 
-		if (glm::length(motion.position - registry.get<Motion>(playerView.front()).position) < 120) {
+		if (glm::length(motion.position - registry.get<Motion>(playerView.front()).position) < 40) {
 			if (motion.formerPosition != motion.position) {
 				quadTree->remove(entity, registry);
 				quadTree->insert(entity, registry);
 			}
 		}	
-	}*/
+	}
 
-	// Get the player entity and its position
+	//Get the player entity and its position
 	auto playerEntity = playerView.front();
 	const auto& playerMotion = registry.get<Motion>(playerEntity);
 
 	// Create a query range around the player
 	// The range is a square centered on the player - adjust the size as needed
-	const float queryRange = 60.f; // Adjust based on your game's scale
+	const float queryRange = 40.f; // Adjust based on your game's scale
 	Quad rangeQuad(
-		playerMotion.position.x - (playerMotion.scale.x * GAME_SCALE) / 2,
-		playerMotion.position.y - (playerMotion.scale.y * GAME_SCALE) / 2,
+		playerMotion.position.x - (playerMotion.scale.x) / 2,
+		playerMotion.position.y - (playerMotion.scale.y) / 2,
 		queryRange,
 		queryRange
 	);

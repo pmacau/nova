@@ -37,10 +37,10 @@ void QuadTree::insertIntoChildren(entt::entity entity, const entt::registry& reg
     const auto& motion = registry.get<Motion>(entity);
 
     // Create a quad from the hitbox
-    float leftpoint_x = motion.position.x - (motion.scale.x * GAME_SCALE) / 2;
-    float leftpoint_y = motion.position.y - (motion.scale.y * GAME_SCALE) / 2;
-    Quad entityQuad(leftpoint_x, leftpoint_y, motion.scale.x * GAME_SCALE, motion.scale.y * GAME_SCALE); 
-
+   /* float leftpoint_x = motion.position.x - (motion.scale.x) / 2;
+    float leftpoint_y = motion.position.y - (motion.scale.y) / 2;*/
+    Quad entityQuad(motion.position.x, motion.position.y, 400, 400);
+    //
     for (int i = 0; i < 4; ++i) {
         if (children[i]->bounds.intersects(entityQuad)) {
             children[i]->insert(entity, registry);
@@ -54,10 +54,10 @@ bool QuadTree::remove(entt::entity entity, const entt::registry& registry) {
         const auto& motion = registry.get<Motion>(entity);
 
         // Create a quad from the entity's position (using same approach as in insert)
-        float leftpoint_x = motion.position.x - (motion.scale.x * GAME_SCALE) / 2;
-        float leftpoint_y = motion.position.y - (motion.scale.y * GAME_SCALE) / 2;
-        Quad entityQuad(leftpoint_x, leftpoint_y, motion.scale.x * GAME_SCALE, motion.scale.y * GAME_SCALE);
-
+        /*float leftpoint_x = motion.position.x - (motion.scale.x) / 2;
+        float leftpoint_y = motion.position.y - (motion.scale.y) / 2;*/
+        Quad entityQuad(motion.position.x, motion.position.y, 400, 400);
+        //
         // Try removing from each child that might contain the entity
         for (int i = 0; i < 4; ++i) {
             if (children[i]->bounds.intersects(entityQuad)) {
@@ -84,18 +84,23 @@ std::unordered_set<entt::entity> QuadTree::queryRange(const Quad& range, const e
     if (!bounds.intersects(range)) {
         return results;
     }
-    std::vector<entt::entity> toDelete; 
+
+    std::cout << "Range from player " << range.getX() << " " << range.getY() << std::endl;
+
+    std::cout << "Set bounds from quad " << bounds.x << " " << bounds.y << std::endl;
+
+   //  std::vector<entt::entity> toDelete; 
     // Add entities from this node
     for (const auto& entity : objects) {
         const auto& motion = registry.get<Motion>(entity);
-        float leftpoint_x = motion.position.x - (motion.scale.x * GAME_SCALE) / 2;
-        float leftpoint_y = motion.position.y - (motion.scale.y * GAME_SCALE) / 2;
-        Quad entityQuad(leftpoint_x, leftpoint_y, motion.scale.x * GAME_SCALE, motion.scale.y * GAME_SCALE);
+       /* float leftpoint_x = motion.position.x - (motion.scale.x) / 2;
+        float leftpoint_y = motion.position.y - (motion.scale.y) / 2;*/
+        Quad entityQuad(motion.position.x, motion.position.y, 400, 400);
 
         if (range.intersects(entityQuad)) {
             results.insert(entity);
-            auto t = registry.get<RenderRequest>(entity); 
-            if (t.used_texture == TEXTURE_ASSET_ID::PLAYER) {
+            //auto t = registry.get<RenderRequest>(entity); 
+            /*if (t.used_texture == TEXTURE_ASSET_ID::PLAYER) {
                 std::cout << "intersecting with player" << std::endl; 
             }
             else if (t.used_texture == TEXTURE_ASSET_ID::TREE){
@@ -104,9 +109,14 @@ std::unordered_set<entt::entity> QuadTree::queryRange(const Quad& range, const e
             else if (t.used_texture == TEXTURE_ASSET_ID::SHIP6) {
                 std::cout << "intersecting with ship" << std::endl; 
             }
-            if (registry.view<Player>().find(entity) == registry.view<Player>().end()) {
+            else if (registry.view<Mob>().find(entity) != registry.view<Mob>().end()) {
+                std::cout << "mobs" << std::endl; 
+            }*/
+            /*if (registry.view<Player>().find(entity) == registry.view<Player>().end()) {
                 toDelete.push_back(entity); 
-            }
+            }*/
+
+
         }
        /* for (auto entity : toDelete) {
             results.erase(entity);
