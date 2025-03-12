@@ -384,8 +384,16 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave>);
-	registry.destroy(motions.begin(), motions.end());
+	auto& motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, DeathItems, Grave>);
+	for (auto entity : motions) {
+		if (registry.any_of<FixedUI>(entity)) {
+			if (registry.any_of<Item>(entity)) {
+				registry.destroy(entity);
+			}
+			continue;
+		}
+		else registry.destroy(entity);
+	}
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
