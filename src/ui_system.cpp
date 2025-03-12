@@ -414,7 +414,7 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 		if (registry.any_of<Boss>(entity)) {
 			std::cout << "entity is a boss\n";
 			auto& drop = registry.emplace<Drop>(entity);
-			if (randomNo < 0.75) {
+			if (randomNo < 0.5) {
 				drop.item.type = Item::Type::IRON;
 			}
 			else {
@@ -424,7 +424,7 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 		}
 		else {
 			if (mob.type == Mob::Type::TORCH) {
-				if (randomNo < 0.5) {
+				if (randomNo < 0.75) {
 					auto& drop = registry.emplace<Drop>(entity);
 					randomNo = uniform_dist(rng);
 					if (randomNo < 0.5) {
