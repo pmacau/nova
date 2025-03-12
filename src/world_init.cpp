@@ -9,6 +9,7 @@
 #include "ai/state_machine/patrol_state.hpp"
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
+#include "ui_system.hpp"
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
@@ -91,6 +92,8 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto& mob = registry.emplace<Mob>(entity);
 	mob.health = health;
 	mob.hit_time = 1.f;
+	mob.biome = Mob::Biome::FOREST;
+	mob.type = Mob::Type::PURPLE;
 
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
@@ -119,8 +122,7 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	//motion.scale = vec2(38*3, 54*3);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 	
-	auto& drop = registry.emplace<Drop>(entity);
-	drop.item_type = ITEM_TYPE::POTION;
+	UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
@@ -176,6 +178,8 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	auto& mob = registry.emplace<Mob>(entity);
 	mob.health = health;
 	mob.hit_time = 1.f;
+	mob.biome = Mob::Biome::FOREST;
+	mob.type = Mob::Type::TORCH;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = vec2(1344.f / 7, 960.f / 5);
@@ -198,8 +202,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	};
 	hitbox.depth = 60;
 	
-	auto& drop = registry.emplace<Drop>(entity);
-	drop.item_type = ITEM_TYPE::POTION;
+	UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
@@ -366,6 +369,7 @@ entt::entity createBoss(entt::registry& registry, vec2 pos) {
 	Boss& boss = registry.emplace<Boss>(entity);
 	boss.agro_range = 500.f;
 	boss.spawn = pos;
+	UISystem::dropForMob(registry, entity);
 
 	debug_printf(DebugType::WORLD_INIT, "Boss created at: (%.1f, %.1f)\n", pos.x, pos.y);
 	return entity;

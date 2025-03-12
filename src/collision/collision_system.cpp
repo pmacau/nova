@@ -94,7 +94,10 @@ void CollisionSystem::handle<Projectile, Mob>(
 				break;
 			}
 		}
-		UISystem::renderItem(registry, mob_ent);
+		auto& mob_motion = registry.get<Motion>(mob_ent);
+		if (registry.any_of<Drop>(mob_ent)) {
+			UISystem::renderItemAtPos(registry, mob_ent, mob_motion.position.x, mob_motion.position.y, false, true);
+		}
 		destroy_entities.insert(mob_ent);
 	}
 	destroy_entities.insert(proj_ent);

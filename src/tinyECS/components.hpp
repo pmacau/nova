@@ -81,9 +81,17 @@ struct Projectile {
 	int timer;
 };
 
-
 // Mob
 struct Mob {
+	enum class Biome {
+		FOREST
+	};
+	enum class Type {
+		TORCH, 
+		PURPLE
+	};
+	Biome biome;
+	Type type;
 	int health;
 	float hit_time; 
 };
@@ -122,11 +130,6 @@ struct MobHealthBar
 	float y_adjust = 0.f;
 };
 
-enum class ITEM_TYPE {
-	POTION, 
-	LASTDEATHGRAVE
-};
-
 struct DeathItems {
 
 };
@@ -135,17 +138,22 @@ struct Grave {
 
 };
 
-// used for entities which when killed will drop items (usually bosses)
-struct Drop
+struct Item
 {
-	ITEM_TYPE item_type;
+	enum class Type {
+		POTION,
+		GRAVE, 
+		IRON, 
+		COPPER
+	};
+	Type type;
 	int no = 1;
 };
 
-struct Item
+// used for entities which when killed will drop items (usually bosses)
+struct Drop
 {
-	ITEM_TYPE item_type;
-	int no = 1;
+	Item item;
 };
 
 struct Potion
@@ -304,6 +312,8 @@ enum class TEXTURE_ASSET_ID {
 	HEALTHBAR_RED,
 	POTION,
 	GRAVE,
+	IRON,
+	COPPER,
 	INVENTORY_SLOT,
 	TREE,
 	GOBLIN_TORCH_BLUE,
