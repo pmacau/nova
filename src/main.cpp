@@ -55,7 +55,7 @@ int main()
 	WorldSystem   world_system(reg, physics_system, flag_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system, physics_system, mapWidth, mapHeight);
+	CollisionSystem collision_system(reg, world_system, physics_system);
 	CameraSystem camera_system(reg);
 	SpawnSystem spawn_system(reg);
 	// FlagSystem flag_system(reg); 
@@ -80,7 +80,8 @@ int main()
 	world_system.init();
 	renderer_system.init(window);
 	renderer_system.initFreetype();
-
+	collision_system.initTree(mapWidth, mapHeight);
+	
 	// variable timestep loop
 	auto t = Clock::now();
 

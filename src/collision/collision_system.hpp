@@ -12,7 +12,7 @@
 
 class CollisionSystem {
 public:
-    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, int mapWidth, int mapHeight);
+    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics);
     void step(float elapsed_ms);
 
     ~CollisionSystem() {
@@ -21,7 +21,8 @@ public:
             delete quadTree;
         }
     }
-
+    void initTree(int mapWidth, int mapHeight); //expensive
+    
 private:
     entt::registry& registry;
     PhysicsSystem& physics; 
