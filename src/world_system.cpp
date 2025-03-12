@@ -269,7 +269,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	ship.timer -= elapsed_s;
 
 	if (ship.timer <= 0) {
-		ship.timer = SHIP_TIMER_MS;
+		ship.timer = SHIP_TIMER_S;
 		
 		for (auto entity : mobs) {
 			auto motion = registry.get<Motion>(entity);
@@ -476,6 +476,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
         }
     }
+
+	if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
+		auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+		if (registry.view<HiddenInventory>().empty()) {
+			for (int i = 5; i < inventory.slots.size(); i++) {
+				registry.emplace<HiddenInventory>(inventory.slots[i]);
+				auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+				if (inventory_slot.hasItem) {
+					registry.emplace<HiddenInventory>(inventory_slot.item);
+				}
+			}
+		}
+		else {
+			for (int i = 5; i < inventory.slots.size(); i++) {
+				registry.remove<HiddenInventory>(inventory.slots[i]);
+				auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+				if (inventory_slot.hasItem) {
+					registry.remove<HiddenInventory>(inventory_slot.item);
+				}
+			}
+		}
+	}
 
 	//// TODO: testing sound system. remove this later
 	//if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);

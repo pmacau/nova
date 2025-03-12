@@ -44,7 +44,7 @@ struct Ship
 {
 	int range;
 	int health;
-	int timer;
+	float timer;
 };
 
 struct UIShip
@@ -151,6 +151,11 @@ struct Item
 struct Potion
 {
 	int heal;
+};
+
+struct HiddenInventory
+{
+
 };
 
 struct InventorySlot

@@ -235,7 +235,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	auto& ship = registry.emplace<Ship>(entity);
 	ship.health = SHIP_HEALTH;
 	ship.range = SHIP_RANGE;
-	ship.timer = SHIP_TIMER_MS;
+	ship.timer = SHIP_TIMER_S;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -416,22 +416,25 @@ void createInventory(entt::registry& registry) {
 	const float startX = 50.0f;
 	const float startY = 50.0f;
 	const float SLOT_SIZE = 45.f;
-	for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+	for (int i = 0; i < 20; i++) {
 		auto entity = registry.create();
 		inventory.slots.push_back(entity);
 		auto& inventory_slot = registry.emplace<InventorySlot>(entity);
 		inventory_slot.id = i;
+		if (i > 4) {
+			registry.emplace<HiddenInventory>(entity);
+		}
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = 0.0f;
-		motion.position = { startX + SLOT_SIZE * i , startY };
+		motion.position = { startX + SLOT_SIZE * (i % 5) , startY + SLOT_SIZE * (i / 5)};
 		motion.scale = { SLOT_SIZE, SLOT_SIZE };
 		motion.velocity = { 0.f, 0.f };
 		auto& sprite = registry.emplace<Sprite>(entity);
 		sprite.coord = { 0, 0 };
-		sprite.dims = { 488.f, 488.f };
-		sprite.sheet_dims = { 488.f, 488.f};
+		sprite.dims = { 93.f, 95.f };
+		sprite.sheet_dims = { 93.f, 95.f};
 		auto& render_request = registry.emplace<RenderRequest>(entity);
 		render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT;
 		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;

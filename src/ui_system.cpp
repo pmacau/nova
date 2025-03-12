@@ -133,7 +133,10 @@ void UISystem::resetDragItem(entt::registry& registry) {
 		inventory_item.no += registry.get<Item>(drag_entity).no;
 	}
 	else {
-		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f, true);
+		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * (inventory_slot.id % 5), 50.f + 45.f * (inventory_slot.id / 5), true);
+		if (!registry.view<HiddenInventory>().empty() && inventory_slot.id > 4) {
+			registry.emplace<HiddenInventory>(item);
+		}
 		inventory_slot.hasItem = true;
 		inventory_slot.item = item;
 		auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -150,10 +153,11 @@ void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float
 
 bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y, Click click) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
-	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
+	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
 		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
-		if (i >= 0 && i < inventory.slots.size()) {
-			auto& inventory_entity = inventory.slots[i];
+		int j = (int)((mouse_pos_y - (50.f - 45.f / 2.f)) / 45.f);
+		if (i < 5 && ((registry.view<HiddenInventory>().empty() && j < 4) || j == 0)) {
+			auto& inventory_entity = inventory.slots[j * 5 + i];
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -285,7 +289,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				if (!registry.view<Drag>().empty() && click == Click::LEFT) {
 					auto& drag_entity = *registry.view<Drag>().begin();
 					auto& drag_item = registry.get<Item>(drag_entity);
-					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f, true);
+					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f + 45.f * j, true);
 					inventory_slot.hasItem = true;
 					inventory_slot.item = item;
 					auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -330,7 +334,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 				registry.emplace<UI>(item_entity);
 				registry.emplace<FixedUI>(item_entity);
 				auto& motion = registry.get<Motion>(item_entity);
-				motion.position = { 50.f + 45.f * i, 50.f };
+				motion.position = { 50.f + 45.f * (i % 5), 50.f + 45.f * (i / 5)};
 				MusicSystem::playSoundEffect(SFX::PICKUP);
 				break;
 			}
