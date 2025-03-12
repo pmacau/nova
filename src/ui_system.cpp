@@ -36,43 +36,6 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 	}
 }
 
-//void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
-//	if (registry.all_of<Drop>(mob_entity)) {
-//		auto& drop_item = registry.get<Drop>(mob_entity).item;
-//		auto entity = registry.create();
-//		auto& item = registry.emplace<Item>(entity);
-//		auto& mob_motion = registry.get<Motion>(mob_entity);
-//		auto& motion = registry.emplace<Motion>(entity);
-//		motion.angle = 0.f;
-//		motion.position = mob_motion.position;
-//		motion.velocity = { 0.f, 0.f };\
-//		auto& sprite = registry.emplace<Sprite>(entity);
-//		auto& render_request = registry.emplace<RenderRequest>(entity);
-//		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
-//		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-//		if (drop_item.type == Item::Type::POTION) {
-//			item.type = drop_item.type;
-//			item.no = drop_item.no;
-//			auto& potion = registry.emplace<Potion>(entity);
-//			potion.heal = 20;
-//			motion.scale = vec2(512.f, 508.f) / 15.f;
-//			sprite.dims = { 512.f, 508.f };
-//			sprite.sheet_dims = { 512.f, 508.f };
-//			render_request.used_texture = TEXTURE_ASSET_ID::POTION;
-//		} else if (drop_item.type == Item::Type::IRON) {
-//			item.type = drop_item.type;
-//			item.no = drop_item.no;
-//			motion.scale = vec2(21.f, 17.f) * 2.f;
-//			sprite.dims = { 21.f, 17.f };
-//			sprite.sheet_dims = { 21.f, 17.f };
-//			render_request.used_texture = TEXTURE_ASSET_ID::IRON;
-//		}
-//		else {
-//			registry.destroy(entity);
-//		}
-//	}
-//}
-
 bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	auto& item = registry.get<Item>(entity);
 	if (item.type == Item::Type::POTION) {
@@ -106,6 +69,10 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 	if (ui) {
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
+		std::cout << "y: " << y << "\n";
+		if (y > 50.f + 45.f / 2.f && !registry.view<HiddenInventory>().empty()) {
+			registry.emplace<HiddenInventory>(entity);
+		}
 	}
 	else {
 		item.no = item_to_copy.no;
@@ -200,8 +167,14 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						auto& drag_item = registry.get<Item>(drag_entity);
 						// add dragged item to inventory slot if of the same type
 						if (registry.get<Item>(inventory_slot.item).type == drag_item.type) {
-							inventory_item.no += drag_item.no;
-							registry.destroy(drag_entity);
+							if (drag_item.no + inventory_item.no > inventory_slot.capacity) {
+								drag_item.no -= inventory_slot.capacity - inventory_item.no;
+								inventory_item.no = inventory_slot.capacity;
+							}
+							else {
+								inventory_item.no += drag_item.no;
+								registry.destroy(drag_entity);
+							}
 						}
 						// put the dragged item to original inventory slot if the item is of different type
 						else {
@@ -312,8 +285,14 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 					inventory_slot.hasItem = true;
 					inventory_slot.item = item;
 					auto& inventory_item = registry.get<Item>(inventory_slot.item);
-					inventory_item.no = drag_item.no;
-					registry.destroy(drag_entity);
+					if (drag_item.no > inventory_slot.capacity) {
+						inventory_item.no = inventory_slot.capacity;
+						drag_item.no -= inventory_slot.capacity;
+					}
+					else {
+						inventory_item.no = drag_item.no;
+						registry.destroy(drag_entity);
+					}
 				}
 			}
 			return true;
@@ -329,16 +308,23 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 		registry.remove<DeathItems>(item_entity);
 	}
 	if (item.type != Item::Type::GRAVE) {
+		bool pickup = false;
 		// check for existing slots having same item type
 		for (int i = 0; i < inventory.slots.size(); i++) {
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 			if (inventory_slot.hasItem) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
+				if (inventory_item.no > inventory_slot.capacity) continue;
 				if (inventory_item.type == item.type) {
-					inventory_item.no += item.no;
-					MusicSystem::playSoundEffect(SFX::PICKUP);
-					registry.destroy(item_entity);
-					return;
+					int before = inventory_item.no;
+					inventory_item.no = std::min(inventory_slot.capacity, inventory_item.no + item.no);
+					item.no -= inventory_item.no - before;
+					pickup = true;
+					if (item.no == 0) {
+						MusicSystem::playSoundEffect(SFX::PICKUP);
+						registry.destroy(item_entity);
+						return;
+					}
 				}
 			}
 		}
@@ -347,16 +333,32 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 			if (!inventory_slot.hasItem) {
 				inventory_slot.hasItem = true;
-				inventory_slot.item = item_entity;
-				auto& inventory_item = registry.get<Item>(inventory_slot.item);
-				inventory_item.no = item.no;
-				registry.emplace<UI>(item_entity);
-				registry.emplace<FixedUI>(item_entity);
 				auto& motion = registry.get<Motion>(item_entity);
-				motion.position = { 50.f + 45.f * (i % 5), 50.f + 45.f * (i / 5)};
-				MusicSystem::playSoundEffect(SFX::PICKUP);
-				break;
+				if (item.no <= inventory_slot.capacity) {
+					inventory_slot.item = item_entity;
+					auto& inventory_item = registry.get<Item>(inventory_slot.item);
+					inventory_item.no = item.no;
+					registry.emplace<UI>(item_entity);
+					registry.emplace<FixedUI>(item_entity);
+					if (i / 5 > 0 && !registry.view<HiddenInventory>().empty()) {
+						registry.emplace<HiddenInventory>(item_entity);
+					}
+					motion.position = { 50.f + 45.f * (i % 5), 50.f + 45.f * (i / 5) };
+					pickup = true;
+					break;
+				}
+				else {
+					item.no -= inventory_slot.capacity;
+					auto item_entity_2 = renderItemAtPos(registry, item_entity, 50.f + 45.f * (i % 5), 50.f + 45.f * (i / 5), true, false);
+					inventory_slot.item = item_entity_2;
+					auto& item = registry.get<Item>(item_entity_2);
+					item.no = inventory_slot.capacity;
+					pickup = true;
+				}
 			}
+		}
+		if (pickup) {
+			MusicSystem::playSoundEffect(SFX::PICKUP);
 		}
 	}
 	else {
@@ -414,29 +416,34 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 		if (registry.any_of<Boss>(entity)) {
 			std::cout << "entity is a boss\n";
 			auto& drop = registry.emplace<Drop>(entity);
-			if (randomNo < 0.5) {
+			if (randomNo < 0.7) {
 				drop.item.type = Item::Type::IRON;
 			}
 			else {
 				drop.item.type = Item::Type::COPPER;
 			}
-			drop.item.no = 20 + (int)(randomNo * 11);
+			randomNo = uniform_dist(rng);
+			drop.item.no = 10 + (int)(randomNo * 11);
 		}
 		else {
 			if (mob.type == Mob::Type::TORCH) {
+				randomNo = uniform_dist(rng);
 				if (randomNo < 0.75) {
 					auto& drop = registry.emplace<Drop>(entity);
 					randomNo = uniform_dist(rng);
-					if (randomNo < 0.5) {
+					if (randomNo < 0.9) {
 						drop.item.type = Item::Type::POTION;
+						randomNo = uniform_dist(rng);
 						drop.item.no = 1 + (int)(randomNo * 2);
 					}
-					else if (randomNo < 0.75) {
+					else if (randomNo < 0.95) {
 						drop.item.type = Item::Type::IRON;
+						randomNo = uniform_dist(rng);
 						drop.item.no = 1 + (int)(randomNo * 5);
 					}
 					else {
 						drop.item.type = Item::Type::COPPER;
+						randomNo = uniform_dist(rng);
 						drop.item.no = 1 + (int)(randomNo * 5);
 					}
 				}

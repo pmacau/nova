@@ -171,6 +171,7 @@ struct InventorySlot
 	int id = -1;
 	bool hasItem = false;
 	entt::entity item;
+	int capacity = 50;
 };
 
 struct Title
