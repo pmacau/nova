@@ -433,8 +433,6 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 					randomNo = uniform_dist(rng);
 					if (randomNo < 0.9) {
 						drop.item.type = Item::Type::POTION;
-						randomNo = uniform_dist(rng);
-						drop.item.no = 1 + (int)(randomNo * 2);
 					}
 					else if (randomNo < 0.95) {
 						drop.item.type = Item::Type::IRON;
