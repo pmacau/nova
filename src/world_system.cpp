@@ -469,9 +469,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
             float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
             if (distance_to_ship < 150.0f) {
 				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
-                screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
+                screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
             }
-        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+        } else if (screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
 			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
         }

@@ -687,7 +687,7 @@ void RenderSystem::renderTitle()
 }
 
 
-void RenderSystem::renderShipUI() 
+void RenderSystem::renderUpgradeUI()
 {
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
@@ -823,7 +823,7 @@ void RenderSystem::draw()
 			renderTitle();
 			break;
 		case ScreenState::ScreenType::UPGRADE_UI:
-            // renderUpgradeUI
+            renderUpgradeUI();
             break;
 		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
             renderShipUI();
