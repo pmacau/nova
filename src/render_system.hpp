@@ -28,7 +28,7 @@ class RenderSystem {
 		textures_path("ship/Ship3.png"),
 		textures_path("ship/Ship4.png"),
 		textures_path("ship/Ship5.png"),
-		textures_path("ship/Ship6.png"),		
+		textures_path("ship/Ship-Very-Damaged.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
@@ -108,6 +108,7 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen(bool vignette);
 	void renderGamePlay();
+	void renderUpgradeUI();
 	void renderShipUI();
 
 	// void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);

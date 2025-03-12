@@ -238,10 +238,10 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	ship.timer = SHIP_TIMER_MS;
 
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
+	motion.angle = 90.0f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = vec2(19 * 14, 35 * 4.5);
+	motion.scale = GAME_SCALE * vec2(120, 120);
 	motion.offset_to_ground = vec2(0, motion.scale.y / 2);
 
 	float w = motion.scale.x * 0.8;

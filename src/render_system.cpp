@@ -686,6 +686,53 @@ void RenderSystem::renderTitle()
 	gl_has_errors();
 }
 
+
+void RenderSystem::renderShipUI() 
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	// render ship
+	std::vector<entt::entity> PlayerMobsRenderEntities;
+	auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
+
+	// RENDER THE UI SCREENENA:SJDLAKJSDLKJAHSDLJKASLKDJBNLAK
+
+	drawToScreen(false);
+
+	mat3 flippedProjection = projection_2D;
+	flippedProjection[1][1] *= -1.0f; 
+	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
+}
+
+
 void RenderSystem::renderShipUI() 
 {
 	int w, h;
@@ -775,8 +822,17 @@ void RenderSystem::draw()
 		case ScreenState::ScreenType::TITLE:
 			renderTitle();
 			break;
+		case ScreenState::ScreenType::UPGRADE_UI:
+            // renderUpgradeUI
+            break;
 		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
             renderShipUI();
+            break;
+		case ScreenState::ScreenType::PLAYER_UPGRADE_UI:
+            // renderPlayerUI
+            break;
+		case ScreenState::ScreenType::WEAPON_UPGRADE_UI:
+            // renderWeaponUI
             break;
         case ScreenState::ScreenType::GAMEPLAY:
             renderGamePlay();

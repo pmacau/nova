@@ -226,7 +226,10 @@ struct ScreenState
 {
 	enum class ScreenType {
         GAMEPLAY,
+		UPGRADE_UI,
         SHIP_UPGRADE_UI,
+		PLAYER_UPGRADE_UI,
+		WEAPON_UPGRADE_UI,
 		TITLE
     };
 
