@@ -109,7 +109,7 @@ int main()
 			num_frames = 0;
 			num_s = 0.f;
 		}
-
+		
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		if (!flag_system.is_paused) {
@@ -120,7 +120,7 @@ int main()
 			if (flag_system.done) {
 				spawn_system.update(elapsed_ms);
 			}
-			//collision_system.step(elapsed_ms);
+			collision_system.step(elapsed_ms);
 			camera_system.step(elapsed_ms);
 			ai_system.step(elapsed_ms); // AI system should be before physics system
 		}

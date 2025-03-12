@@ -16,6 +16,9 @@ struct Hitbox {
 };
 
 vec2 edge_normal(const vec2& edge);
+
+std::vector<vec2> getMotionPts(const std::vector<vec2>& pts, Motion& m);
+
 std::vector<vec2> get_normals(const std::vector<vec2>& pts);
 void project(
     const std::vector<vec2>& pts, const vec2& centre, const vec2& axis,

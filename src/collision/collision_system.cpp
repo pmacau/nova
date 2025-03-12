@@ -19,6 +19,11 @@ void CollisionSystem::step(float elapsed_ms) {
 
 	for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
 		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
+			if (registry.view<Player>().find(e1) != registry.view<Player>().end()) {
+				std::vector<vec2> pts = registry.get<Hitbox>(e1).pts;
+				std::cout << getMotionPts(pts, registry.get<Motion>(e1))[0].x << getMotionPts(pts, registry.get<Motion>(e1))[0].y << std::endl;
+				
+			}
 			if (
 				e1 == e2 ||
 				processed.find(e1) != processed.end() ||
