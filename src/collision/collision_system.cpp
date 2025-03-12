@@ -5,26 +5,81 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 
-CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics) :
+CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, int mapWidth, int mapHeight) :
 	registry(reg),
 	physics(physics),
 	world(world)
 {
+	quadTree = new QuadTree(0.0f, 0.0f, mapWidth * 32.f, mapHeight * 32.f);
+	quadTree->clear();
+	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
+	for (auto entity : view) {
+		quadTree->insert(entity, registry);
+	}
 }
 
 
 void CollisionSystem::step(float elapsed_ms) {
 	processed.clear();
 	destroy_entities.clear();
+	
+	
 
-	for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
-		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
-			if (registry.view<Player>().find(e1) != registry.view<Player>().end()) {
-				std::vector<vec2> pts = registry.get<Hitbox>(e1).pts;
-				std::cout << getMotionPts(pts, registry.get<Motion>(e1))[0].x << getMotionPts(pts, registry.get<Motion>(e1))[0].y << std::endl;
-				
+	// Find the player entity
+	auto playerView = registry.view<Player, Motion>();
+	if (playerView.begin() == playerView.end()) {
+		// No player found, skip collision detection
+		return;
+	}
+
+	// Get the player entity and its position
+	auto playerEntity = playerView.front();
+	const auto& playerMotion = registry.get<Motion>(playerEntity);
+
+	// Create a query range around the player
+	// The range is a square centered on the player - adjust the size as needed
+	const float queryRange = WINDOW_WIDTH_PX * 1.5f; // Adjust based on your game's scale
+	Quad rangeQuad(
+		playerMotion.position.x - queryRange / 2,
+		playerMotion.position.y - queryRange / 2,
+		queryRange,
+		queryRange
+	);
+
+	//creating a query for all entities in range of player screen
+	std::vector<entt::entity> nearbyEntities = quadTree->queryRange(rangeQuad, registry);
+
+	for (size_t i = 0; i < nearbyEntities.size(); ++i) {
+		auto e1 = nearbyEntities[i];
+		std::cout << "woo" << std::endl; 
+		// Skip if this entity has already been processed
+		if (processed.find(e1) != processed.end()) continue;
+
+		const auto& m1 = registry.get<Motion>(e1);
+		const auto& h1 = registry.get<Hitbox>(e1);
+
+		for (size_t j = i + 1; j < nearbyEntities.size(); ++j) {
+			auto e2 = nearbyEntities[j];
+
+			if (processed.find(e2) != processed.end()) continue;
+
+			const auto& m2 = registry.get<Motion>(e2);
+			const auto& h2 = registry.get<Hitbox>(e2);
+
+			if (collides(h1, m1, h2, m2)) {
+				resolve(e1, e2, elapsed_ms);
+				processHandler(e1, e2);
 			}
-			if (
+		}
+	}
+
+	
+	for (auto entity : destroy_entities) registry.destroy(entity);
+
+
+	/*for (auto &&[e1, m1, h1]: registry.view<Motion, Hitbox>().each()) {
+		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {*/
+		/*	if (
 				e1 == e2 ||
 				processed.find(e1) != processed.end() ||
 				processed.find(e2) != processed.end() ||
@@ -35,9 +90,9 @@ void CollisionSystem::step(float elapsed_ms) {
 
 			processHandler(e1, e2); 
 		}
-	}
+	}*/
 
-	for (auto entity: destroy_entities) registry.destroy(entity);
+	// for (auto entity: destroy_entities) registry.destroy(entity);
 }
 
 void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {

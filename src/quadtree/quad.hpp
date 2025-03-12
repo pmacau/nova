@@ -1,20 +1,15 @@
+#pragma once
 #include "../tinyECS/components.hpp"
 #include "../collision/hitbox.hpp"	
 #include <vector>
+#include <array>
 
-struct quad {
-	float x, y, width, height;
-};
 
 class Quad {
 public: 
 	float x, y, width, height; 
-	std::vector<entt::entity> objects;
-	std::array<Quad*, 4> children;
 
-	Quad(float x, float y, float width, float height) : x(x), y(y), width(width), height(height) {
-		children.fill(nullptr);
-	}
+	Quad(float x, float y, float width, float height) : x(x), y(y), width(width), height(height) {}
 
 	bool contains(float px, float py) const {
 		return (px >= x && px <= x + width && py >= y && py <= y + height);

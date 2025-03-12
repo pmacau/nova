@@ -16,7 +16,7 @@ struct NoiseParams {
     double lacunarity = 2.0;
     int octaves = 6;
 };
-
+ 
 FastNoiseLite setup_noise(NoiseParams params);
 GameMap generate_terrain(int width, int height, NoiseParams params);
 Tile discretize(double val);

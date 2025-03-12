@@ -4,23 +4,25 @@
 // Hoping that quad-tree can be usable not just in collisions if we plan on further refactoring other systems, as the screen since 
 // it updates all entities that have motion within a certain distance of a player. 
 class QuadTree{
-    static constexpr int MAX_OBJECTS = 10; 
+public:
+    static constexpr int MAX_OBJECTS = 15; 
     static constexpr int MAX_LEVELS = 5;  
 
     QuadTree(float x, float y, float width, float height, int level = 0)
         : bounds(x, y, width, height), level(level) {
+        children.fill(nullptr);
     }
 
-    void insert(entt::entity entity, const Hitbox& hitbox);
-    std::vector<entt::entity> queryRange(const Quad& range);
+    void insert(entt::entity entity, const entt::registry& registry);
+    std::vector<entt::entity> queryRange(const Quad& range, const entt::registry& registry);
     void clear();
 
 private:
     Quad bounds;
     int level;
     std::vector<entt::entity> objects;
-    std::array<Quad*, 4> children;
+    std::array<QuadTree*, 4> children;
 
     void subdivide();
-    void insertIntoChildren(entt::entity entity, const Hitbox& hitbox);
+    void insertIntoChildren(entt::entity entity, const entt::registry& registry);
 };

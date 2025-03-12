@@ -33,8 +33,12 @@ using Clock = std::chrono::high_resolution_clock;
 int main()
 {
 	// TOGGLE this if you don't want a new map every time...
+	int mapWidth; 
+	int mapHeight; 
 	if (true) {
-		auto generated_map = create_map(200, 200);
+		mapWidth = 200; 
+		mapHeight = 200; 
+		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		save_map(generated_map, map_path("map.bin").c_str());
 	}
@@ -51,7 +55,7 @@ int main()
 	WorldSystem   world_system(reg, physics_system, flag_system);
 	RenderSystem  renderer_system(reg);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system, physics_system);
+	CollisionSystem collision_system(reg, world_system, physics_system, mapWidth, mapHeight);
 	CameraSystem camera_system(reg);
 	SpawnSystem spawn_system(reg);
 	// FlagSystem flag_system(reg); 

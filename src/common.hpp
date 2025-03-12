@@ -39,10 +39,8 @@ inline std::string map_path(const std::string& name)  {return data_path() + "/ma
 //
 // game constants
 //
-// const int WINDOW_WIDTH_PX = 840;
-// const int WINDOW_HEIGHT_PX = 600;
-const int WINDOW_WIDTH_PX = 1980;
-const int WINDOW_HEIGHT_PX = 1080;
+const int WINDOW_WIDTH_PX = 840 * 2;
+const int WINDOW_HEIGHT_PX = 945;
 
 const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
