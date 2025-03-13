@@ -59,6 +59,7 @@ bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 			return true;
 		}
 	}
+	return true;
 }
 
 void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
