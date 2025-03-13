@@ -28,6 +28,7 @@ entt::entity createBoss(entt::registry& registry, vec2 pos);
 entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoord);
 
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor);
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option);
 
 // terrain
 // entt::entity createRockType1(entt::registry& registry, vec2 position);

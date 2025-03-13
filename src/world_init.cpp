@@ -560,38 +560,72 @@ entt::entity createTitleScreen(entt::registry& registry) {
 
 	// TODO refactor so that each button is a separate texture 
 	auto play = registry.create();
-	auto& play_option = registry.emplace<TitleOption>(play);
-	play_option.type = TitleOption::Option::PLAY;
+	auto& play_option = registry.emplace<ButtonOption>(play);
+	play_option.type = ButtonOption::Option::PLAY;
 	play_option.text = "Play"; 
 	play_option.position = { 23 * WINDOW_WIDTH_PX / 120.F, 57.5 * WINDOW_HEIGHT_PX / 68.f};
 	play_option.size = { 10.0 * WINDOW_WIDTH_PX / 120.f, 11.0f * WINDOW_HEIGHT_PX / 68.f};
 
 	auto exit = registry.create();
-	auto& exit_option = registry.emplace<TitleOption>(exit);
-	exit_option.type = TitleOption::Option::EXIT;
+	auto& exit_option = registry.emplace<ButtonOption>(exit);
+	exit_option.type = ButtonOption::Option::EXIT;
 	exit_option.text = "Exit";
 	exit_option.position = { 95.5 * WINDOW_WIDTH_PX / 120.F, 58 * WINDOW_HEIGHT_PX / 68.f };
 	exit_option.size = { 9.0 * WINDOW_WIDTH_PX / 120.f, 12.0f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto save = registry.create();
-	auto& save_option = registry.emplace<TitleOption>(save);
-	save_option.type = TitleOption::Option::SAVE;
+	auto& save_option = registry.emplace<ButtonOption>(save);
+	save_option.type = ButtonOption::Option::SAVE;
 	save_option.text = "Save";
 	save_option.position = { 48.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
 	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto load = registry.create();
-	auto& restart_option = registry.emplace<TitleOption>(load);
-	restart_option.type = TitleOption::Option::RESTART;
+	auto& restart_option = registry.emplace<ButtonOption>(load);
+	restart_option.type = ButtonOption::Option::RESTART;
 	restart_option.text = "Restart";
 	restart_option.position = { 109.5 * WINDOW_WIDTH_PX / 120.F, 57.f * WINDOW_HEIGHT_PX / 68.f };
 	restart_option.size = { 9.f * WINDOW_WIDTH_PX / 120.f, 10.f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto restart = registry.create();
-	auto& load_option = registry.emplace<TitleOption>(restart);
-	load_option.type = TitleOption::Option::LOAD;
+	auto& load_option = registry.emplace<ButtonOption>(restart);
+	load_option.type = ButtonOption::Option::LOAD;
 	load_option.text = "Load";
 	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
 	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
+	return entity;
+}
+
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option)
+{
+	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+	registry.emplace<Button>(entity);
+
+	auto& current_option = registry.emplace<ButtonOption>(entity);
+	current_option.type = option;
+	current_option.text = "Ship"; 
+	current_option.position = position;
+	// current_option.size = GAME_SCALE * vec2(120.f / scale.x, 128.f / scale.y);
+	current_option.size = GAME_SCALE * size;
+
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * size;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {0, 0};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::SELECTION_BUTTON;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
 	return entity;
 }

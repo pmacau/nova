@@ -513,20 +513,20 @@ void RenderSystem::renderGamePlay()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
     });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems>);
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
 
 	// Render dynamic UI
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -550,7 +550,7 @@ void RenderSystem::renderGamePlay()
 	}
 	
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, Button>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
@@ -674,9 +674,11 @@ void RenderSystem::renderTitle()
 
 	mat3 flippedProjection = ui_projection_2D;
 	flippedProjection[1][1] *= -1.0f;
-	for (auto entity : registry.view<TitleOption>()) {
-		auto& title_option = registry.get<TitleOption>(entity);
-		if (title_option.hover) {
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+
+	for (auto entity : registry.view<ButtonOption>()) {
+		auto& title_option = registry.get<ButtonOption>(entity);
+		if (title_option.hover && screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 			renderText(title_option.text, title_option.position.x - title_option.size.x / 2.f, -title_option.position.y - title_option.size.y / 2.f - 25.f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 		}
 	}
@@ -688,7 +690,7 @@ void RenderSystem::renderTitle()
 
 
 void RenderSystem::renderUpgradeUI()
-{
+{	
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
 
@@ -710,23 +712,46 @@ void RenderSystem::renderUpgradeUI()
 	glDepthRange(0.0, 10);
 
 	// black background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	// render ship
-	std::vector<entt::entity> PlayerMobsRenderEntities;
-	auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
+	// std::vector<entt::entity> buttonEntities;
+	// auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
+
+	// for (auto entity : UIShips) {
+	// 	buttonEntities.push_back(entity);
+	// }
+
+	// for (auto entity : buttonEntities) {
+	// 	drawTexturedMesh(entity, ui_projection_2D);
+	// }
 
 	// RENDER THE UI SCREENENA:SJDLAKJSDLKJAHSDLJKASLKDJBNLAK
+	auto buttons = registry.view<Button, Motion, RenderRequest>();
+
+	for (auto entity : buttons) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
 
 	drawToScreen(false);
+	
+	mat3 flippedProjection = ui_projection_2D;
+	flippedProjection[1][1] *= -1.0f;
 
-	mat3 flippedProjection = projection_2D;
-	flippedProjection[1][1] *= -1.0f; 
-	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	renderText("UPGRADES", -90.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+
+	for (auto entity : registry.view<Button>()) {
+		auto& ui_option = registry.get<ButtonOption>(entity);
+		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
+			renderText(ui_option.text, ui_option.position.x - ui_option.size.x / 6.f + 13.0f, -ui_option.position.y - ui_option.size.y / 2.f - 25.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+		}
+	}
 
 	glfwSwapBuffers(window);
     gl_has_errors();

@@ -114,6 +114,11 @@ struct PlayerHealthBar
 {
 };
 
+struct Button
+{
+
+};
+
 struct MobHealthBar
 {
 	entt::entity entity;
@@ -165,14 +170,20 @@ struct Title
 
 };
 
-struct TitleOption
+struct ButtonOption
 {
 	enum class Option {
+		// for the title screen
 		PLAY, 
 		LOAD, 
 		SAVE, 
 		EXIT, 
-		RESTART
+		RESTART,
+
+		// for the upgrade screen
+		SHIP,
+		PLAYER,
+		WEAPON
 	};
 	Option type;
 	std::string text;
@@ -307,6 +318,7 @@ enum class TEXTURE_ASSET_ID {
 	GOBLIN_TORCH_BLUE,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
+	SELECTION_BUTTON,
 	TEXTURE_COUNT
 };
 

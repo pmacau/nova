@@ -32,9 +32,10 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createPlayerHealthBar(registry);
 	createInventory(registry);
 
-
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
+
+	createButton(registry, vec2(WINDOW_WIDTH_PX/3 - 75.0f, WINDOW_WIDTH_PX/3), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::SHIP);
 
 
 	// init all the ui ships to use
@@ -499,8 +500,14 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	mouse_pos_y = mouse_position.y;
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		for (auto entity : registry.view<TitleOption>()) {
-			auto& title_option = registry.get<TitleOption>(entity);
+		for (auto entity : registry.view<ButtonOption>(entt::exclude<Button>)) {
+			auto& title_option = registry.get<ButtonOption>(entity);
+			title_option.hover = abs(mouse_pos_x - title_option.position.x) <= title_option.size.x / 2 &&
+				abs(mouse_pos_y - title_option.position.y) <= title_option.size.y / 2;
+		}
+	} else if (screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
+		for (auto entity : registry.view<Button>(entt::exclude<Title>)) {
+			auto& title_option = registry.get<ButtonOption>(entity);
 			title_option.hover = abs(mouse_pos_x - title_option.position.x) <= title_option.size.x / 2 &&
 				abs(mouse_pos_y - title_option.position.y) <= title_option.size.y / 2;
 		}
@@ -546,22 +553,44 @@ void WorldSystem::left_mouse_click() {
 	auto& player_comp = registry.get<Player>(player_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		for (auto entity : registry.view<TitleOption>()) {
-			auto& title_option = registry.get<TitleOption>(entity);
+		for (auto entity : registry.view<ButtonOption>()) {
+			auto& title_option = registry.get<ButtonOption>(entity);
 			if (title_option.hover) {
 				MusicSystem::playSoundEffect(SFX::SELECT);
-				if (title_option.type == TitleOption::Option::PLAY) {
+				if (title_option.type == ButtonOption::Option::PLAY) {
 					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 					return;
 				}
-				else if (title_option.type == TitleOption::Option::EXIT) {
+				else if (title_option.type == ButtonOption::Option::EXIT) {
 					close_window();
 				}
-				else if (title_option.type == TitleOption::Option::RESTART) {
+				else if (title_option.type == ButtonOption::Option::RESTART) {
 					screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 					restart_game();
 					return;
 				}
+				title_option.hover = false;
+			}
+			
+		}
+	} else if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
+		for (auto entity : registry.view<ButtonOption>()) {
+			auto& title_option = registry.get<ButtonOption>(entity);
+			if (title_option.hover) {
+				MusicSystem::playSoundEffect(SFX::SELECT);
+				// if (title_option.type == ButtonOption::Option::PLAY) {
+				// 	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+				// 	return;
+				// }
+				// else if (title_option.type == ButtonOption::Option::EXIT) {
+				// 	close_window();
+				// }
+				// else if (title_option.type == ButtonOption::Option::RESTART) {
+				// 	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
+				// 	restart_game();
+				// 	return;
+				// }
+				title_option.hover = false;
 			}
 			
 		}
