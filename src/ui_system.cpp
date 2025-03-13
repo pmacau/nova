@@ -182,7 +182,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				if (click == Click::LEFT) {
 					// use item if no item is being dragged
 					if (registry.view<Drag>().empty()) {
-						inventory_slot.hasItem = useItem(registry, inventory_slot.item);
+						if (j == 0) {
+							inventory_slot.hasItem = useItem(registry, inventory_slot.item);
+						}
 					}
 					else {
 						auto& drag_entity = *registry.view<Drag>().begin();
