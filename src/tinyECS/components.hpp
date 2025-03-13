@@ -153,7 +153,7 @@ struct Item
 // used for entities which when killed will drop items (usually bosses)
 struct Drop
 {
-	Item item;
+	std::vector<Item> items;
 };
 
 struct Potion

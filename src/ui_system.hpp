@@ -19,6 +19,7 @@ class UISystem {
 		static void dropItem(entt::registry& registry, Click click);
 		static void clearInventoryAndDrop(entt::registry& registry, float x, float y);
 		static void dropForMob(entt::registry& registry, entt::entity& entity);
+		static void mobDrop(entt::registry& registry, entt::entity& mob_entity);
 	private:
 		static std::mt19937 rng;
 		static std::uniform_real_distribution<float> uniform_dist;

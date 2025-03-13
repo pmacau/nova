@@ -61,9 +61,30 @@ bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	}
 }
 
+void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
+	auto& drop = registry.get<Drop>(mob_entity);
+	auto& motion = registry.get<Motion>(mob_entity);
+	int i = 0;
+	auto& items = drop.items;
+	std::cout << "total items dropped: " << items.size() << "\n";
+	while (!items.empty()) {
+		if (i == 0) {
+			renderItemAtPos(registry, mob_entity, motion.position.x, motion.position.y, false, true);
+		}
+		else if (i % 2 == 0) {
+			renderItemAtPos(registry, mob_entity, motion.position.x - 30.f, motion.position.y, false, true);
+		}
+		else {
+			renderItemAtPos(registry, mob_entity, motion.position.x + 30.f, motion.position.y, false, true);
+		}
+		items.erase(items.begin());
+		i++;
+	}
+}
+
 entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y, bool ui, bool drop) {
 	auto entity = registry.create();
-	auto& item_to_copy = drop ? registry.get<Drop>(item_to_copy_entity).item : registry.get<Item>(item_to_copy_entity);
+	auto& item_to_copy = drop ? registry.get<Drop>(item_to_copy_entity).items.front() : registry.get<Item>(item_to_copy_entity);
 	auto& item = registry.emplace<Item>(entity);
 	item.type = item_to_copy.type;
 	if (ui) {
@@ -406,44 +427,54 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 	}
 }
 
+// TODO use external file with set probabilities instead
 void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 	if (registry.any_of<Drop>(entity)) {
 		registry.remove<Drop>(entity);
 	}
 	float randomNo = uniform_dist(rng);
 	auto& mob = registry.get<Mob>(entity);	
+	Item item;
 	if (mob.biome == Mob::Biome::FOREST) {
 		if (registry.any_of<Boss>(entity)) {
 			std::cout << "entity is a boss\n";
 			auto& drop = registry.emplace<Drop>(entity);
+			randomNo = uniform_dist(rng);
 			if (randomNo < 0.7) {
-				drop.item.type = Item::Type::IRON;
+				item.type = Item::Type::IRON;
 			}
 			else {
-				drop.item.type = Item::Type::COPPER;
+				item.type = Item::Type::COPPER;
 			}
 			randomNo = uniform_dist(rng);
-			drop.item.no = 10 + (int)(randomNo * 11);
+			item.no = 10 + (int)(randomNo * 11);
+			drop.items.push_back(item);
+			item.type = Item::Type::POTION;
+			randomNo = uniform_dist(rng);
+			item.no = 3 + (int)(randomNo * 3);
+			drop.items.push_back(item);
 		}
 		else {
 			if (mob.type == Mob::Type::TORCH) {
 				randomNo = uniform_dist(rng);
-				if (randomNo < 0.75) {
+				if (randomNo < 0.25) {
 					auto& drop = registry.emplace<Drop>(entity);
 					randomNo = uniform_dist(rng);
-					if (randomNo < 0.9) {
-						drop.item.type = Item::Type::POTION;
+					if (randomNo < 0.7) {
+						item.type = Item::Type::POTION;
+						item.no = 1;
 					}
-					else if (randomNo < 0.95) {
-						drop.item.type = Item::Type::IRON;
+					else if (randomNo < 0.85) {
+						item.type = Item::Type::IRON;
 						randomNo = uniform_dist(rng);
-						drop.item.no = 1 + (int)(randomNo * 5);
+						item.no = 1 + (int)(randomNo * 3);
 					}
 					else {
-						drop.item.type = Item::Type::COPPER;
+						item.type = Item::Type::COPPER;
 						randomNo = uniform_dist(rng);
-						drop.item.no = 1 + (int)(randomNo * 5);
+						item.no = 1 + (int)(randomNo * 3);
 					}
+					drop.items.push_back(item);
 				}
 			} 
 		}
