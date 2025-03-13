@@ -110,6 +110,11 @@ struct UI
 
 };
 
+struct UIIcon
+{
+
+};
+
 struct PlayerHealthBar
 {
 };
@@ -301,10 +306,10 @@ enum class TEXTURE_ASSET_ID {
 	PLAYER,
 	SHIP1,
 	SHIP2,
-	SHIP3,
-	SHIP4,
-	SHIP5,
-	SHIP6,
+	SHIPFULLHP,
+	SHIPSLIGHTDAMAGE,
+	SHIPDAMAGE,
+	SHIPVERYDAMAGE,
     MOB,
 	TILESET,
 	MAP_BACKGROUND,

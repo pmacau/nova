@@ -262,7 +262,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
    	sprite.sheet_dims = { 128, 75 };
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP6;
+	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIPVERYDAMAGE;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
@@ -596,7 +596,7 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	return entity;
 }
 
-entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option)
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text)
 {
 	auto entity = registry.create();
 	registry.emplace<UI>(entity);
@@ -605,7 +605,7 @@ entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, Bu
 
 	auto& current_option = registry.emplace<ButtonOption>(entity);
 	current_option.type = option;
-	current_option.text = "Ship"; 
+	current_option.text = text;
 	current_option.position = position;
 	// current_option.size = GAME_SCALE * vec2(120.f / scale.x, 128.f / scale.y);
 	current_option.size = GAME_SCALE * size;
@@ -624,6 +624,34 @@ entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, Bu
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::SELECTION_BUTTON;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int iconNum, vec2 sprite_dims, vec2 sprite_sheet_dims)
+{
+	auto entity = registry.create();
+	registry.emplace<UIIcon>(entity);
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * scale;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {0, 0};
+	sprite.dims = sprite_dims;
+	sprite.sheet_dims = sprite_sheet_dims;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	iconNum = std::clamp(iconNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(iconNum);
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 

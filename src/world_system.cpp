@@ -35,7 +35,13 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 
-	createButton(registry, vec2(WINDOW_WIDTH_PX/3 - 75.0f, WINDOW_WIDTH_PX/3), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::SHIP);
+	// init everything for the main upgrade screen
+	createButton(registry, vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::SHIP, "Ship"); 
+	createButton(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::PLAYER, "Player"); 
+	createButton(registry, vec2(2*WINDOW_WIDTH_PX/3 + 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::WEAPON, "Weapons"); 
+
+	createIcon(registry, vec2(2*WINDOW_WIDTH_PX/3 - 445.0f, WINDOW_HEIGHT_PX/2 - 3.0f), vec2(WINDOW_WIDTH_PX/3 - 220.0f, WINDOW_WIDTH_PX/3 - 220.0f), 3, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
+	createIcon(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), PLAYER_SPRITESHEET.dims * vec2(2.0f, 2.0f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
 
 
 	// init all the ui ships to use
@@ -553,7 +559,7 @@ void WorldSystem::left_mouse_click() {
 	auto& player_comp = registry.get<Player>(player_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		for (auto entity : registry.view<ButtonOption>()) {
+		for (auto entity : registry.view<ButtonOption>(entt::exclude<Button>)) {
 			auto& title_option = registry.get<ButtonOption>(entity);
 			if (title_option.hover) {
 				MusicSystem::playSoundEffect(SFX::SELECT);
@@ -573,15 +579,15 @@ void WorldSystem::left_mouse_click() {
 			}
 			
 		}
-	} else if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-		for (auto entity : registry.view<ButtonOption>()) {
+	} else if (screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
+		for (auto entity : registry.view<Button>()) {
 			auto& title_option = registry.get<ButtonOption>(entity);
 			if (title_option.hover) {
 				MusicSystem::playSoundEffect(SFX::SELECT);
-				// if (title_option.type == ButtonOption::Option::PLAY) {
-				// 	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
-				// 	return;
-				// }
+				if (title_option.type == ButtonOption::Option::SHIP) {
+					screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
+					return;
+				}
 				// else if (title_option.type == ButtonOption::Option::EXIT) {
 				// 	close_window();
 				// }

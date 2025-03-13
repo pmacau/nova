@@ -513,20 +513,20 @@ void RenderSystem::renderGamePlay()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
     });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button>);
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
 
 	// Render dynamic UI
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button, UIIcon>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -550,7 +550,7 @@ void RenderSystem::renderGamePlay()
 	}
 	
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, Button>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, Button, UIIcon>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
@@ -712,7 +712,7 @@ void RenderSystem::renderUpgradeUI()
 	glDepthRange(0.0, 10);
 
 	// black background
-	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat3 projection_2D = createProjectionMatrix();
@@ -742,7 +742,7 @@ void RenderSystem::renderUpgradeUI()
 	mat3 flippedProjection = ui_projection_2D;
 	flippedProjection[1][1] *= -1.0f;
 
-	renderText("UPGRADES", -90.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	
 
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
@@ -752,6 +752,12 @@ void RenderSystem::renderUpgradeUI()
 			renderText(ui_option.text, ui_option.position.x - ui_option.size.x / 6.f + 13.0f, -ui_option.position.y - ui_option.size.y / 2.f - 25.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 		}
 	}
+
+	for (auto entity : registry.view<UIIcon, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	renderText("UPGRADES", WINDOW_WIDTH_PX/2 - 100.0f, -WINDOW_HEIGHT_PX/2 + 225.0f, 0.8f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();

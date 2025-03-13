@@ -25,9 +25,9 @@ class RenderSystem {
 		textures_path("player/astronaut-spritesheet.png"),
 		textures_path("ship/Ship1.png"),
 		textures_path("ship/Ship2.png"),
-		textures_path("ship/Ship3.png"),
-		textures_path("ship/Ship4.png"),
-		textures_path("ship/Ship5.png"),
+		textures_path("ship/Ship-Full-HP.png"),
+		textures_path("ship/Ship-Slightly-Damaged.png"),
+		textures_path("ship/Ship-Damaged.png"),
 		textures_path("ship/Ship-Very-Damaged.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
         textures_path("mob/demoMob.png"),
