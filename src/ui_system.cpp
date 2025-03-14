@@ -401,6 +401,9 @@ void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y)
 		if (inventory_slot.hasItem) {
 			registry.remove<UI>(inventory_slot.item);
 			registry.remove<FixedUI>(inventory_slot.item);
+			if (inventory_slot.id > 4 && registry.any_of<HiddenInventory>(inventory_slot.item)) {
+				registry.remove<HiddenInventory>(inventory_slot.item);
+			}
 			auto& motion = registry.get<Motion>(inventory_slot.item);
 			motion.position = { x, y };
 			registry.emplace<DeathItems>(inventory_slot.item);
