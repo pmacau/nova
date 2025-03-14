@@ -559,6 +559,8 @@ void RenderSystem::renderGamePlay()
 		auto& motion = registry.get<Motion>(entity);
 		auto& item = registry.get<Item>(entity);
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no == 1) continue;
+		// TODO use ternary operator instead
 		if (item.no >= 10) {
 			if (registry.all_of<UI>(entity)) {
 				textsToRender.push_back(
@@ -595,7 +597,7 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-			else if (item.no != 1) {
+			else {
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),

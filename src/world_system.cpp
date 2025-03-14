@@ -543,7 +543,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::right_mouse_click(int mods) {
 	bool itemUsed = false;
 
-	if (click_delay > 0.5f) {
+	if (click_delay > 0.3f) {
 		if (mods & GLFW_MOD_CONTROL) {
 			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLRIGHT);
 		}
@@ -561,7 +561,7 @@ void WorldSystem::right_mouse_click(int mods) {
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && click_delay && !itemUsed) {
+	if (!registry.view<Drag>().empty() && click_delay > 0.3f && !itemUsed) {
 		UISystem::resetDragItem(registry);
 		click_delay = 0.0f;
 	}
@@ -599,14 +599,14 @@ void WorldSystem::left_mouse_click() {
 
 	bool itemUsed = false;
 
-	if (click_delay > 0.5f) {
+	if (click_delay > 0.3f) {
 		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
 		if (itemUsed) {
 			click_delay = 0.0f;
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && click_delay > 0.5f && !itemUsed) {
+	if (!registry.view<Drag>().empty() && click_delay > 0.3f && !itemUsed) {
 		UISystem::dropItem(registry, Click::LEFT);
 		UISystem::equip_delay = 0.0f;
 		click_delay = 0.0f;
@@ -614,7 +614,7 @@ void WorldSystem::left_mouse_click() {
 	
 	if (player_comp.weapon_cooldown <= 0 && 
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
-		click_delay > 0.5f) {
+		click_delay > 0.3f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
