@@ -52,6 +52,11 @@ struct UIShip
 
 };
 
+struct UIShipWeapon
+{
+	bool active;
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2  position = { 0, 0 };
@@ -304,12 +309,18 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
-	SHIP1,
-	SHIP2,
 	SHIPFULLHP,
 	SHIPSLIGHTDAMAGE,
 	SHIPDAMAGE,
 	SHIPVERYDAMAGE,
+	SHIPBLASTERWEAPON,
+	SHIPMISSLESWEAPON,
+	SHIPRAILGUNWEAPON,
+	SHIPSMGWEAPON,
+	SHIPBLASTERENGINE,
+	SHIPMISSLEENGINE,
+	SHIPRAILGUNENGINE,
+	SHIPSMGENGINE,
     MOB,
 	TILESET,
 	MAP_BACKGROUND,
@@ -331,7 +342,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, LINE, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

@@ -269,7 +269,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	return entity;
 }
 
-entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum)
+entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 size, int shipNum)
 {
 	auto entity = registry.create();
 	registry.emplace<UIShip>(entity);
@@ -280,7 +280,7 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 	motion.angle = 0.f;
 	motion.velocity = {0, 0};
 	motion.position = position;
-	motion.scale = GAME_SCALE * vec2(120.f / scale.x, 128.f / scale.y);
+	motion.scale = GAME_SCALE * size;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = {0, 0};
@@ -288,8 +288,39 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
     sprite.sheet_dims = {128.f, 128.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	shipNum = std::clamp(shipNum, 1, 6);
-	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(static_cast<int>(TEXTURE_ASSET_ID::SHIP1) + (shipNum - 1));
+	shipNum = std::clamp(shipNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(shipNum);
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createUIShipWeapon(entt::registry& registry, vec2 position, vec2 size, vec2 sprite_dims, vec2 sprite_sheet_dims, FrameIndex sprite_coords, int weaponNum)
+{
+	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+
+	auto& shipWeapon = registry.emplace<UIShipWeapon>(entity);
+	shipWeapon.active = false;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * size;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = sprite_dims;
+	sprite.sheet_dims = sprite_sheet_dims;
+	sprite.coord = sprite_coords;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	weaponNum = std::clamp(weaponNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(weaponNum);
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 

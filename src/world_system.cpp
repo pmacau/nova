@@ -40,35 +40,54 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createButton(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::PLAYER, "Player"); 
 	createButton(registry, vec2(2*WINDOW_WIDTH_PX/3 + 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::WEAPON, "Weapons"); 
 
-	createIcon(registry, vec2(2*WINDOW_WIDTH_PX/3 - 445.0f, WINDOW_HEIGHT_PX/2 - 3.0f), vec2(WINDOW_WIDTH_PX/3 - 220.0f, WINDOW_WIDTH_PX/3 - 220.0f), 3, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
+	createIcon(registry, vec2(2*WINDOW_WIDTH_PX/3 - 445.0f, WINDOW_HEIGHT_PX/2 - 3.0f), vec2(WINDOW_WIDTH_PX/3 - 220.0f, WINDOW_WIDTH_PX/3 - 220.0f), 1, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
 	createIcon(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), PLAYER_SPRITESHEET.dims * vec2(2.0f, 2.0f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
 
 
-	// init all the ui ships to use
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 300, WINDOW_HEIGHT_PX/2 - 25), vec2(1.5f, 3.0f), 6);
-
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 - 145), vec2(1.5f, 1.5f), 2);
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 - 10, WINDOW_HEIGHT_PX/2 + 100), vec2(1.5f, 1.5f), 3);
-
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 - 155), vec2(1.5f, 1.5f), 5);
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 10), vec2(1.5f, 1.5f), 1);
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
+	// init all the ui ship
+	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 150.0f, WINDOW_WIDTH_PX/3 - 150.0f), 1);
+	createUIShipWeapon( registry, 
+						vec2(WINDOW_WIDTH_PX/2 - 30.0f, WINDOW_HEIGHT_PX/2), 
+						vec2(WINDOW_WIDTH_PX/3 - 228.0f, WINDOW_WIDTH_PX/3 - 140.0f), 
+						vec2(51.f, 48.f), 
+						vec2(816.f, 48.f), 
+						{0, 0}, 
+						5 );
+	createUIShipWeapon( registry, 
+						vec2(WINDOW_WIDTH_PX/2 + 10.0f, WINDOW_HEIGHT_PX/2), 
+						vec2(WINDOW_WIDTH_PX/3 - 150.0f, WINDOW_WIDTH_PX/3 - 150.0f), 
+						vec2(51.f, 48.f), 
+						vec2(816.f, 48.f), 
+						{0, 0}, 
+						6 );
+	createUIShipWeapon( registry, 
+						vec2(WINDOW_WIDTH_PX/2 - 20.0f, WINDOW_HEIGHT_PX/2), 
+						vec2(WINDOW_WIDTH_PX/3 - 190.0f, WINDOW_WIDTH_PX/3 - 160.0f), 
+						vec2(51.f, 48.f), 
+						vec2(816.f, 48.f), 
+						{0, 0}, 
+						7 );
+	entt::entity chosen = createUIShipWeapon( registry, 
+						vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 
+						vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 150.0f), 
+						vec2(48.f, 48.f), 
+						vec2(336.f, 48.f), 
+						{0, 0}, 
+						8 );
+	auto& curr = registry.get<UIShipWeapon>(chosen);
+	curr.active = true;
 
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(5);
     vec2 size = {0.4f, 3.0f};
     textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
-    
     textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "Great! Press 'F' near the ship to access or leave the ship upgrade", 0.35f, {1.0f, 1.0f, 1.0f});
-    
     textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "Good job! Now use left click to firing your weapon.", 0.35f, {1.0f, 1.0f, 1.0f});
-    
     textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "Nice shot! Go explore the planet.", 0.35f, {1.0f, 1.0f, 1.0f});
-    
     textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
     
@@ -475,13 +494,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
             float distance_to_ship = glm::distance(player_motion.position, ship_motion.position);
             if (distance_to_ship < 150.0f) {
-				debug_printf(DebugType::USER_INPUT, "Opening Ship Upgrade UI\n");
+				debug_printf(DebugType::USER_INPUT, "Opening Upgrade UI\n");
                 screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
             }
         } else if (screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
+			debug_printf(DebugType::USER_INPUT, "Closing Upgrade UI\n");
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
-        }
+        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
+			screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
+		}
     }
 
 	//// TODO: testing sound system. remove this later

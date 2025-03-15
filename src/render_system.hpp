@@ -23,13 +23,19 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
-		textures_path("ship/Ship1.png"),
-		textures_path("ship/Ship2.png"),
 		textures_path("ship/Ship-Full-HP.png"),
 		textures_path("ship/Ship-Slightly-Damaged.png"),
 		textures_path("ship/Ship-Damaged.png"),
 		textures_path("ship/Ship-Very-Damaged.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
+		textures_path("ship/weapon/ship-blaster-spritesheet.png"),
+		textures_path("ship/weapon/ship-missles-spritesheet.png"),
+		textures_path("ship/weapon/ship-railgun-spritesheet.png"),
+		textures_path("ship/weapon/ship-smg-spritesheet.png"),
+		textures_path("ship/engine/ship-blaster-engine.png"),
+		textures_path("ship/engine/ship-missle-engine.png"),
+		textures_path("ship/engine/ship-railgun-engine.png"),
+		textures_path("ship/engine/ship-smg-engine.png"),
         textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
@@ -54,6 +60,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("debug"),
 		shader_path("text"),
+		shader_path("line"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -111,6 +118,8 @@ private:
 	void renderGamePlay();
 	void renderUpgradeUI();
 	void renderShipUI();
+	void drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection);
+
 
 	// void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 

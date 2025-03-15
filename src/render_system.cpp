@@ -203,6 +203,92 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
     gl_has_errors();
 }
 
+
+void RenderSystem::drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection) {
+    // Use the existing shader program or create a new one for simple colored lines
+    GLuint program = effects[5];
+	if (program == 0) {
+		std::cerr << "Error: Shader program at index 5 (line) is invalid!" << std::endl;
+		return;
+	}
+	glUseProgram(program);
+
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR) {
+		std::cerr << "OpenGL error after glUseProgram: " << error << std::endl;
+	}
+    
+    // Create vertices for the line (two triangles forming a rectangle along the line)
+    vec2 direction = normalize(end - start);
+    vec2 perpendicular = vec2(-direction.y, direction.x) * (thickness / 2.0f);
+    
+    std::vector<vec2> vertices = {
+        start + perpendicular, start - perpendicular,
+        end + perpendicular, end - perpendicular
+    };
+    
+    std::vector<uint16_t> indices = {0, 1, 2, 1, 2, 3};
+    // Create and bind VAO
+    GLuint VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    
+    // Create and bind VBO for vertices
+    GLuint VBO;
+    glGenBuffers(1, &VBO);
+	if (VBO == 0) {
+		std::cerr << "Error generating VBO!" << std::endl;
+		return;
+	}
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vec2), vertices.data(), GL_STATIC_DRAW);
+    
+    // Create and bind EBO for indices
+    GLuint EBO;
+    glGenBuffers(1, &EBO);
+	if (EBO == 0) {
+		std::cerr << "Error generating EBO!" << std::endl;
+		return;
+	}
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint16_t), indices.data(), GL_STATIC_DRAW);
+    
+    // Set vertex attributes
+    GLint posAttrib = glGetAttribLocation(program, "position");
+	if (posAttrib == -1) {
+		std::cerr << "Error: 'position' attribute not found in shader program!" << std::endl;
+		return;
+	}
+    glEnableVertexAttribArray(posAttrib);
+    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), 0);
+    
+    // Set color uniform
+    GLint colorUniform = glGetUniformLocation(program, "color");
+	if (colorUniform == -1) {
+		std::cerr << "Error: 'color' uniform not found in shader program!" << std::endl;
+		return;
+	}
+    glUniform3fv(colorUniform, 1, &color[0]);
+    
+    // Set projection matrix
+    GLint projectionUniform = glGetUniformLocation(program, "projection");
+	if (projectionUniform == -1) {
+		std::cerr << "Error: 'projection' uniform not found in shader program!" << std::endl;
+		return;
+	}
+    glUniformMatrix3fv(projectionUniform, 1, GL_FALSE, (float*)&projection);
+    
+    // Draw the line
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
+
+	// Clean up
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+    
+    gl_has_errors();
+}
+
 // TODO: fix debug rendering later
 /*
 void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform) {
@@ -513,20 +599,20 @@ void RenderSystem::renderGamePlay()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
     });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon>);
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
 
 	// Render dynamic UI
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button, UIIcon>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button, UIIcon, UIShipWeapon>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -711,7 +797,7 @@ void RenderSystem::renderUpgradeUI()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.0, 10);
 
-	// black background
+	// dark purple background
 	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -763,7 +849,6 @@ void RenderSystem::renderUpgradeUI()
     gl_has_errors();
 }
 
-
 void RenderSystem::renderShipUI() 
 {
 	int w, h;
@@ -786,57 +871,76 @@ void RenderSystem::renderShipUI()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.0, 10);
 
-	// black background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	// dark purple background
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	// render ship
-	std::vector<entt::entity> PlayerMobsRenderEntities;
-	auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
-
-	for (auto entity : UIShips) {
-		PlayerMobsRenderEntities.push_back(entity);
+	for (auto entity : registry.view<UIShip, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	for (auto entity : PlayerMobsRenderEntities) {
-		drawTexturedMesh(entity, ui_projection_2D);
+	for (auto entity : registry.view<UIShipWeapon, Motion, RenderRequest>()) {
+		auto& shipWeapon = registry.get<UIShipWeapon>(entity);
+		if (shipWeapon.active) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
 	}
 
 	drawToScreen(false);
 
+	// Draw upgrade lines
+    // positions of upgradeable parts (start)
+    std::vector<std::pair<std::string, vec2>> upgradePoints = {
+		// health line
+        {"", vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 - 25.0f)},
+		{"Health", vec2(WINDOW_WIDTH_PX/4 + 100.0f, WINDOW_HEIGHT_PX/4 + 50.0f)},
+		// weapon line
+		{"", vec2(WINDOW_WIDTH_PX/2 + 75.0f, WINDOW_HEIGHT_PX/2)},
+		{"Blaster", vec2(3*WINDOW_WIDTH_PX/4 - 75.0f, WINDOW_HEIGHT_PX/4 + 75.0f)},
+		// shield line
+		{"", vec2(WINDOW_WIDTH_PX/2 - 30.0f, WINDOW_HEIGHT_PX/2 + 75.0f)},
+		{"Shield", vec2(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4)},
+		// fire rate line
+		{"", vec2(WINDOW_WIDTH_PX/2 + 75.0f, WINDOW_HEIGHT_PX/2 + 40.0f)},
+		{"Fire Rate", vec2(3*WINDOW_WIDTH_PX/4 - 75.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f)},
+    };
+    
+    // where labels should be positioned (end)
+    std::vector<vec3> labelPositions = {
+		//health line
+        vec3(WINDOW_WIDTH_PX/4 + 100.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 0.0f),
+		vec3(WINDOW_WIDTH_PX/4 + 25.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 0.0f),
+		// weapon line
+		vec3(3*WINDOW_WIDTH_PX/4 - 75.0f, WINDOW_HEIGHT_PX/4 + 75.0f, 0.0f),
+		vec3(3*WINDOW_WIDTH_PX/4, WINDOW_HEIGHT_PX/4 + 75.0f, 75.0f),
+		// shield line
+		vec3(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4, 0.0f),
+		vec3(WINDOW_WIDTH_PX/4 + 25.0f, 3*WINDOW_HEIGHT_PX/4, 0.0f),
+		// fire rate line
+		vec3(3*WINDOW_WIDTH_PX/4 - 75.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 0.0f),
+		vec3(3*WINDOW_WIDTH_PX/4 + 21.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 94.0f),
+    };
+    
+    // Draw lines pointing to upgradeable parts
+    for (int i = 0; i < upgradePoints.size(); i++) {
+        // Draw the line
+        drawLine(upgradePoints[i].second, labelPositions[i], vec3(0.49f, 0.43f, 0.63f), 2.0f, ui_projection_2D);
+		
+        // Draw the label
+        mat3 flippedProjection = ui_projection_2D;
+        flippedProjection[1][1] *= -1.0f;
+        renderText(upgradePoints[i].first, labelPositions[i].x - labelPositions[i].z, -labelPositions[i].y + 3.0f, 
+                   0.5f, vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+    }
+
+
 	mat3 flippedProjection = projection_2D;
 	flippedProjection[1][1] *= -1.0f; 
-	//renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	renderText("Current ship", -348.0f, -35.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// current ship
-	// renderText("Damage: 10", -220.0f, 40.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Atk Spd: 10", -220.0f, 28.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("HP: 500", -220.0f, 18.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Range: 250", -220.0f, 8.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 1
-	renderText("Ship 1", -40.0f, 100.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Damage: 40", 50.0f, 160.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Atk Spd: 30", 50.0f, 148.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("HP: 300", 50.0f, 138.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Range: 400", 50.0f, 128.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 2
-	renderText("Ship 2", -35.0f, -151.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 3
-	renderText("Ship 3", 220.0f, 90.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 4
-	renderText("Ship 4", 225.0f, -70.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 5
-	renderText("Ship 5", 225.0f, -245.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
