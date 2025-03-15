@@ -128,7 +128,7 @@ void RenderSystem::initTree() {
 	quadTree = new QuadTree(100.0f * 16.f, 100.0f * 16.f, 200 * 16.f, 200 * 16.f);
 	auto playerEntity = registry.view<Player>().front(); 
 	playerCurrentQuadrant = quadTree->insert(playerEntity, registry);
-	auto view = registry.view<Motion, Hitbox>(entt::exclude<Player>); //currently reloads entire tree per frame
+	auto view = registry.view<Motion, Hitbox>(entt::exclude<Player, UIShip, Item, Title, TextData>); //currently reloads entire tree per frame
 	for (auto entity : view) {
 		quadTree->insert(entity, registry);
 	}
@@ -586,61 +586,21 @@ void RenderSystem::renderGamePlay()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
-	// render all the textboxes
-	// std::vector<entt::entity> textBoxesUI;
-	// auto textboxes = registry.view<Motion, RenderRequest, TextData>();
-	// for (auto entity : textboxes) {
-	// 	auto& textData = registry.get<TextData>(entity);
-	// 	// Only process active text boxes
-	// 	if (textData.active) {
-	// 		textBoxesUI.push_back(entity);
-	// 	}
-	// }
-
-	// for (auto entity : textBoxesUI) {
-	// 	drawTexturedMesh(entity, projection_2D);
-
-	// 	auto& motion = registry.get<Motion>(entity);
-	// 	auto& textData = registry.get<TextData>(entity);
-
-	// 	mat3 flippedProjection = projection_2D;
-    // 	flippedProjection[1][1] *= -1.0f;
-
-	// 	renderText(textData.content, 
-	// 		motion.position.x - 230, 
-	// 		-motion.position.y, 
-	// 		textData.scale, 
-	// 		textData.color, 
-	// 		flippedProjection);
-	// }
-
 	// Render huge background texture 
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D); 
-
-	// Render main entities COMMENTED OUT BY ME. 
-	/*registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
-        return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-    });*/
-   /* auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData>);
-    spriteRenders.use<Motion>();
-    for (auto entity : spriteRenders) {
-        drawTexturedMesh(entity, projection_2D);
-    }*/
-	//
-	/*for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
-		drawTexturedMesh(entity, projection_2D);
-	}*/
+	
 	auto playerView = registry.view<Player, Motion>();
 	auto playerEntity = playerView.front();
 	const auto& playerMotion = registry.get<Motion>(playerEntity);
-	const float queryRange = 1280; // Adjust based on your game's scale
+	const float queryRange = 850; // Adjust based on your game's scale
 	Quad rangeQuad(
 		playerMotion.position.x,
 		playerMotion.position.y,
 		queryRange,
 		queryRange
 	);
+
 	std::vector<entt::entity> nearbyEntities = quadTree->queryRange(rangeQuad, registry);
 	nearbyEntities.push_back(playerEntity); // never have to update player since all queries will be based off player anyways
 	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
@@ -651,15 +611,6 @@ void RenderSystem::renderGamePlay()
 				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
 		});
 	for (auto entity : nearbyEntities) {
-		drawTexturedMesh(entity, projection_2D);
-	}
-
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
-		drawTexturedMesh(entity, projection_2D);
-	}
-	
-	//Render dynamic UI
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
@@ -692,19 +643,14 @@ void RenderSystem::renderGamePlay()
 		}
 	}
 	
-	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
-		drawTexturedMesh(entity, ui_projection_2D);
-	}
-	
 	// draw framebuffer to screen
 	// adding "vignette" effect when applied
 	drawToScreen(true);
 
 	// RENDERING ALL THE TEXT
-	/*for (const auto& [content, position, scale, color, projection] : textsToRender) {
+	for (const auto& [content, position, scale, color, projection] : textsToRender) {
 		renderText(content, position.x, position.y, scale, color, projection);
-	}*/
+	}
 
 	
 	// DEBUG

@@ -4,6 +4,8 @@
 
 // Hoping that quad-tree can be usable not just in collisions if we plan on further refactoring other systems, as the screen since 
 // it updates all entities that have motion within a certain distance of a player. 
+// MOBS and PROJECTILES are not in the quadtree, as mobs despawn and we dont have many of them, and projectiles are short lived and also
+// not many.
 class QuadTree{
 public:
     static constexpr int MAX_OBJECTS = 15; 

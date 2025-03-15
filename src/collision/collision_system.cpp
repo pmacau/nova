@@ -37,15 +37,15 @@ void CollisionSystem::step(float elapsed_ms) {
 		return;
 	}
 	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
-	/*for (auto entity : view) {
+	for (auto entity : view) {
 		auto motion = registry.get<Motion>(entity); 
-		if (glm::length(motion.position - registry.get<Motion>(playerView.front()).position) < 40) {
+		if (glm::length(motion.position - registry.get<Motion>(playerView.front()).position) < 950) {
 			if (motion.formerPosition != motion.position) {
 				quadTree->remove(entity, registry);
 				quadTree->insert(entity, registry);
 			}
 		}	
-	}*/
+	}
 
 	//Get the player entity and its position
 	auto playerEntity = playerView.front();
@@ -53,7 +53,7 @@ void CollisionSystem::step(float elapsed_ms) {
 
 	// Create a query range around the player
 	// The range is a square centered on the player - adjust the size as needed
-	const float queryRange = 1000.f; // Adjust based on your game's scale
+	const float queryRange = 950.f; // Adjust based on your game's scale
 	Quad rangeQuad(
 		playerMotion.position.x,
 		playerMotion.position.y,
@@ -63,7 +63,11 @@ void CollisionSystem::step(float elapsed_ms) {
 
 	//creating a query for all entities in range of player screen
 	std::vector<entt::entity> nearbyEntities = quadTree->queryRange(rangeQuad, registry);
-	
+	auto mobs = registry.view<Mob>(); 
+	for (auto mob : mobs) {
+		nearbyEntities.push_back(mob); 
+	}
+
 	
 	//std::cout << nearbyEntities.size() << std::endl;
 
