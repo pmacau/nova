@@ -957,7 +957,7 @@ void RenderSystem::renderShipUI()
 	for (auto& entity : buttonEntities) {
 		auto& button = registry.get<UpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
-		renderText(button.text, motion.position.x - 100.0f, motion.position.y, 0.6f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+		renderText(button.text, motion.position.x - 510.0f, -motion.position.y + 265.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 	}
 	
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
