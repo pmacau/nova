@@ -67,15 +67,24 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 						vec2(816.f, 48.f), 
 						{0, 0}, 
 						7 );
-	entt::entity chosen = createUIShipWeapon( registry, 
+	entt::entity chosenWeapon = createUIShipWeapon( registry, 
 						vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 
 						vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 150.0f), 
 						vec2(48.f, 48.f), 
 						vec2(336.f, 48.f), 
 						{0, 0}, 
 						8 );
-	auto& curr = registry.get<UIShipWeapon>(chosen);
-	curr.active = true;
+	auto& currWeapon = registry.get<UIShipWeapon>(chosenWeapon);
+	currWeapon.active = true;
+
+	createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 9);
+	createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 10);
+	createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 10.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 11);
+	entt::entity chosenEngine = createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 5.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 12);
+	auto& currEngine = registry.get<UIShipEngine>(chosenEngine);
+	currEngine.active = true;
+
+	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 - 150.0f, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(55.0f, 17.0f), TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
 
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(5);

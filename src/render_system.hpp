@@ -49,7 +49,11 @@ class RenderSystem {
 		textures_path("mob/goblin_torch_blue.png"), 
 		textures_path("title/screen.png"), 
 		textures_path("textBackground/textbox.png"),
-		textures_path("ui/selection_button.png")
+		textures_path("ui/selection_button.png"),
+		textures_path("ui/green-btn-active.png"),
+		textures_path("ui/green-btn-pressed.png"),
+		textures_path("ui/red-btn-active.png"),
+		textures_path("ui/red-btn-pressed.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

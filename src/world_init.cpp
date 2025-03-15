@@ -262,7 +262,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
    	sprite.sheet_dims = { 128, 75 };
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIPVERYDAMAGE;
+	renderRequest.used_texture = TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
@@ -321,6 +321,36 @@ entt::entity createUIShipWeapon(entt::registry& registry, vec2 position, vec2 si
 	weaponNum = std::clamp(weaponNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
 
 	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(weaponNum);
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createUIShipEngine(entt::registry& registry, vec2 position, vec2 size, int engineNum)
+{
+	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+
+	auto& shipEngine = registry.emplace<UIShipEngine>(entity);
+	shipEngine.active = false;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * size;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {0, 0};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	engineNum = std::clamp(engineNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(engineNum);
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
@@ -655,6 +685,33 @@ entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, Bu
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::SELECTION_BUTTON;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, TEXTURE_ASSET_ID buttonID)
+{
+	auto entity = registry.create();
+	registry.emplace<UI>(entity);
+	registry.emplace<FixedUI>(entity);
+	auto& upgradeButton = registry.emplace<UpgradeButton>(entity);
+	upgradeButton.text = "Upgrade";
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * size;
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {0, 0};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = buttonID;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 

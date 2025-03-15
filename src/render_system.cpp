@@ -599,20 +599,20 @@ void RenderSystem::renderGamePlay()
 	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
     });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon>);
+    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
 
 	// Render dynamic UI
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button, UIIcon, UIShipWeapon>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -747,7 +747,7 @@ void RenderSystem::renderTitle()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat3 projection_2D = createProjectionMatrix();
+	// mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	auto title = registry.view<Title, Motion, RenderRequest>();
@@ -801,7 +801,7 @@ void RenderSystem::renderUpgradeUI()
 	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat3 projection_2D = createProjectionMatrix();
+	// mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	// render ship
@@ -878,6 +878,13 @@ void RenderSystem::renderShipUI()
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
+	// render upgrade buttons
+	std::vector<entt::entity> buttonEntities;
+	for (auto entity : registry.view<UpgradeButton, Motion, RenderRequest>()) {
+		buttonEntities.push_back(entity);
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
 	// render ship
 	for (auto entity : registry.view<UIShip, Motion, RenderRequest>()) {
 		drawTexturedMesh(entity, ui_projection_2D);
@@ -886,6 +893,13 @@ void RenderSystem::renderShipUI()
 	for (auto entity : registry.view<UIShipWeapon, Motion, RenderRequest>()) {
 		auto& shipWeapon = registry.get<UIShipWeapon>(entity);
 		if (shipWeapon.active) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+	}
+
+	for (auto entity : registry.view<UIShipEngine, Motion, RenderRequest>()) {
+		auto& shipEngine = registry.get<UIShipEngine>(entity);
+		if (shipEngine.active) {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
 	}
@@ -937,9 +951,15 @@ void RenderSystem::renderShipUI()
                    0.5f, vec3(1.0f, 1.0f, 1.0f), flippedProjection);
     }
 
-
 	mat3 flippedProjection = projection_2D;
 	flippedProjection[1][1] *= -1.0f; 
+
+	for (auto& entity : buttonEntities) {
+		auto& button = registry.get<UpgradeButton>(entity);
+		auto& motion = registry.get<Motion>(entity);
+		renderText(button.text, motion.position.x - 100.0f, motion.position.y, 0.6f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	}
+	
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
