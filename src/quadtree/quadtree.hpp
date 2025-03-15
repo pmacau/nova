@@ -1,3 +1,4 @@
+#pragma once
 #include "quad.hpp"
 
 
@@ -13,17 +14,16 @@ public:
         children.fill(nullptr);
     }
 
-    void insert(entt::entity entity, const entt::registry& registry);
-    std::unordered_set<entt::entity> queryRange(const Quad& range, const entt::registry& registry);
+    QuadTree* insert(entt::entity entity, const entt::registry& registry);
+    std::vector<entt::entity> queryRange(const Quad& range, const entt::registry& registry);
     bool remove(entt::entity entity, const entt::registry& registry);
     void clear();
-
-private:
     Quad bounds;
+private:
     int level;
     std::vector<entt::entity> objects;
     std::array<QuadTree*, 4> children;
 
     void subdivide();
-    void insertIntoChildren(entt::entity entity, const entt::registry& registry);
+    QuadTree* insertIntoChildren(entt::entity entity, const entt::registry& registry);
 };

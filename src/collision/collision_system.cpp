@@ -15,7 +15,7 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 }
 
 void CollisionSystem::initTree(int mapWidth, int mapHeight) {
-	quadTree = new QuadTree(0.0f, 0.0f, mapWidth * 16.f, mapHeight * 16.f);
+	quadTree = new QuadTree(100.0f * 16.f, 100.0f * 16.f, 200 * 16.f, 200 * 16.f); // NEED TO CHANGE
 	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
 	for (auto entity : view) {
 		//std::cout << "woo" << std::endl;
@@ -36,9 +36,8 @@ void CollisionSystem::step(float elapsed_ms) {
 	if (playerView.begin() == playerView.end()) {
 		return;
 	}
-	//quadTree = new QuadTree(0.0f, 0.0f, 200 * 32.f, 200 * 32.f);
 	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
-	for (auto entity : view) {
+	/*for (auto entity : view) {
 		auto motion = registry.get<Motion>(entity); 
 		if (glm::length(motion.position - registry.get<Motion>(playerView.front()).position) < 40) {
 			if (motion.formerPosition != motion.position) {
@@ -46,7 +45,7 @@ void CollisionSystem::step(float elapsed_ms) {
 				quadTree->insert(entity, registry);
 			}
 		}	
-	}
+	}*/
 
 	//Get the player entity and its position
 	auto playerEntity = playerView.front();
@@ -54,19 +53,19 @@ void CollisionSystem::step(float elapsed_ms) {
 
 	// Create a query range around the player
 	// The range is a square centered on the player - adjust the size as needed
-	const float queryRange = 40.f; // Adjust based on your game's scale
+	const float queryRange = 1000.f; // Adjust based on your game's scale
 	Quad rangeQuad(
-		playerMotion.position.x - (playerMotion.scale.x) / 2,
-		playerMotion.position.y - (playerMotion.scale.y) / 2,
+		playerMotion.position.x,
+		playerMotion.position.y,
 		queryRange,
 		queryRange
 	);
 
 	//creating a query for all entities in range of player screen
-	std::unordered_set<entt::entity> entitySet = quadTree->queryRange(rangeQuad, registry);
+	std::vector<entt::entity> nearbyEntities = quadTree->queryRange(rangeQuad, registry);
 	
-	std::vector<entt::entity> nearbyEntities(entitySet.begin(), entitySet.end());
-	std::cout << nearbyEntities.size() << std::endl;
+	
+	//std::cout << nearbyEntities.size() << std::endl;
 
 	for (size_t i = 0; i < nearbyEntities.size(); ++i) {
 		auto e1 = nearbyEntities[i];

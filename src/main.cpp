@@ -80,6 +80,7 @@ int main()
 	world_system.init();
 	renderer_system.init(window);
 	renderer_system.initFreetype();
+	renderer_system.initTree(); 
 	collision_system.initTree(mapWidth, mapHeight);
 	
 	// variable timestep loop
@@ -125,7 +126,7 @@ int main()
 			if (flag_system.done) {
 				spawn_system.update(elapsed_ms);
 			}
-			collision_system.step(elapsed_ms);
+			//collision_system.step(elapsed_ms);
 			camera_system.step(elapsed_ms);
 			ai_system.step(elapsed_ms); // AI system should be before physics system
 		}

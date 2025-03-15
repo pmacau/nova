@@ -3,10 +3,9 @@
 
 
 
-void QuadTree::insert(entt::entity entity, const entt::registry& registry) {
+QuadTree* QuadTree::insert(entt::entity entity, const entt::registry& registry) {
     if (children[0] != nullptr) {
-        insertIntoChildren(entity, registry);
-        return;
+        return insertIntoChildren(entity, registry);
     }
 
     objects.push_back(entity);
@@ -16,36 +15,48 @@ void QuadTree::insert(entt::entity entity, const entt::registry& registry) {
             subdivide();
         }
 
-        for (int i = 0; i < objects.size(); ++i) {
+        /*for (int i = 0; i < objects.size(); ++i) {
             insertIntoChildren(objects[i], registry);
         }
+        objects.clear();*/
+        auto tempObjects = objects;
         objects.clear();
+        for (auto entity : tempObjects) {
+            insertIntoChildren(entity, registry);
+        }
     }
+    return this; 
 }
 
 void QuadTree::subdivide() {
     float subWidth = bounds.width / 2;
     float subHeight = bounds.height / 2;
 
-    children[0] = new QuadTree(bounds.x, bounds.y, subWidth, subHeight, level + 1);
+    /*children[0] = new QuadTree(bounds.x, bounds.y, subWidth, subHeight, level + 1);
     children[1] = new QuadTree(bounds.x + subWidth, bounds.y, subWidth, subHeight, level + 1);
     children[2] = new QuadTree(bounds.x, bounds.y + subHeight, subWidth, subHeight, level + 1);
-    children[3] = new QuadTree(bounds.x + subWidth, bounds.y + subHeight, subWidth, subHeight, level + 1);
+    children[3] = new QuadTree(bounds.x + subWidth, bounds.y + subHeight, subWidth, subHeight, level + 1);*/
+
+    children[0] = new QuadTree(bounds.x - subWidth / 2, bounds.y - subHeight / 2, subWidth, subHeight, level + 1); // Top-left
+    children[1] = new QuadTree(bounds.x + subWidth / 2, bounds.y - subHeight / 2, subWidth, subHeight, level + 1); // Top-right
+    children[2] = new QuadTree(bounds.x - subWidth / 2, bounds.y + subHeight / 2, subWidth, subHeight, level + 1); // Bottom-left
+    children[3] = new QuadTree(bounds.x + subWidth / 2, bounds.y + subHeight / 2, subWidth, subHeight, level + 1); // Bottom-right
 }
 
-void QuadTree::insertIntoChildren(entt::entity entity, const entt::registry& registry) {
+QuadTree* QuadTree::insertIntoChildren(entt::entity entity, const entt::registry& registry) {
     const auto& motion = registry.get<Motion>(entity);
 
     // Create a quad from the hitbox
    /* float leftpoint_x = motion.position.x - (motion.scale.x) / 2;
     float leftpoint_y = motion.position.y - (motion.scale.y) / 2;*/
-    Quad entityQuad(motion.position.x, motion.position.y, 400, 400);
+    Quad entityQuad(motion.position.x, motion.position.y, motion.scale.x, motion.scale.y);
     //
     for (int i = 0; i < 4; ++i) {
         if (children[i]->bounds.intersects(entityQuad)) {
-            children[i]->insert(entity, registry);
+            return children[i]->insert(entity, registry);
         }
     }
+    return nullptr;
 }
 
 bool QuadTree::remove(entt::entity entity, const entt::registry& registry) {
@@ -56,7 +67,7 @@ bool QuadTree::remove(entt::entity entity, const entt::registry& registry) {
         // Create a quad from the entity's position (using same approach as in insert)
         /*float leftpoint_x = motion.position.x - (motion.scale.x) / 2;
         float leftpoint_y = motion.position.y - (motion.scale.y) / 2;*/
-        Quad entityQuad(motion.position.x, motion.position.y, 400, 400);
+        Quad entityQuad(motion.position.x, motion.position.y, motion.scale.x, motion.scale.y);
         //
         // Try removing from each child that might contain the entity
         for (int i = 0; i < 4; ++i) {
@@ -78,27 +89,25 @@ bool QuadTree::remove(entt::entity entity, const entt::registry& registry) {
     return false; // Entity not found in this node or its children
 }
 
-std::unordered_set<entt::entity> QuadTree::queryRange(const Quad& range, const entt::registry& registry) {
-    std::unordered_set<entt::entity> results;
+std::vector<entt::entity> QuadTree::queryRange(const Quad& range, const entt::registry& registry) {
+    std::vector<entt::entity> results;
 
     if (!bounds.intersects(range)) {
         return results;
     }
 
-    std::cout << "Range from player " << range.getX() << " " << range.getY() << std::endl;
+    /*std::cout << "Range from player " << range.getX() << " " << range.getY() << std::endl;
 
-    std::cout << "Set bounds from quad " << bounds.x << " " << bounds.y << std::endl;
+    std::cout << "Set bounds from quad " << bounds.x << " " << bounds.y << std::endl;*/
 
    //  std::vector<entt::entity> toDelete; 
     // Add entities from this node
     for (const auto& entity : objects) {
         const auto& motion = registry.get<Motion>(entity);
-       /* float leftpoint_x = motion.position.x - (motion.scale.x) / 2;
-        float leftpoint_y = motion.position.y - (motion.scale.y) / 2;*/
-        Quad entityQuad(motion.position.x, motion.position.y, 400, 400);
+        Quad entityQuad(motion.position.x, motion.position.y, motion.scale.x, motion.scale.y);
 
         if (range.intersects(entityQuad)) {
-            results.insert(entity);
+            results.push_back(entity);
             //auto t = registry.get<RenderRequest>(entity); 
             /*if (t.used_texture == TEXTURE_ASSET_ID::PLAYER) {
                 std::cout << "intersecting with player" << std::endl; 
@@ -128,7 +137,7 @@ std::unordered_set<entt::entity> QuadTree::queryRange(const Quad& range, const e
     if (children[0] != nullptr) {
         for (int i = 0; i < 4; ++i) {
             auto childResults = children[i]->queryRange(range, registry);
-            results.insert(childResults.begin(), childResults.end());
+            results.insert(results.end(), childResults.begin(), childResults.end());
         }
     }
 

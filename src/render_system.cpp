@@ -124,6 +124,17 @@ bool RenderSystem::initFreetype() {
     return true;
 }
 
+void RenderSystem::initTree() {
+	quadTree = new QuadTree(100.0f * 16.f, 100.0f * 16.f, 200 * 16.f, 200 * 16.f);
+	auto playerEntity = registry.view<Player>().front(); 
+	playerCurrentQuadrant = quadTree->insert(playerEntity, registry);
+	auto view = registry.view<Motion, Hitbox>(entt::exclude<Player>); //currently reloads entire tree per frame
+	for (auto entity : view) {
+		quadTree->insert(entity, registry);
+	}
+
+}
+
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
     // Activate corresponding render state	
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
@@ -603,21 +614,51 @@ void RenderSystem::renderGamePlay()
 	// 		flippedProjection);
 	// }
 
-	// Render huge background texture
+	// Render huge background texture 
 	auto background = registry.view<Background>().front();
-	drawTexturedMesh(background, projection_2D);
+	drawTexturedMesh(background, projection_2D); 
 
-	// Render main entities
-	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
+	// Render main entities COMMENTED OUT BY ME. 
+	/*registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
         return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-    });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData>);
+    });*/
+   /* auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData>);
     spriteRenders.use<Motion>();
     for (auto entity : spriteRenders) {
         drawTexturedMesh(entity, projection_2D);
-    }
+    }*/
+	//
+	/*for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
+		drawTexturedMesh(entity, projection_2D);
+	}*/
+	auto playerView = registry.view<Player, Motion>();
+	auto playerEntity = playerView.front();
+	const auto& playerMotion = registry.get<Motion>(playerEntity);
+	const float queryRange = 1280; // Adjust based on your game's scale
+	Quad rangeQuad(
+		playerMotion.position.x,
+		playerMotion.position.y,
+		queryRange,
+		queryRange
+	);
+	std::vector<entt::entity> nearbyEntities = quadTree->queryRange(rangeQuad, registry);
+	nearbyEntities.push_back(playerEntity); // never have to update player since all queries will be based off player anyways
+	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
+		[this](entt::entity lhs, entt::entity rhs) {
+			const auto& lhsMotion = registry.get<Motion>(lhs);
+			const auto& rhsMotion = registry.get<Motion>(rhs);
+			return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+		});
+	for (auto entity : nearbyEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
 
-	// Render dynamic UI
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+	
+	//Render dynamic UI
 	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
@@ -661,9 +702,9 @@ void RenderSystem::renderGamePlay()
 	drawToScreen(true);
 
 	// RENDERING ALL THE TEXT
-	for (const auto& [content, position, scale, color, projection] : textsToRender) {
+	/*for (const auto& [content, position, scale, color, projection] : textsToRender) {
 		renderText(content, position.x, position.y, scale, color, projection);
-	}
+	}*/
 
 	
 	// DEBUG

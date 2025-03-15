@@ -180,6 +180,10 @@ void RenderSystem::initializeGlGeometryBuffers()
 
 RenderSystem::~RenderSystem()
 {
+	if (quadTree) {
+		quadTree->clear();
+		delete quadTree;
+	}
 	// Don't need to free gl resources since they last for as long as the program,
 	// but it's polite to clean after yourself.
 	glDeleteBuffers((GLsizei)vertex_buffers.size(), vertex_buffers.data());
