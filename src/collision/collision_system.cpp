@@ -66,7 +66,7 @@ void CollisionSystem::step(float elapsed_ms) {
 	}
 	nearbyEntities.push_back(playerEntity); 
 	
-	std::cout << nearbyEntities.size() << std::endl;
+	//std::cout << nearbyEntities.size() << std::endl;
 
 	for (size_t i = 0; i < nearbyEntities.size(); ++i) {
 		auto e1 = nearbyEntities[i];
@@ -85,7 +85,7 @@ void CollisionSystem::step(float elapsed_ms) {
 			const auto& h2 = registry.get<Hitbox>(e2);
 
 			if (collides(h1, m1, h2, m2)) {
-				std::cout << "coo" << std::endl; 
+				//std::cout << "coo" << std::endl; 
 				resolve(e1, e2, elapsed_ms);
 				processHandler(e1, e2);
 			}
