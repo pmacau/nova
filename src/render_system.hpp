@@ -68,9 +68,8 @@ class RenderSystem {
 	};
 
 public:
-	RenderSystem(entt::registry& reg);
+	RenderSystem(entt::registry& reg, QuadTree& quadTree);
 
-	QuadTree* playerCurrentQuadrant = nullptr;
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
@@ -79,7 +78,7 @@ public:
 	bool debugModeEnabled;
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
-	void initTree(); 
+	//void initTree(); 
 	void initializeGlTextures();
 
 	void initializeGlEffects();
@@ -104,7 +103,7 @@ public:
 
 private:
 	entt::registry& registry;
-	QuadTree* quadTree;
+	QuadTree& quadTree;
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen(bool vignette);

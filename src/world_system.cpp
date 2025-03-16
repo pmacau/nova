@@ -6,7 +6,6 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
-
 // stlib
 #include <cassert>
 #include <sstream>
@@ -14,10 +13,11 @@
 #include <glm/glm.hpp>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system, QuadTree& quadTree) :
 	registry(reg),
 	physics_system(physics_system),
-	flag_system(flag_system)
+	flag_system(flag_system), 
+	quadTree(quadTree)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 	player_entity = createPlayer(registry, {0, 0});
@@ -370,16 +370,18 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
+
 	registry.destroy(motions.begin(), motions.end());
 
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	MapSystem::populate_ecs(registry, p_pos, s_pos);
-
+	
 	player_respawn();
 	createPlayerHealthBar(registry, p_pos);
 	createInventory(registry);
+	quadTree.initTree(registry); 
 }
 
 // Should the game be over ?

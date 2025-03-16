@@ -7,6 +7,7 @@
 #include "tinyECS/components.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "collision/hitbox.hpp"
+#include "quadtree/quadtree.hpp"
 // for the text rendering
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -16,8 +17,10 @@
 #include <sstream>
 
 
-RenderSystem::RenderSystem(entt::registry& reg) :
-	registry(reg)
+RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
+	registry(reg), 
+	quadTree(quadTree)
+
 {
 	screen_state_entity = registry.create();
 	screen_entity = registry.view<ScreenState>().front();
@@ -124,16 +127,16 @@ bool RenderSystem::initFreetype() {
     return true;
 }
 
-void RenderSystem::initTree() {
-	quadTree = new QuadTree(100.0f * 16.f, 100.0f * 16.f, 200 * 16.f, 200 * 16.f);
-	auto playerEntity = registry.view<Player>().front(); 
-	playerCurrentQuadrant = quadTree->insert(playerEntity, registry);
-	auto view = registry.view<Motion, Hitbox>(entt::exclude<Player, UIShip, Item, Title, TextData>); //currently reloads entire tree per frame
-	for (auto entity : view) {
-		quadTree->insert(entity, registry);
-	}
-
-}
+//void RenderSystem::initTree() {
+//	quadTree = new QuadTree(400.0f * 16.f, 400.0f * 16.f, 800 * 16.f, 800 * 16.f);
+//	auto playerEntity = registry.view<Player>().front(); 
+//	quadTree->insert(playerEntity, registry);
+//	auto view = registry.view<Motion, Hitbox>(entt::exclude<Player, UIShip, Item, Title, TextData>); //currently reloads entire tree per frame
+//	for (auto entity : view) {
+//		quadTree->insert(entity, registry);
+//	}
+//
+//}
 
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
     // Activate corresponding render state	
@@ -591,9 +594,12 @@ void RenderSystem::renderGamePlay()
 	drawTexturedMesh(background, projection_2D); 
 	
 	auto playerView = registry.view<Player, Motion>();
+	if (playerView.begin() == playerView.end()) {
+		return; 
+	}
 	auto playerEntity = playerView.front();
 	const auto& playerMotion = registry.get<Motion>(playerEntity);
-	const float queryRange = 850; // Adjust based on your game's scale
+	const float queryRange = 950; // Adjust based on your game's scale
 	Quad rangeQuad(
 		playerMotion.position.x,
 		playerMotion.position.y,
@@ -601,8 +607,17 @@ void RenderSystem::renderGamePlay()
 		queryRange
 	);
 
-	std::vector<entt::entity> nearbyEntities = quadTree->queryRange(rangeQuad, registry);
+	std::vector<entt::entity> nearbyEntities = quadTree.quadTree->queryRange(rangeQuad, registry);
 	nearbyEntities.push_back(playerEntity); // never have to update player since all queries will be based off player anyways
+	auto mobs = registry.view<Mob>();
+	for (auto mob : mobs) {
+		nearbyEntities.push_back(mob);
+	}
+	auto projectiles = registry.view<Projectile>();
+	for (auto projectile : projectiles) {
+		nearbyEntities.push_back(projectile);
+	}
+
 	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
 		[this](entt::entity lhs, entt::entity rhs) {
 			const auto& lhsMotion = registry.get<Motion>(lhs);

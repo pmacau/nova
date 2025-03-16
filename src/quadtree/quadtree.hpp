@@ -15,12 +15,14 @@ public:
         : bounds(x, y, width, height), level(level) {
         children.fill(nullptr);
     }
-
+    
     QuadTree* insert(entt::entity entity, const entt::registry& registry);
     std::vector<entt::entity> queryRange(const Quad& range, const entt::registry& registry);
     bool remove(entt::entity entity, const entt::registry& registry);
     void clear();
     Quad bounds;
+    void initTree(entt::registry& registry);
+    QuadTree* quadTree;
 private:
     int level;
     std::vector<entt::entity> objects;

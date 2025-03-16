@@ -12,14 +12,14 @@
 
 class CollisionSystem {
 public:
-    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics);
+    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, QuadTree& quadTree);
     void step(float elapsed_ms);
 
     ~CollisionSystem() {
-        if (quadTree) {
+       /* if (quadTree) {
             quadTree->clear();
             delete quadTree;
-        }
+        }*/
     }
     void initTree(int mapWidth, int mapHeight); //expensive
     
@@ -27,7 +27,7 @@ private:
     entt::registry& registry;
     PhysicsSystem& physics; 
     WorldSystem& world;
-    QuadTree* quadTree;
+    QuadTree& quadTree;
 
     std::vector<entt::entity> destroy_entities;
     std::unordered_set<entt::entity> processed;
