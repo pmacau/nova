@@ -599,7 +599,7 @@ void RenderSystem::renderGamePlay()
 	}
 	auto playerEntity = playerView.front();
 	const auto& playerMotion = registry.get<Motion>(playerEntity);
-	const float queryRange = 950; // Adjust based on your game's scale
+	const float queryRange = WINDOW_WIDTH_PX * 1.25f; // Adjust based on your game's scale
 	Quad rangeQuad(
 		playerMotion.position.x,
 		playerMotion.position.y,
@@ -626,6 +626,10 @@ void RenderSystem::renderGamePlay()
 				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
 		});
 	for (auto entity : nearbyEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	

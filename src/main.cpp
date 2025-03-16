@@ -49,7 +49,7 @@ int main()
 	initializeEnemyDefinitions();
 	initializeAIStates(g_stateFactory);
 	// QuadTree
-	QuadTree quadTree(300.f * 16.f, 300.f * 16.f, 600.f, 600.f);
+	QuadTree quadTree((mapWidth / 2) * 16.f, (mapHeight / 2) * 16.f, mapWidth, mapHeight);
 	// global systems
 	PhysicsSystem physics_system(reg);
 	FlagSystem flag_system(reg); 

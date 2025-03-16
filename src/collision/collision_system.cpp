@@ -15,14 +15,6 @@ CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, Physic
 	
 }
 
-//void CollisionSystem::initTree(int mapWidth, int mapHeight) {
-//	quadTree = new QuadTree(400.0f * 16.f, 400.0f * 16.f, 800 * 16.f, 800 * 16.f); // NEED TO CHANGE
-//	auto view = registry.view<Motion, Hitbox>(); //currently reloads entire tree per frame
-//	for (auto entity : view) {
-//		//std::cout << "woo" << std::endl;
-//		quadTree.insert(entity, registry);
-//	}
-//}
 
 
 void CollisionSystem::step(float elapsed_ms) {
@@ -46,7 +38,7 @@ void CollisionSystem::step(float elapsed_ms) {
 
 	// Create a query range around the player
 	// The range is a square centered on the player - adjust the size as needed
-	const float queryRange = 950.f; // Adjust based on your game's scale
+	const float queryRange = WINDOW_WIDTH_PX * 1.25f; // Adjust based on your game's scale
 	Quad rangeQuad(
 		playerMotion.position.x,
 		playerMotion.position.y,
