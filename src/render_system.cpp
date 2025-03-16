@@ -588,6 +588,10 @@ void RenderSystem::renderGamePlay()
 
 	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
+	mat3 flippedProjection = projection_2D;
+	flippedProjection[1][1] *= -1.0f;
+	mat3 flippedUIProjection = ui_projection_2D;
+	flippedUIProjection[1][1] *= -1.0f;
 
 	// Render huge background texture 
 	auto background = registry.view<Background>().front();
@@ -641,24 +645,75 @@ void RenderSystem::renderGamePlay()
 			if (textData.active) {
 				drawTexturedMesh(entity, projection_2D);
 
-				auto& motion = registry.get<Motion>(entity);
-		
-				mat3 flippedUIProjection = projection_2D;
-				flippedUIProjection[1][1] *= -1.0f;
-				
+				auto& motion = registry.get<Motion>(entity);				
 				textsToRender.push_back(
 					std::make_tuple(
 						textData.content,
 						vec2(motion.position.x - 230, -motion.position.y),
 						textData.scale,
 						textData.color,
-						flippedUIProjection
+						flippedProjection
 					)
 				);
 			}
 		} else {
 			// This is a regular UI element, not a textbox
 			drawTexturedMesh(entity, ui_projection_2D);
+		}
+	}
+
+	// multiple quantity item on ground and on the inventory system should have a text next to it
+	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
+		auto& motion = registry.get<Motion>(entity);
+		auto& item = registry.get<Item>(entity);
+		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no >= 10) {
+			if (registry.all_of<UI>(entity)) {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(item.no),
+						vec2({ motion.position.x + motion.scale.x / 2.f - 13.f, -motion.position.y + motion.scale.y / 2.f - 10.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedUIProjection
+					)
+				);
+			}
+			else {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(item.no),
+						vec2({ motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f, -motion.position.y + camera.offset.y + motion.scale.y / 2.f - 10.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedProjection
+					)
+				);
+			}
+		}
+		else {
+			if (registry.any_of<UI>(entity)) {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(item.no),
+						vec2({ motion.position.x + motion.scale.x / 2.f - 8.f, -motion.position.y + motion.scale.y / 2.f - 10.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedUIProjection
+					)
+				);
+			}
+			else if (item.no != 1) {
+				textsToRender.push_back(
+					std::make_tuple(
+						std::to_string(item.no),
+						vec2({ motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f, -motion.position.y + camera.offset.y + motion.scale.y / 2.f - 10.f }),
+						0.3f,
+						vec3({ 1.f, 1.f, 1.f }),
+						flippedProjection
+					)
+				);
+			}
 		}
 	}
 	

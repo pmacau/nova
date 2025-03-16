@@ -37,6 +37,7 @@ class RenderSystem {
 		textures_path("healthbar/green.png"), 
 		textures_path("healthbar/red.png"), 
 		textures_path("items/potion.png"), 
+		textures_path("items/grave.png"),
 		textures_path("inventory/inventory-slot.png"),
 		textures_path("terrain/tree.png"),
 		textures_path("mob/goblin_torch_blue.png"), 

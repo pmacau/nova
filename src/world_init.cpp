@@ -51,7 +51,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	return entity;
 }
 
-entt::entity createPlayerHealthBar(entt::registry& registry, vec2 position) {
+entt::entity createPlayerHealthBar(entt::registry& registry) {
 	auto entity = registry.create();
 	registry.emplace<FixedUI>(entity);
 	registry.emplace<UI>(entity);
@@ -299,7 +299,7 @@ entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, i
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor) {
 	auto entity = registry.create();
 
-	// registry.emplace<UI>(entity);
+	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
 	registry.emplace<TextData>(entity, text, scale, textColor);
 
@@ -419,7 +419,8 @@ void createInventory(entt::registry& registry) {
 	for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
 		auto entity = registry.create();
 		inventory.slots.push_back(entity);
-		registry.emplace<InventorySlot>(entity);
+		auto& inventory_slot = registry.emplace<InventorySlot>(entity);
+		inventory_slot.id = i;
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
 		auto& motion = registry.emplace<Motion>(entity);
@@ -580,7 +581,14 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto load = registry.create();
-	auto& load_option = registry.emplace<TitleOption>(load);
+	auto& restart_option = registry.emplace<TitleOption>(load);
+	restart_option.type = TitleOption::Option::RESTART;
+	restart_option.text = "Restart";
+	restart_option.position = { 109.5 * WINDOW_WIDTH_PX / 120.F, 57.f * WINDOW_HEIGHT_PX / 68.f };
+	restart_option.size = { 9.f * WINDOW_WIDTH_PX / 120.f, 10.f * WINDOW_HEIGHT_PX / 68.f };
+
+	auto restart = registry.create();
+	auto& load_option = registry.emplace<TitleOption>(restart);
 	load_option.type = TitleOption::Option::LOAD;
 	load_option.text = "Load";
 	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
