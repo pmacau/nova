@@ -203,7 +203,13 @@ struct ButtonOption
 		// for the upgrade screen
 		SHIP,
 		PLAYER,
-		WEAPON
+		WEAPON,
+
+		// for ship upgrade screen
+		SHIP_HEALTH_UPGRADE,
+		SHIP_BLASTER_UPGRADE,
+		SHIP_SHIELD_UPGRADE,
+		SHIP_FIRERATE_UPGRADE,
 	};
 	Option type;
 	std::string text;

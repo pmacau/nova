@@ -927,16 +927,16 @@ void RenderSystem::renderShipUI()
     std::vector<vec3> labelPositions = {
 		//health line
         vec3(WINDOW_WIDTH_PX/4 + 100.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 0.0f),
-		vec3(WINDOW_WIDTH_PX/4 + 25.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 0.0f),
+		vec3(WINDOW_WIDTH_PX/4 + 25.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 75.0f),
 		// weapon line
 		vec3(3*WINDOW_WIDTH_PX/4 - 75.0f, WINDOW_HEIGHT_PX/4 + 75.0f, 0.0f),
-		vec3(3*WINDOW_WIDTH_PX/4, WINDOW_HEIGHT_PX/4 + 75.0f, 75.0f),
+		vec3(3*WINDOW_WIDTH_PX/4, WINDOW_HEIGHT_PX/4 + 75.0f, 0.0f),
 		// shield line
 		vec3(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4, 0.0f),
-		vec3(WINDOW_WIDTH_PX/4 + 25.0f, 3*WINDOW_HEIGHT_PX/4, 0.0f),
+		vec3(WINDOW_WIDTH_PX/4 + 25.0f, 3*WINDOW_HEIGHT_PX/4, 70.0f),
 		// fire rate line
 		vec3(3*WINDOW_WIDTH_PX/4 - 75.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 0.0f),
-		vec3(3*WINDOW_WIDTH_PX/4 + 21.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 94.0f),
+		vec3(3*WINDOW_WIDTH_PX/4 + 21.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 0.0f),
     };
     
     // Draw lines pointing to upgradeable parts
@@ -947,7 +947,7 @@ void RenderSystem::renderShipUI()
         // Draw the label
         mat3 flippedProjection = ui_projection_2D;
         flippedProjection[1][1] *= -1.0f;
-        renderText(upgradePoints[i].first, labelPositions[i].x - labelPositions[i].z, -labelPositions[i].y + 3.0f, 
+        renderText(upgradePoints[i].first, labelPositions[i].x - labelPositions[i].z, -labelPositions[i].y - 5.0f, 
                    0.5f, vec3(1.0f, 1.0f, 1.0f), flippedProjection);
     }
 

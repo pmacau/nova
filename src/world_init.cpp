@@ -691,13 +691,19 @@ entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, Bu
 	return entity;
 }
 
-entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, TEXTURE_ASSET_ID buttonID)
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID)
 {
 	auto entity = registry.create();
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
 	auto& upgradeButton = registry.emplace<UpgradeButton>(entity);
 	upgradeButton.text = "Upgrade";
+
+	auto& current_option = registry.emplace<ButtonOption>(entity);
+	current_option.type = option;
+	// current_option.text = text;
+	current_option.position = position;
+	current_option.size = GAME_SCALE * size;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;

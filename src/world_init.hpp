@@ -31,7 +31,7 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor);
 entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text);
-entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, TEXTURE_ASSET_ID buttonID);
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID);
 entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int iconNum, vec2 sprite_dims, vec2 sprite_sheet_dims);
 
 

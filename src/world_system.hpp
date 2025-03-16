@@ -68,6 +68,7 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button_pressed(int button, int action, int mods);
 	void left_mouse_click();
+	void left_mouse_release();
 	void right_mouse_click(int mods);
 
 	void handleTextBoxes(float elapsed_ms_since_last_update);
