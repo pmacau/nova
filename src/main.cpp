@@ -117,7 +117,9 @@ int main()
 			world_system.step(elapsed_ms);
 			playerSystem.update(elapsed_ms);
 			animationSystem.update(elapsed_ms);
-			spawn_system.update(elapsed_ms);
+			if (flag_system.done) {
+				spawn_system.update(elapsed_ms);
+			}
 			collision_system.step(elapsed_ms);
 			camera_system.step(elapsed_ms);
 			ai_system.step(elapsed_ms); // AI system should be before physics system

@@ -109,7 +109,7 @@ private:
 	void drawToScreen(bool vignette);
 	void renderGamePlay();
 	void renderShipUI();
-
+	void drawDebugHitBoxes(const glm::mat3& projection);
 	// void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
