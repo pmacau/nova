@@ -72,24 +72,23 @@ vec2 MapSystem::populate_ecs(
                     if (get_terrain(game_map[i][j]) == Terrain::SAND) {
                         createTree(reg, map_pos, {0, 1});
                     } else {
-                        // switch (get_biome(game_map[i][j])) {
-                        //     case B_FOREST:
-                        //         createTree(reg, map_pos, {0, 0});
-                        //         break;
-                        //     case B_SAVANNA:
-                        //         createTree(reg, map_pos, {0, 3});
-                        //         break;
-                        //     case B_ICE:
-                        //         createTree(reg, map_pos, {0, 2});
-                        //         break;
-                        //     case B_JUNGLE:
-                        //         createTree(reg, map_pos, {0, 4});
-                        //         break;
-                        //     default:
-                        //         createTree(reg, map_pos, {0, 0});
-                        //         break;
-                        // }
-                        createTree(reg, map_pos, {0, 0});
+                        switch (get_biome(game_map[i][j])) {
+                            case B_FOREST:
+                                createTree(reg, map_pos, {0, 0});
+                                break;
+                            case B_SAVANNA:
+                                createTree(reg, map_pos, {0, 3});
+                                break;
+                            case B_ICE:
+                                createTree(reg, map_pos, {0, 2});
+                                break;
+                            case B_JUNGLE:
+                                createTree(reg, map_pos, {0, 4});
+                                break;
+                            default:
+                                createTree(reg, map_pos, {0, 0});
+                                break;
+                        }
                     }
                     break;
                 case Decoration::SHIP:
