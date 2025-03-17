@@ -90,14 +90,17 @@ void CollisionSystem::handle<Projectile, Mob>(
 	if (mob.health <= 0) {
 		for (auto &&[hb_ent, healthbar] : registry.view<MobHealthBar>().each()) {
 			if (healthbar.entity == mob_ent) {
-				destroy_entities.push_back(hb_ent);
+				destroy_entities.insert(hb_ent);
 				break;
 			}
 		}
-		UISystem::renderItem(registry, mob_ent);
-		destroy_entities.push_back(mob_ent);
+		auto& mob_motion = registry.get<Motion>(mob_ent);
+		if (registry.any_of<Drop>(mob_ent)) {
+			UISystem::mobDrop(registry, mob_ent);
+		}
+		destroy_entities.insert(mob_ent);
 	}
-	destroy_entities.push_back(proj_ent);
+	destroy_entities.insert(proj_ent);
 }
 
 // could've probably written the logic much clearer. 
@@ -129,7 +132,9 @@ template<>
 void CollisionSystem::handle<Projectile, Obstacle>(
 	entt::entity proj_ent, entt::entity obs_ent, float elapsed_ms
 ) {
-	destroy_entities.push_back(proj_ent);
+	if (!registry.any_of<Ship>(obs_ent)) {
+		destroy_entities.insert(proj_ent);
+	}
 }
 
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {

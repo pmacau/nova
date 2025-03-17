@@ -628,7 +628,7 @@ void RenderSystem::renderGamePlay()
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -645,22 +645,24 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-		} else {
-			// This is a regular UI element, not a textbox
+		}
+		else {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
 	}
 	
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
 	// multiple quantity item on ground and on the inventory system should have a text next to it
-	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
+	for (auto entity : registry.view<Item>(entt::exclude<DeathItems, HiddenInventory>)) {
 		auto& motion = registry.get<Motion>(entity);
 		auto& item = registry.get<Item>(entity);
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no == 1) continue;
+		// TODO use ternary operator instead
 		if (item.no >= 10) {
 			if (registry.all_of<UI>(entity)) {
 				textsToRender.push_back(
@@ -697,7 +699,7 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-			else if (item.no != 1) {
+			else {
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),
