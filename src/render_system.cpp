@@ -622,6 +622,10 @@ void RenderSystem::renderGamePlay()
 		nearbyEntities.push_back(projectile);
 	}
 
+	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+		nearbyEntities.push_back(item);
+	}
+
 	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
 		[this](entt::entity lhs, entt::entity rhs) {
 			const auto& lhsMotion = registry.get<Motion>(lhs);
@@ -660,6 +664,11 @@ void RenderSystem::renderGamePlay()
 			// This is a regular UI element, not a textbox
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
+	}
+
+	// Render items on static UI
+	for (auto entity : registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
+		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
 	// multiple quantity item on ground and on the inventory system should have a text next to it
