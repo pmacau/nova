@@ -622,6 +622,18 @@ void RenderSystem::renderGamePlay()
 		nearbyEntities.push_back(projectile);
 	}
 
+	/*auto drops = registry.view<Drop>(); 
+	for (auto drop : drops) {
+		nearbyEntities.push_back(drop); 
+	}*/
+
+	auto drops = registry.view<Potion>();
+	for (auto drop : drops) {
+		nearbyEntities.push_back(drop);
+	}
+
+
+
 	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
 		[this](entt::entity lhs, entt::entity rhs) {
 			const auto& lhsMotion = registry.get<Motion>(lhs);
