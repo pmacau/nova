@@ -72,6 +72,23 @@ vec2 MapSystem::populate_ecs(
                     if (get_terrain(game_map[i][j]) == Terrain::SAND) {
                         createTree(reg, map_pos, {0, 1});
                     } else {
+                        // switch (get_biome(game_map[i][j])) {
+                        //     case B_FOREST:
+                        //         createTree(reg, map_pos, {0, 0});
+                        //         break;
+                        //     case B_SAVANNA:
+                        //         createTree(reg, map_pos, {0, 3});
+                        //         break;
+                        //     case B_ICE:
+                        //         createTree(reg, map_pos, {0, 2});
+                        //         break;
+                        //     case B_JUNGLE:
+                        //         createTree(reg, map_pos, {0, 4});
+                        //         break;
+                        //     default:
+                        //         createTree(reg, map_pos, {0, 0});
+                        //         break;
+                        // }
                         createTree(reg, map_pos, {0, 0});
                     }
                     break;
@@ -126,32 +143,25 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
 
     if (currB == prevB || currB == B_OCEAN) return;
     Music newTrack;
-    vec3& color = reg.get<vec3>(background);
 
     switch (currB) {
         case B_FOREST:
             newTrack = Music::FOREST;
-            color = {1.f, 1.f, 1.f};
             break;  
         case B_BEACH:
             newTrack = Music::BEACH;
-            color = {1, 1, 0};
             break;
         case B_JUNGLE:
             newTrack = Music::JUNGLE;
-            color = {46.f/255.f, 92.f/255.f, 19.f/255.f};
             break;
         case B_SAVANNA:
             newTrack = Music::SAVANNA;
-            color = {1.0f, 0.55f, 0.0f};
             break;
         case B_ICE:
             newTrack = Music::SNOWLANDS;
-            color = {0.85f, 0.95f, 1.0f};
             break;
         default:
             newTrack = Music::FOREST;
-            color = {1.f, 1.f, 1.f};
             break;
     }
 

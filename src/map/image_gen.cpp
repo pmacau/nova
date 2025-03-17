@@ -99,6 +99,26 @@ void update_tile(
     std::pair<int, int> coord =
         (tileset_map.find(tile_str) != tileset_map.end()) ? tileset_map[tile_str] : std::pair(6, 7);
 
+    switch (get_biome(game_map[row][col])) {
+        case B_FOREST:
+            coord.first += (0 * 7);
+            break;
+        case B_ICE:
+            coord.first += (1 * 7);
+            break;
+        case B_SAVANNA:
+            coord.first += (2 * 7);
+            break;
+        case B_JUNGLE:
+            coord.first += (3 * 7);
+            break;
+        case B_BEACH:
+            coord.first += (4 * 7);
+            break;
+        default:
+            break;
+    }
+
     tile_box.x = coord.second  * tile_box.w;
     tile_box.y = coord.first * tile_box.h;
 }

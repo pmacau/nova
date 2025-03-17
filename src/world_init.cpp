@@ -385,7 +385,7 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = spriteCoord;
 	sprite.dims = {50.f, 99.f};
-	sprite.sheet_dims = {100.f, 99.f};
+	sprite.sheet_dims = {250.f, 99.f};
 
 	// TODO: make this hitbox trapezoid at the root
 	float w = 18.f;
