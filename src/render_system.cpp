@@ -631,17 +631,9 @@ void RenderSystem::renderGamePlay()
 		nearbyEntities.push_back(projectile);
 	}
 
-	/*auto drops = registry.view<Drop>(); 
-	for (auto drop : drops) {
-		nearbyEntities.push_back(drop); 
-	}*/
-
-	/*auto drops = registry.view<Potion>();
-	for (auto drop : drops) {
-		nearbyEntities.push_back(drop);
-	}*/
-
-
+	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+		nearbyEntities.push_back(item);
+	}
 
 	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
 		[this](entt::entity lhs, entt::entity rhs) {
@@ -700,6 +692,11 @@ void RenderSystem::renderGamePlay()
 			// This is a regular UI element, not a textbox
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
+	}
+
+	// Render items on static UI
+	for (auto entity : registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
+		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
 	//auto spriteRenders = registry.view<RenderRequest, Drop, Item>();
