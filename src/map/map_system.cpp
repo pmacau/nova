@@ -16,6 +16,9 @@ void createBackground(entt::registry& reg, int width, int height, int tile_size)
 
     auto entity = reg.create();
     reg.emplace<Background>(entity);
+
+    auto& color = reg.emplace<vec3>(entity);
+    color = {1.f, 1.f, 1.f};
     
     auto& sprite = reg.emplace<Sprite>(entity);
     sprite.coord = {0, 0};
@@ -109,6 +112,7 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
 
 void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
+    auto background = reg.view<Background>().front();
 
     auto& motion = reg.get<Motion>(ent);
     vec2& pos = motion.position;
@@ -122,25 +126,32 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
 
     if (currB == prevB || currB == B_OCEAN) return;
     Music newTrack;
+    vec3& color = reg.get<vec3>(background);
 
     switch (currB) {
         case B_FOREST:
             newTrack = Music::FOREST;
+            color = {1.f, 1.f, 1.f};
             break;  
         case B_BEACH:
             newTrack = Music::BEACH;
+            color = {1, 1, 0};
             break;
         case B_JUNGLE:
             newTrack = Music::JUNGLE;
+            color = {46.f/255.f, 92.f/255.f, 19.f/255.f};
             break;
         case B_SAVANNA:
             newTrack = Music::SAVANNA;
+            color = {1.0f, 0.55f, 0.0f};
             break;
         case B_ICE:
             newTrack = Music::SNOWLANDS;
+            color = {0.85f, 0.95f, 1.0f};
             break;
         default:
             newTrack = Music::FOREST;
+            color = {1.f, 1.f, 1.f};
             break;
     }
 

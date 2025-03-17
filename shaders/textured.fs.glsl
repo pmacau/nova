@@ -13,10 +13,16 @@ layout(location = 0) out  vec4 color;
 void main()
 {
 	vec4 texColor = texture(sampler0, texcoord);
-	
-	// Discard fully transparent pixels
-    if (texColor.a < 0.1)
-        discard;
+	vec3 waterColor = vec3(65.0 / 255.0, 147.0 / 255.0, 226.0 / 255.0);
+	vec3 tintColor = fcolor;
 
-	color = vec4(fcolor, 1.0) * texColor;
+	// Don't recolor the water
+	if (
+		distance(texColor.rgb, waterColor) < 0.25 ||
+		distance(tintColor, vec3(1, 1, 1)) < 0.1
+	) {
+		color = texColor;
+	} else {
+		color = mix(texColor, vec4(tintColor, 1.0), 0.3);
+	}
 }
