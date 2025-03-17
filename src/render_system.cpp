@@ -593,6 +593,15 @@ void RenderSystem::renderGamePlay()
 	mat3 flippedUIProjection = ui_projection_2D;
 	flippedUIProjection[1][1] *= -1.0f;
 
+
+	/*registry.sort<Motion>(entt::exclude<Hitbox>)([](const Motion& lhs, const Motion& rhs) {
+		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
+		});*/
+
+	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) { 
+		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
+		});
+
 	// Render huge background texture 
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D); 
@@ -627,10 +636,10 @@ void RenderSystem::renderGamePlay()
 		nearbyEntities.push_back(drop); 
 	}*/
 
-	auto drops = registry.view<Potion>();
+	/*auto drops = registry.view<Potion>();
 	for (auto drop : drops) {
 		nearbyEntities.push_back(drop);
-	}
+	}*/
 
 
 
@@ -644,12 +653,31 @@ void RenderSystem::renderGamePlay()
 	for (auto entity : nearbyEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
+	//auto uiMotions = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>); 
+
+	//std::sort(uiMotions.begin(), uiMotions.end(),
+	//	[this](entt::entity lhs, entt::entity rhs) {
+	//		const auto& lhsMotion = registry.get<Motion>(lhs);
+	//		const auto& rhsMotion = registry.get<Motion>(rhs);
+	//		return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+	//			(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+	//	});
 
 	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
+
+	/*auto uiStatic = registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>); 
+	std::sort(uiStatic.begin(), uiStatic.end(),
+		[this](entt::entity lhs, entt::entity rhs) {
+			const auto& lhsMotion = registry.get<Motion>(lhs);
+			const auto& rhsMotion = registry.get<Motion>(rhs);
+			return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+		});*/
+
 	// Render static UI
 	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>)) {
 		if (registry.all_of<TextData>(entity)) {
@@ -673,6 +701,12 @@ void RenderSystem::renderGamePlay()
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
 	}
+
+	//auto spriteRenders = registry.view<RenderRequest, Drop, Item>();
+	////spriteRenders.use<Motion>();
+	//for (auto entity : spriteRenders) {
+	//	drawTexturedMesh(entity, projection_2D);
+	//}
 
 	// multiple quantity item on ground and on the inventory system should have a text next to it
 	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
