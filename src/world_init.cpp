@@ -229,6 +229,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	return entity; 
 }
 
+// GAME PLAY SHIP
 entt::entity createShip(entt::registry& registry, vec2 position)
 {
 	auto entity = registry.create();
@@ -236,6 +237,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	ship.health = SHIP_HEALTH;
 	ship.range = SHIP_RANGE;
 	ship.timer = SHIP_TIMER_MS;
+	ship.bulletType = Ship::BulletType::GOLD_PROJ;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 90.0f;
@@ -269,6 +271,65 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	return entity;
 }
 
+entt::entity createShipWeapon(entt::registry& registry, vec2 position, vec2 size, vec2 sprite_dims, vec2 sprite_sheet_dims, FrameIndex sprite_coords, int weaponNum)
+{
+	std::cout << "creating ship weapon" << std::endl;
+	auto entity = registry.create();
+
+	registry.emplace<ShipWeapon>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 90.0f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * size;
+	motion.offset_to_ground = vec2(0, motion.scale.y / 3);
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = sprite_dims;
+	sprite.sheet_dims = sprite_sheet_dims;
+	sprite.coord = sprite_coords;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	weaponNum = std::clamp(weaponNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(weaponNum);
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createShipEngine(entt::registry& registry, vec2 position, vec2 size, int engineNum)
+{
+	auto entity = registry.create();
+
+	registry.emplace<ShipEngine>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 90.0f;
+	motion.velocity = {0, 0};
+	motion.position = position;
+	motion.scale = GAME_SCALE * size;
+	motion.offset_to_ground = vec2(0, motion.scale.y / 3);
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {0, 0};
+	sprite.dims = {128.f, 128.f};
+    sprite.sheet_dims = {128.f, 128.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	engineNum = std::clamp(engineNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+
+	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(engineNum);
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+
+// UI SHIP
 entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 size, int shipNum)
 {
 	auto entity = registry.create();
@@ -357,6 +418,8 @@ entt::entity createUIShipEngine(entt::registry& registry, vec2 position, vec2 si
 	return entity;
 }
 
+
+
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor) {
 	auto entity = registry.create();
 
@@ -415,7 +478,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::GOLD_PROJECTILE;
+	renderRequest.used_texture = TEXTURE_ASSET_ID::RAILGUN_PROJECTILE;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 

@@ -42,9 +42,26 @@ struct Player
 // Ship component
 struct Ship
 {
+	enum class BulletType {
+		GOLD_PROJ,
+		BLASTER_PROJ,
+		MISSLES_PROJ,
+		RAILGUN_PROJ,
+		SMG_PROJ
+	};
+
+	BulletType bulletType;
 	int range;
 	int health;
 	int timer;
+};
+
+struct ShipWeapon
+{
+};
+
+struct ShipEngine
+{
 };
 
 struct UIShip
@@ -341,6 +358,10 @@ enum class TEXTURE_ASSET_ID {
 	TILESET,
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
+	BLASTER_PROJECTILE,
+	MISSLE_PROJECTILE,
+	RAILGUN_PROJECTILE,
+	SMG_PROJECTILE,
 	HEALTHBAR_GREEN,
 	HEALTHBAR_RED,
 	POTION,
