@@ -36,6 +36,7 @@ int main()
 	if (true) {
 		auto generated_map = create_map(200, 200);
 		create_background(generated_map);
+		create_biome_map(generated_map);
 		save_map(generated_map, map_path("map.bin").c_str());
 	}
 

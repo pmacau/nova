@@ -1,5 +1,6 @@
 #include "map_system.hpp"
 #include "world_init.hpp"
+#include "music_system.hpp"
 
 /*
 --------------------
@@ -105,6 +106,46 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
         }
     }
 };
+
+void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
+    if (!reg.all_of<Motion>(ent)) return;
+
+    auto& motion = reg.get<Motion>(ent);
+    vec2& pos = motion.position;
+    vec2& formerPos = motion.formerPosition;
+
+    Tile currT = get_tile(pos + motion.offset_to_ground);
+    Tile prevT = get_tile(formerPos + motion.offset_to_ground);
+
+    Biome currB = get_biome(currT);
+    Biome prevB = get_biome(prevT);
+
+    if (currB == prevB || currB == B_OCEAN) return;
+    Music newTrack;
+
+    switch (currB) {
+        case B_FOREST:
+            newTrack = Music::FOREST;
+            break;  
+        case B_BEACH:
+            newTrack = Music::BEACH;
+            break;
+        case B_JUNGLE:
+            newTrack = Music::JUNGLE;
+            break;
+        case B_SAVANNA:
+            newTrack = Music::SAVANNA;
+            break;
+        case B_ICE:
+            newTrack = Music::SNOWLANDS;
+            break;
+        default:
+            newTrack = Music::FOREST;
+            break;
+    }
+
+    MusicSystem::playMusic(newTrack, 200);
+}
 
 /*
 --------------------

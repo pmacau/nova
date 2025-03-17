@@ -15,4 +15,5 @@ Image create_image(int w, int h, int channels);
 
 void copy_subimage(Image& src, Image& dst, Box& imgBounds);
 void paste_subimage(Image& src, Image& dst, Box& imgBounds);
-void create_background(std::vector<std::vector<uint8_t>>& game_map);
+void create_background(GameMap& game_map);
+void create_biome_map(GameMap& game_map);

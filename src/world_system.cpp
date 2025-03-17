@@ -289,6 +289,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: freeze everything if in ship_ui
 	
 	MapSystem::update_location(registry, player_entity);
+	MapSystem::update_background_music(registry, player_entity);
   
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
