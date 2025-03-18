@@ -55,9 +55,9 @@ void main() {
     vec4 snowLayer = drawSnow(curid, uv, bg, 1.0, 0.9);
 
     // Draw middle snow layer
-    uv = uvog + 0.1 * vec2(-time - 100.0, time + 100.0);
-    curid = floor(uv * TILES) + vec2(0.5);
-    snowLayer += drawSnow(curid, uv, vec4(0), 0.75, 0.45);
+    // uv = uvog + 0.1 * vec2(-time - 100.0, time + 100.0);
+    // curid = floor(uv * TILES) + vec2(0.5);
+    // snowLayer += drawSnow(curid, uv, vec4(0), 0.75, 0.45);
 
     // Draw far snow layer
     uv = uvog + 0.05 * vec2(-time - 150.0, time + 150.0);
