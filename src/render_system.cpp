@@ -512,21 +512,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	auto& screen = registry.get<ScreenState>(screen_entity);
 	GLuint program;
 
-	if (screen.effect == EFFECT_ASSET_ID::E_SNOW) {
-		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::E_SNOW]);
-		gl_has_errors();
-
-		// add the "snow" effect
-		program = effects[(GLuint)EFFECT_ASSET_ID::E_SNOW];
-		const GLuint time_uloc = glGetUniformLocation(program, "time");
-		const GLuint resolution_uloc = glGetUniformLocation(program, "resolution");
-		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
-
-		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-		glUniform2f(resolution_uloc, (float) w, (float) h);
-		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
-		gl_has_errors();
-	} else {
+	if (!ENABLE_WEATHER || screen.effect != EFFECT_ASSET_ID::E_SNOW) {
 		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE]);
 		gl_has_errors();
 
@@ -538,6 +524,20 @@ void RenderSystem::drawToScreen(bool vignette)
 		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
 
 		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
+		gl_has_errors();
+	} else if (screen.effect == EFFECT_ASSET_ID::E_SNOW) {
+		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::E_SNOW]);
+		gl_has_errors();
+
+		// add the "snow" effect
+		program = effects[(GLuint)EFFECT_ASSET_ID::E_SNOW];
+		const GLuint time_uloc = glGetUniformLocation(program, "time");
+		const GLuint resolution_uloc = glGetUniformLocation(program, "resolution");
+		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
+
+		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+		glUniform2f(resolution_uloc, (float) w, (float) h);
 		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
 		gl_has_errors();
 	}
