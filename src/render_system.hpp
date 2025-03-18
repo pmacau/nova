@@ -53,6 +53,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("debug"),
 		shader_path("text"),
+		shader_path("snow"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;

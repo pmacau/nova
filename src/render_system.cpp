@@ -482,7 +482,7 @@ void RenderSystem::drawToScreen(bool vignette)
 {
 	// Setting shaders
 	// get the vignette texture, sprite mesh, and program
-	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE]);
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::E_SNOW]);
 	gl_has_errors();
 
 	// Clearing backbuffer
@@ -512,21 +512,30 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	// add the "vignette" effect
-	const GLuint vignette_program = effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE];
+	// const GLuint vignette_program = effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE];
 
-	// set clock
-	GLuint time_uloc       = glGetUniformLocation(vignette_program, "time");
-	GLuint dead_timer_uloc = glGetUniformLocation(vignette_program, "darken_screen_factor");
+	// // set clock
+	// GLuint time_uloc       = glGetUniformLocation(vignette_program, "time");
+	// GLuint dead_timer_uloc = glGetUniformLocation(vignette_program, "darken_screen_factor");
+
+	// glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+	
+	// auto& screen = registry.get<ScreenState>(screen_state_entity);
+	// glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
+	// gl_has_errors();
+
+	// add the "snow" effect
+	const GLuint snow_program = effects[(GLuint)EFFECT_ASSET_ID::E_SNOW];
+	const GLuint time_uloc = glGetUniformLocation(snow_program, "time");
+	const GLuint resolution_uloc = glGetUniformLocation(snow_program, "resolution");
 
 	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-	
-	auto& screen = registry.get<ScreenState>(screen_state_entity);
-	glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
+	glUniform2f(resolution_uloc, (float) WINDOW_WIDTH_PX * 2, (float) WINDOW_HEIGHT_PX * 2);
 	gl_has_errors();
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(vignette_program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(snow_program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();

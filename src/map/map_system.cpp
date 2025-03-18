@@ -77,16 +77,16 @@ vec2 MapSystem::populate_ecs(
                                 createTree(reg, map_pos, {0, 0});
                                 break;
                             case B_SAVANNA:
-                                createTree(reg, map_pos, {0, 3});
-                                break;
-                            case B_ICE:
-                                createTree(reg, map_pos, {0, 2});
-                                break;
-                            case B_JUNGLE:
                                 createTree(reg, map_pos, {0, 4});
                                 break;
+                            case B_ICE:
+                                createTree(reg, map_pos, {0, 3});
+                                break;
+                            case B_JUNGLE:
+                                createTree(reg, map_pos, {0, 5});
+                                break;
                             default:
-                                createTree(reg, map_pos, {0, 0});
+                                createTree(reg, map_pos, {0, 2});
                                 break;
                         }
                     }
@@ -164,7 +164,7 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
             break;
     }
 
-    MusicSystem::playMusic(newTrack, 200);
+    MusicSystem::playMusic(newTrack);
 }
 
 /*

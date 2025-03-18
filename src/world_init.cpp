@@ -377,20 +377,24 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 	registry.emplace<Tree>(entity);
 
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.scale = GAME_SCALE * vec2(50.f, 99.f);
-	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	//motion.scale = GAME_SCALE * vec2(50.f, 99.f);
+	//motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.scale = GAME_SCALE * vec2(132.f, 148.f);
+	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 74.f);
 	motion.position = pos - motion.offset_to_ground;
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = spriteCoord;
-	sprite.dims = {50.f, 99.f};
-	sprite.sheet_dims = {250.f, 99.f};
+	//sprite.dims = {50.f, 99.f};
+	sprite.dims = {132.f, 148.f};
+	//sprite.sheet_dims = {250.f, 99.f};
+	sprite.sheet_dims = {792.f, 148.f};
 
 	// TODO: make this hitbox trapezoid at the root
 	float w = 18.f;
 	float h = 16.f;
-	float g = 49.5f;
+	float g = 100.f;
 
 	// hitbox is relative to object's center
 	auto& hitbox = registry.emplace<Hitbox>(entity);
