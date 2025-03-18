@@ -5,7 +5,7 @@
 #include <entt.hpp>
 #include "common.hpp"
 #include "tinyECS/components.hpp"
-
+#include "quadtree/quadtree.hpp"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -71,7 +71,8 @@ class RenderSystem {
 	};
 
 public:
-	RenderSystem(entt::registry& reg);
+	RenderSystem(entt::registry& reg, QuadTree& quadTree);
+
 
 	// Initialize the window
 	bool init(GLFWwindow* window);
@@ -80,7 +81,7 @@ public:
 	bool debugModeEnabled;
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
-
+	//void initTree(); 
 	void initializeGlTextures();
 
 	void initializeGlEffects();
@@ -105,7 +106,7 @@ public:
 
 private:
 	entt::registry& registry;
-
+	QuadTree& quadTree;
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen(bool vignette);

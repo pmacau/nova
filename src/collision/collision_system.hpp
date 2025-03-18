@@ -8,15 +8,26 @@
 #include "world_init.hpp"
 #include "physics_system.hpp"
 #include "collision/hitbox.hpp"
+#include "quadtree/quadtree.hpp"
 
 class CollisionSystem {
 public:
-    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics);  
+    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, QuadTree& quadTree);
     void step(float elapsed_ms);
+
+    ~CollisionSystem() {
+       /* if (quadTree) {
+            quadTree->clear();
+            delete quadTree;
+        }*/
+    }
+    void initTree(int mapWidth, int mapHeight); //expensive
+    
 private:
     entt::registry& registry;
     PhysicsSystem& physics; 
     WorldSystem& world;
+    QuadTree& quadTree;
 
     std::unordered_set<entt::entity> destroy_entities;
     std::unordered_set<entt::entity> processed;

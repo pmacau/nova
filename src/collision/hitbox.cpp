@@ -15,6 +15,15 @@ std::vector<vec2> get_normals(const std::vector<vec2>& pts) {
     return normals;
 }
 
+std::vector<vec2> getMotionPts(const std::vector<vec2>& pts, Motion& m) {
+    std::vector<vec2> ret; 
+    for (auto& pt : pts) {
+        vec2 transformed_pt = pt + m.position; 
+        ret.push_back(transformed_pt);
+    }
+    return ret;
+}
+
 void project(
     const std::vector<vec2>& pts, const vec2& centre, const vec2& axis,
     float& minProj, float& maxProj

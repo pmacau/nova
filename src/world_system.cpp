@@ -6,7 +6,6 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
-
 // stlib
 #include <cassert>
 #include <sstream>
@@ -14,10 +13,11 @@
 #include <glm/glm.hpp>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system, QuadTree& quadTree) :
 	registry(reg),
 	physics_system(physics_system),
-	flag_system(flag_system)
+	flag_system(flag_system), 
+	quadTree(quadTree)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 	player_entity = createPlayer(registry, {0, 0});
@@ -384,7 +384,7 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
-	auto& motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, DeathItems, Grave>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, DeathItems, Grave>);
 	for (auto entity : motions) {
 		if (registry.any_of<FixedUI>(entity)) {
 			if (registry.any_of<Item>(entity)) {
@@ -398,8 +398,11 @@ void WorldSystem::restart_game() {
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	MapSystem::populate_ecs(registry, p_pos, s_pos);
-
+	
 	player_respawn();
+	/*createPlayerHealthBar(registry, p_pos);
+	createInventory(registry);*/
+	quadTree.initTree(registry); 
 }
 
 // Should the game be over ?
@@ -439,7 +442,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
 
-	//TODO
 	if (key == GLFW_KEY_P) {
 		auto debugView = registry.view<Debug>();
 		if (debugView.empty()) {
