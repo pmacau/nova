@@ -28,6 +28,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.current_screen = ScreenState::ScreenType::TITLE;
+	screen_state.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+
 	createTitleScreen(registry);
 	createPlayerHealthBar(registry);
 	createInventory(registry);

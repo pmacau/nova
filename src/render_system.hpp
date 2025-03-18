@@ -103,7 +103,7 @@ public:
 
 	mat3 createProjectionMatrix();
 
-	entt::entity get_screen_state_entity() { return screen_state_entity; }
+	//entt::entity get_screen_state_entity() { return screen_state_entity; }
 
 private:
 	entt::registry& registry;
@@ -124,7 +124,7 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
-	entt::entity screen_state_entity;
+	//entt::entity screen_state_entity;
 	entt::entity screen_entity;
 
 	// text based stuff

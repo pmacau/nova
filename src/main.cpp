@@ -35,7 +35,7 @@ int main()
 	// TOGGLE this if you don't want a new map every time...
 	int mapWidth; 
 	int mapHeight; 
-	if (true) {
+	if (false) {
 		mapWidth = 500; 
 		mapHeight = 500; 
 		auto generated_map = create_map(mapWidth, mapHeight);

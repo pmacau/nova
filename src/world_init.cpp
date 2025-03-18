@@ -60,7 +60,8 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	auto& motion = registry.emplace<Motion>(entity);
 	/*motion.position = { position.x + WINDOW_WIDTH_PX / 2 -  175.f,
 						position.y - WINDOW_HEIGHT_PX / 2 + 50.f};*/
-	motion.position = { WINDOW_WIDTH_PX - 175.F, 50.F };
+	//motion.position = { WINDOW_WIDTH_PX - 175.F, 50.F };
+	motion.position = { WINDOW_WIDTH_PX - 175.F, 200.F };
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
 	motion.scale = vec2({ 250.f, 15.f });

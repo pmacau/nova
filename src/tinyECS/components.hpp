@@ -235,19 +235,6 @@ struct Debug {
 };
 extern Debug debugging;
 
-// Sets the brightness of the screen
-struct ScreenState
-{
-	enum class ScreenType {
-        GAMEPLAY,
-        SHIP_UPGRADE_UI,
-		TITLE
-    };
-
-    ScreenType current_screen;
-	float darken_screen_factor = 0;
-};
-
 // will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 
 struct Object {
 
@@ -377,6 +364,20 @@ struct Camera
 	vec2 offset = vec2(0.f, 0.f); // offset from the player
 
 	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
+};
+
+// Sets the brightness of the screen
+struct ScreenState
+{
+	enum class ScreenType {
+        GAMEPLAY,
+        SHIP_UPGRADE_UI,
+		TITLE
+    };
+    ScreenType current_screen;
+	EFFECT_ASSET_ID effect;
+
+	float darken_screen_factor = 0;
 };
 
 const Sprite PLAYER_SPRITESHEET = {

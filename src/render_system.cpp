@@ -22,7 +22,7 @@ RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
 	quadTree(quadTree)
 
 {
-	screen_state_entity = registry.create();
+	// screen_state_entity = registry.create();
 	screen_entity = registry.view<ScreenState>().front();
 }
 
@@ -483,11 +483,6 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 // then draw the intermediate texture
 void RenderSystem::drawToScreen(bool vignette)
 {
-	// Setting shaders
-	// get the vignette texture, sprite mesh, and program
-	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::E_SNOW]);
-	gl_has_errors();
-
 	// Clearing backbuffer
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
@@ -514,38 +509,48 @@ void RenderSystem::drawToScreen(bool vignette)
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 
-	// add the "vignette" effect
-	// const GLuint vignette_program = effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE];
+	auto& screen = registry.get<ScreenState>(screen_entity);
+	GLuint program;
 
-	// // set clock
-	// GLuint time_uloc       = glGetUniformLocation(vignette_program, "time");
-	// GLuint dead_timer_uloc = glGetUniformLocation(vignette_program, "darken_screen_factor");
+	if (screen.effect == EFFECT_ASSET_ID::E_SNOW) {
+		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::E_SNOW]);
+		gl_has_errors();
 
-	// glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-	
-	// auto& screen = registry.get<ScreenState>(screen_state_entity);
-	// glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
-	// gl_has_errors();
+		// add the "snow" effect
+		program = effects[(GLuint)EFFECT_ASSET_ID::E_SNOW];
+		const GLuint time_uloc = glGetUniformLocation(program, "time");
+		const GLuint resolution_uloc = glGetUniformLocation(program, "resolution");
+		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
 
-	// add the "snow" effect
-	const GLuint snow_program = effects[(GLuint)EFFECT_ASSET_ID::E_SNOW];
-	const GLuint time_uloc = glGetUniformLocation(snow_program, "time");
-	const GLuint resolution_uloc = glGetUniformLocation(snow_program, "resolution");
+		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+		glUniform2f(resolution_uloc, (float) w, (float) h);
+		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
+		gl_has_errors();
+	} else {
+		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE]);
+		gl_has_errors();
 
-	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-	glUniform2f(resolution_uloc, (float) WINDOW_WIDTH_PX * 2, (float) WINDOW_HEIGHT_PX * 2);
-	gl_has_errors();
+		// add the "vignette" effect
+		program = effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE];
+
+		// set clock
+		GLuint time_uloc       = glGetUniformLocation(program, "time");
+		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
+
+		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
+		gl_has_errors();
+	}
 
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(snow_program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
-
 	glBindTexture(GL_TEXTURE_2D, off_screen_render_buffer_color);
 	gl_has_errors();
 
@@ -553,7 +558,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	glDrawElements(
 		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
 		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
-				  // no offset from the bound index buffer
+				// no offset from the bound index buffer
 	gl_has_errors();
 }
 
