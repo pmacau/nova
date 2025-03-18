@@ -127,17 +127,6 @@ bool RenderSystem::initFreetype() {
     return true;
 }
 
-//void RenderSystem::initTree() {
-//	quadTree = new QuadTree(400.0f * 16.f, 400.0f * 16.f, 800 * 16.f, 800 * 16.f);
-//	auto playerEntity = registry.view<Player>().front(); 
-//	quadTree->insert(playerEntity, registry);
-//	auto view = registry.view<Motion, Hitbox>(entt::exclude<Player, UIShip, Item, Title, TextData>); //currently reloads entire tree per frame
-//	for (auto entity : view) {
-//		quadTree->insert(entity, registry);
-//	}
-//
-//}
-
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
     // Activate corresponding render state	
 	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
@@ -594,13 +583,22 @@ void RenderSystem::renderGamePlay()
 	flippedUIProjection[1][1] *= -1.0f;
 
 
-	/*registry.sort<Motion>(entt::exclude<Hitbox>)([](const Motion& lhs, const Motion& rhs) {
-		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-		});*/
+	// for (auto entity : textBoxesUI) {
+	// 	drawTexturedMesh(entity, projection_2D);
 
-	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) { 
-		return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-		});
+	// 	auto& motion = registry.get<Motion>(entity);
+	// 	auto& textData = registry.get<TextData>(entity);
+
+	// 	mat3 flippedProjection = projection_2D;
+    // 	flippedProjection[1][1] *= -1.0f;
+
+	// 	renderText(textData.content, 
+	// 		motion.position.x - 230, 
+	// 		-motion.position.y, 
+	// 		textData.scale, 
+	// 		textData.color, 
+	// 		flippedProjection);
+	// }
 
 	// Render huge background texture 
 	auto background = registry.view<Background>().front();
@@ -660,18 +658,8 @@ void RenderSystem::renderGamePlay()
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
-
-	/*auto uiStatic = registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>); 
-	std::sort(uiStatic.begin(), uiStatic.end(),
-		[this](entt::entity lhs, entt::entity rhs) {
-			const auto& lhsMotion = registry.get<Motion>(lhs);
-			const auto& rhsMotion = registry.get<Motion>(rhs);
-			return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
-				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
-		});*/
-
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -688,28 +676,24 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-		} else {
-			// This is a regular UI element, not a textbox
+		}
+		else {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
 	}
 
 	// Render items on static UI
-	for (auto entity : registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	//auto spriteRenders = registry.view<RenderRequest, Drop, Item>();
-	////spriteRenders.use<Motion>();
-	//for (auto entity : spriteRenders) {
-	//	drawTexturedMesh(entity, projection_2D);
-	//}
-
 	// multiple quantity item on ground and on the inventory system should have a text next to it
-	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
+	for (auto entity : registry.view<Item>(entt::exclude<DeathItems, HiddenInventory>)) {
 		auto& motion = registry.get<Motion>(entity);
 		auto& item = registry.get<Item>(entity);
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no == 1) continue;
+		// TODO use ternary operator instead
 		if (item.no >= 10) {
 			if (registry.all_of<UI>(entity)) {
 				textsToRender.push_back(
@@ -746,7 +730,7 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-			else if (item.no != 1) {
+			else {
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),

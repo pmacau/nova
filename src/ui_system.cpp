@@ -4,6 +4,8 @@
 #include "util/debug.hpp"
 
 float UISystem::equip_delay = 0.0f;
+std::mt19937 UISystem::rng(std::random_device{}());
+std::uniform_real_distribution<float> UISystem::uniform_dist(0.f, 1.f);
 
 void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
@@ -34,81 +36,96 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 	}
 }
 
-void UISystem::renderItem(entt::registry& registry, entt::entity& mob_entity) {
-	if (registry.all_of<Drop>(mob_entity)) {
-		auto& drop = registry.get<Drop>(mob_entity);
-		auto entity = registry.create();
-		if (drop.item_type == ITEM_TYPE::POTION) {
-			auto& item = registry.emplace<Item>(entity);
-			item.item_type = drop.item_type;
-			item.no = drop.no;
-			auto& potion = registry.emplace<Potion>(entity);
-			potion.heal = 20;
-			auto& mob_motion = registry.get<Motion>(mob_entity);
-			auto& motion = registry.emplace<Motion>(entity);
-			motion.angle = 0.f;
-			motion.position = mob_motion.position;
-			motion.scale = vec2(512.f, 508.f) / 15.f;
-			motion.velocity = { 0.f, 0.f };
-			auto& sprite = registry.emplace<Sprite>(entity);
-			sprite.coord = { 0, 0 };
-			sprite.dims = { 512.f, 508.f };
-			sprite.sheet_dims = { 512.f, 508.f };
-			auto& render_request = registry.emplace<RenderRequest>(entity);
-			render_request.used_texture = TEXTURE_ASSET_ID::POTION;
-			render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
-			render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-		}
-	}
-}
-
-void UISystem::useItem(entt::registry& registry, entt::entity& entity) {
+bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 	auto& item = registry.get<Item>(entity);
-	if (item.item_type == ITEM_TYPE::POTION) {
+	if (item.type == Item::Type::POTION) {
 		auto& potion = registry.get<Potion>(entity);
-		for (auto player_entity : registry.view<Player>()) {
-			auto& player = registry.get<Player>(player_entity);
-			player.health = min(player.health + potion.heal, PLAYER_HEALTH);
-			MusicSystem::playSoundEffect(SFX::POTION);
-			updatePlayerHealthBar(registry, player.health);	
-			auto screens = registry.view<ScreenState>();
-			auto& screen = registry.get<ScreenState>(screens.front());
-			if (screens.size() > 0) {
-				screen.darken_screen_factor = std::max(screen.darken_screen_factor - 0.33f, 0.0f);
-			}
-			break;
+		auto& player = registry.get<Player>(*registry.view<Player>().begin());
+		player.health = min(player.health + potion.heal, PLAYER_HEALTH);
+		MusicSystem::playSoundEffect(SFX::POTION);
+		updatePlayerHealthBar(registry, player.health);
+		auto screens = registry.view<ScreenState>();
+		auto& screen = registry.get<ScreenState>(screens.front());
+		if (screens.size() > 0) {
+			screen.darken_screen_factor = std::max(screen.darken_screen_factor - 0.33f, 0.0f);
 		}
+		if (item.no == 1) {
+			item.no = 0;
+			registry.destroy(entity);
+			return false;
+		}
+		else {
+			item.no -= 1;
+			return true;
+		}
+	}
+	return true;
+}
+
+void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
+	auto& drop = registry.get<Drop>(mob_entity);
+	auto& motion = registry.get<Motion>(mob_entity);
+	int i = 0;
+	auto& items = drop.items;
+	std::cout << "total items dropped: " << items.size() << "\n";
+	while (!items.empty()) {
+		if (i == 0) {
+			renderItemAtPos(registry, mob_entity, motion.position.x, motion.position.y, false, true);
+		}
+		else if (i % 2 == 0) {
+			renderItemAtPos(registry, mob_entity, motion.position.x - 30.f, motion.position.y, false, true);
+		}
+		else {
+			renderItemAtPos(registry, mob_entity, motion.position.x + 30.f, motion.position.y, false, true);
+		}
+		items.erase(items.begin());
+		i++;
 	}
 }
 
-entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y, bool ui) {
+entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity item_to_copy_entity, float x, float y, bool ui, bool drop) {
 	auto entity = registry.create();
-	auto& item_to_copy = registry.get<Item>(item_to_copy_entity);
+	auto& item_to_copy = drop ? registry.get<Drop>(item_to_copy_entity).items.front() : registry.get<Item>(item_to_copy_entity);
+	auto& item = registry.emplace<Item>(entity);
+	item.type = item_to_copy.type;
 	if (ui) {
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
-	}
-	if (item_to_copy.item_type == ITEM_TYPE::POTION) {
-		auto& item = registry.emplace<Item>(entity);
-		item.item_type = item_to_copy.item_type;
-		if (!ui) {
-			item.no = item_to_copy.no;
+		std::cout << "y: " << y << "\n";
+		if (y > 50.f + 45.f / 2.f && !registry.view<HiddenInventory>().empty()) {
+			registry.emplace<HiddenInventory>(entity);
 		}
+	}
+	else {
+		item.no = item_to_copy.no;
+	}
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.angle = 0.f;
+	motion.position = { x, y };
+	motion.velocity = { 0.f, 0.f };
+	auto& sprite = registry.emplace<Sprite>(entity);
+	auto& render_request = registry.emplace<RenderRequest>(entity);
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	if (item_to_copy.type == Item::Type::POTION) {
 		auto& potion = registry.emplace<Potion>(entity);
 		potion.heal = 20;
-		auto& motion = registry.emplace<Motion>(entity);
-		motion.angle = 0.f;
-		motion.position = { x, y };
 		motion.scale = vec2(512.f, 508.f) / 15.f;
-		motion.velocity = { 0.f, 0.f };
-		auto& sprite = registry.emplace<Sprite>(entity);
-		sprite.coord = { 0, 0 };
 		sprite.dims = { 512.f, 508.f };
 		sprite.sheet_dims = { 512.f, 508.f };
-		auto& render_request = registry.emplace<RenderRequest>(entity);
 		render_request.used_texture = TEXTURE_ASSET_ID::POTION;
-		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
-		render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	}
+	else if (item_to_copy.type == Item::Type::IRON) {
+		motion.scale = vec2(512.f, 512.f) / 15.f;
+		sprite.dims = { 512.f, 512.f};
+		sprite.sheet_dims = { 512.f, 512.f};
+		render_request.used_texture = TEXTURE_ASSET_ID::IRON;
+	}
+	else if (item_to_copy.type == Item::Type::COPPER) {
+		motion.scale = vec2(512.f, 512.f) / 15.f;
+		sprite.dims = { 512.f, 512.f };
+		sprite.sheet_dims = { 512.f, 512.f };
+		render_request.used_texture = TEXTURE_ASSET_ID::COPPER;
 	}
 	return entity;
 }
@@ -119,7 +136,7 @@ void UISystem::dropItem(entt::registry& registry, Click click) {
 		auto& player_entity = *registry.view<Player>().begin();
 		auto& motion = registry.get<Motion>(player_entity);
 		auto& item = registry.get<Item>(drag_entity);
-		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false);
+		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false, false);
 		registry.destroy(drag_entity);
 		MusicSystem::playSoundEffect(SFX::DROP); 
 	}
@@ -133,7 +150,10 @@ void UISystem::resetDragItem(entt::registry& registry) {
 		inventory_item.no += registry.get<Item>(drag_entity).no;
 	}
 	else {
-		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * inventory_slot.id, 50.f, true);
+		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * (inventory_slot.id % 5), 50.f + 45.f * (inventory_slot.id / 5), true, false);
+		if (!registry.view<HiddenInventory>().empty() && inventory_slot.id > 4) {
+			registry.emplace<HiddenInventory>(item);
+		}
 		inventory_slot.hasItem = true;
 		inventory_slot.item = item;
 		auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -150,10 +170,11 @@ void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float
 
 bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x, float mouse_pos_y, Click click) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
-	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_y <= 50.f + 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
+	if (mouse_pos_y >= 50.f - 45.f / 2.f && mouse_pos_x >= 50.f - 45.f / 2.f) {
 		int i = (int)((mouse_pos_x - (50.f - 45.f / 2.f)) / 45.f);
-		if (i >= 0 && i < inventory.slots.size()) {
-			auto& inventory_entity = inventory.slots[i];
+		int j = (int)((mouse_pos_y - (50.f - 45.f / 2.f)) / 45.f);
+		if (i < 5 && ((registry.view<HiddenInventory>().empty() && j < 4) || j == 0)) {
+			auto& inventory_entity = inventory.slots[j * 5 + i];
 			auto& inventory_slot = registry.get<InventorySlot>(inventory_entity);
 			if (inventory_slot.hasItem) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
@@ -161,24 +182,23 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				if (click == Click::LEFT) {
 					// use item if no item is being dragged
 					if (registry.view<Drag>().empty()) {
-						useItem(registry, inventory_slot.item);
-						if (inventory_item.no == 1) {
-							inventory_item.no = 0;
-							inventory_slot.hasItem = false;
-							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
-						}
-						else {
-							inventory_item.no -= 1;
+						if (j == 0) {
+							inventory_slot.hasItem = useItem(registry, inventory_slot.item);
 						}
 					}
 					else {
 						auto& drag_entity = *registry.view<Drag>().begin();
 						auto& drag_item = registry.get<Item>(drag_entity);
 						// add dragged item to inventory slot if of the same type
-						if (registry.get<Item>(inventory_slot.item).item_type == drag_item.item_type) {
-							inventory_item.no += drag_item.no;
-							registry.destroy(drag_entity);
+						if (registry.get<Item>(inventory_slot.item).type == drag_item.type) {
+							if (drag_item.no + inventory_item.no > inventory_slot.capacity) {
+								drag_item.no -= inventory_slot.capacity - inventory_item.no;
+								inventory_item.no = inventory_slot.capacity;
+							}
+							else {
+								inventory_item.no += drag_item.no;
+								registry.destroy(drag_entity);
+							}
 						}
 						// put the dragged item to original inventory slot if the item is of different type
 						else {
@@ -190,7 +210,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				else {
 					// create item at mouse position if no item is being dragged
 					if (registry.view<Drag>().empty()) {
-						auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y, true);
+						auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y, true, false);
 						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 						drag.slot = inventory_entity;
 						auto& item = registry.get<Item>(item_entity_on_mouse);
@@ -207,7 +227,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 					else {
 						auto& item_on_mouse = registry.get<Item>(*registry.view<Drag>().begin());
 						// increase the number of items currently being dragged if same type item is picked
-						if (item_on_mouse.item_type == registry.get<Item>(inventory_slot.item).item_type) {
+						if (item_on_mouse.type == registry.get<Item>(inventory_slot.item).type) {
 							if (click == Click::CTRLRIGHT) {
 								item_on_mouse.no += inventory_item.no;
 							}
@@ -224,7 +244,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						// put the held item back to original inventory slot and drag a new item
 						else {
 							resetDragItem(registry);
-							auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y, true);
+							auto item_entity_on_mouse = renderItemAtPos(registry, inventory_slot.item, mouse_pos_x, mouse_pos_y, true, false);
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.slot = inventory_entity;
 							auto& item = registry.get<Item>(item_entity_on_mouse);
@@ -285,12 +305,18 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 				if (!registry.view<Drag>().empty() && click == Click::LEFT) {
 					auto& drag_entity = *registry.view<Drag>().begin();
 					auto& drag_item = registry.get<Item>(drag_entity);
-					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f, true);
+					auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f + 45.f * j, true, false);
 					inventory_slot.hasItem = true;
 					inventory_slot.item = item;
 					auto& inventory_item = registry.get<Item>(inventory_slot.item);
-					inventory_item.no = drag_item.no;
-					registry.destroy(drag_entity);
+					if (drag_item.no > inventory_slot.capacity) {
+						inventory_item.no = inventory_slot.capacity;
+						drag_item.no -= inventory_slot.capacity;
+					}
+					else {
+						inventory_item.no = drag_item.no;
+						registry.destroy(drag_entity);
+					}
 				}
 			}
 			return true;
@@ -305,17 +331,24 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 	if (registry.all_of<DeathItems>(item_entity)) {
 		registry.remove<DeathItems>(item_entity);
 	}
-	if (item.item_type != ITEM_TYPE::LASTDEATHGRAVE) {
+	if (item.type != Item::Type::GRAVE) {
+		bool pickup = false;
 		// check for existing slots having same item type
 		for (int i = 0; i < inventory.slots.size(); i++) {
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 			if (inventory_slot.hasItem) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
-				if (inventory_item.item_type == item.item_type) {
-					inventory_item.no += item.no;
-					MusicSystem::playSoundEffect(SFX::PICKUP);
-					registry.destroy(item_entity);
-					return;
+				if (inventory_item.no > inventory_slot.capacity) continue;
+				if (inventory_item.type == item.type) {
+					int before = inventory_item.no;
+					inventory_item.no = std::min(inventory_slot.capacity, inventory_item.no + item.no);
+					item.no -= inventory_item.no - before;
+					pickup = true;
+					if (item.no == 0) {
+						MusicSystem::playSoundEffect(SFX::PICKUP);
+						registry.destroy(item_entity);
+						return;
+					}
 				}
 			}
 		}
@@ -324,16 +357,32 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 			if (!inventory_slot.hasItem) {
 				inventory_slot.hasItem = true;
-				inventory_slot.item = item_entity;
-				auto& inventory_item = registry.get<Item>(inventory_slot.item);
-				inventory_item.no = item.no;
-				registry.emplace<UI>(item_entity);
-				registry.emplace<FixedUI>(item_entity);
 				auto& motion = registry.get<Motion>(item_entity);
-				motion.position = { 50.f + 45.f * i, 50.f };
-				MusicSystem::playSoundEffect(SFX::PICKUP);
-				break;
+				if (item.no <= inventory_slot.capacity) {
+					inventory_slot.item = item_entity;
+					auto& inventory_item = registry.get<Item>(inventory_slot.item);
+					inventory_item.no = item.no;
+					registry.emplace<UI>(item_entity);
+					registry.emplace<FixedUI>(item_entity);
+					if (i / 5 > 0 && !registry.view<HiddenInventory>().empty()) {
+						registry.emplace<HiddenInventory>(item_entity);
+					}
+					motion.position = { 50.f + 45.f * (i % 5), 50.f + 45.f * (i / 5) };
+					pickup = true;
+					break;
+				}
+				else {
+					item.no -= inventory_slot.capacity;
+					auto item_entity_2 = renderItemAtPos(registry, item_entity, 50.f + 45.f * (i % 5), 50.f + 45.f * (i / 5), true, false);
+					inventory_slot.item = item_entity_2;
+					auto& item = registry.get<Item>(item_entity_2);
+					item.no = inventory_slot.capacity;
+					pickup = true;
+				}
 			}
+		}
+		if (pickup) {
+			MusicSystem::playSoundEffect(SFX::PICKUP);
 		}
 	}
 	else {
@@ -344,7 +393,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y) {
 	auto entity = registry.create();
 	auto& item = registry.emplace<Item>(entity);
-	item.item_type = ITEM_TYPE::LASTDEATHGRAVE;
+	item.type = Item::Type::GRAVE;
 	registry.emplace<Grave>(entity);
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	for (int i = 0; i < inventory.slots.size(); i++) {
@@ -352,6 +401,9 @@ void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y)
 		if (inventory_slot.hasItem) {
 			registry.remove<UI>(inventory_slot.item);
 			registry.remove<FixedUI>(inventory_slot.item);
+			if (inventory_slot.id > 4 && registry.any_of<HiddenInventory>(inventory_slot.item)) {
+				registry.remove<HiddenInventory>(inventory_slot.item);
+			}
 			auto& motion = registry.get<Motion>(inventory_slot.item);
 			motion.position = { x, y };
 			registry.emplace<DeathItems>(inventory_slot.item);
@@ -377,6 +429,60 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 				addToInventory(registry, entity);
 			}
+		}
+	}
+}
+
+// TODO use external file with set probabilities instead
+void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
+	if (registry.any_of<Drop>(entity)) {
+		registry.remove<Drop>(entity);
+	}
+	float randomNo = uniform_dist(rng);
+	auto& mob = registry.get<Mob>(entity);	
+	Item item;
+	if (mob.biome == Mob::Biome::FOREST) {
+		if (registry.any_of<Boss>(entity)) {
+			std::cout << "entity is a boss\n";
+			auto& drop = registry.emplace<Drop>(entity);
+			randomNo = uniform_dist(rng);
+			if (randomNo < 0.7) {
+				item.type = Item::Type::IRON;
+			}
+			else {
+				item.type = Item::Type::COPPER;
+			}
+			randomNo = uniform_dist(rng);
+			item.no = 10 + (int)(randomNo * 11);
+			drop.items.push_back(item);
+			item.type = Item::Type::POTION;
+			randomNo = uniform_dist(rng);
+			item.no = 3 + (int)(randomNo * 3);
+			drop.items.push_back(item);
+		}
+		else {
+			if (mob.type == Mob::Type::TORCH) {
+				randomNo = uniform_dist(rng);
+				if (randomNo < 0.25) {
+					auto& drop = registry.emplace<Drop>(entity);
+					randomNo = uniform_dist(rng);
+					if (randomNo < 0.7) {
+						item.type = Item::Type::POTION;
+						item.no = 1;
+					}
+					else if (randomNo < 0.85) {
+						item.type = Item::Type::IRON;
+						randomNo = uniform_dist(rng);
+						item.no = 1 + (int)(randomNo * 3);
+					}
+					else {
+						item.type = Item::Type::COPPER;
+						randomNo = uniform_dist(rng);
+						item.no = 1 + (int)(randomNo * 3);
+					}
+					drop.items.push_back(item);
+				}
+			} 
 		}
 	}
 }
