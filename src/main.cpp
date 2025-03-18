@@ -24,7 +24,7 @@
 #include "player/player_system.hpp"
 #include <ai/ai_initializer.hpp>
 #include <ai/state_machine/state_factory.hpp>
-
+#include "quadtree/quadtree.hpp"
 
 #include <iomanip>
 using Clock = std::chrono::high_resolution_clock;
@@ -33,8 +33,12 @@ using Clock = std::chrono::high_resolution_clock;
 int main()
 {
 	// TOGGLE this if you don't want a new map every time...
+	int mapWidth; 
+	int mapHeight; 
 	if (true) {
-		auto generated_map = create_map(200, 200);
+		mapWidth = 500; 
+		mapHeight = 500; 
+		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		create_biome_map(generated_map);
 		save_map(generated_map, map_path("map.bin").c_str());
@@ -45,20 +49,21 @@ int main()
 	// assets and constants
 	initializeEnemyDefinitions();
 	initializeAIStates(g_stateFactory);
-
+	// QuadTree
+	QuadTree quadTree((mapWidth / 2) * 16.f, (mapHeight / 2) * 16.f, mapWidth, mapHeight);
 	// global systems
 	PhysicsSystem physics_system(reg);
 	FlagSystem flag_system(reg); 
-	WorldSystem   world_system(reg, physics_system, flag_system);
-	RenderSystem  renderer_system(reg);
+	WorldSystem   world_system(reg, physics_system, flag_system, quadTree);
+	RenderSystem  renderer_system(reg, quadTree);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system, physics_system);
+	CollisionSystem collision_system(reg, world_system, physics_system, quadTree);
 	CameraSystem camera_system(reg);
 	SpawnSystem spawn_system(reg);
 	// FlagSystem flag_system(reg); 
 	AnimationSystem animationSystem(reg);
 	PlayerSystem playerSystem(reg);
-
+	
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
 	if (!window) {
@@ -77,7 +82,10 @@ int main()
 	world_system.init();
 	renderer_system.init(window);
 	renderer_system.initFreetype();
-
+	quadTree.initTree(reg); 
+	//renderer_system.initTree(); 
+	//collision_system.initTree(mapWidth, mapHeight);
+	
 	// variable timestep loop
 	auto t = Clock::now();
 
@@ -110,7 +118,7 @@ int main()
 			num_frames = 0;
 			num_s = 0.f;
 		}
-
+		
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		if (!flag_system.is_paused) {

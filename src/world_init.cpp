@@ -9,6 +9,7 @@
 #include "ai/state_machine/patrol_state.hpp"
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
+#include "ui_system.hpp"
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
@@ -91,6 +92,8 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	auto& mob = registry.emplace<Mob>(entity);
 	mob.health = health;
 	mob.hit_time = 1.f;
+	mob.biome = Mob::Biome::FOREST;
+	mob.type = Mob::Type::PURPLE;
 
 	// SPRITE 
 	auto& sprite = registry.emplace<Sprite>(entity);
@@ -119,8 +122,7 @@ entt::entity createMob(entt::registry& registry, vec2 position, int health) {
 	//motion.scale = vec2(38*3, 54*3);
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 	
-	auto& drop = registry.emplace<Drop>(entity);
-	drop.item_type = ITEM_TYPE::POTION;
+	UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
@@ -176,6 +178,8 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	auto& mob = registry.emplace<Mob>(entity);
 	mob.health = health;
 	mob.hit_time = 1.f;
+	mob.biome = Mob::Biome::FOREST;
+	mob.type = Mob::Type::TORCH;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = vec2(1344.f / 7, 960.f / 5);
@@ -198,8 +202,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
 	};
 	hitbox.depth = 60;
 	
-	auto& drop = registry.emplace<Drop>(entity);
-	drop.item_type = ITEM_TYPE::POTION;
+	UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
@@ -235,7 +238,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	auto& ship = registry.emplace<Ship>(entity);
 	ship.health = SHIP_HEALTH;
 	ship.range = SHIP_RANGE;
-	ship.timer = SHIP_TIMER_MS;
+	ship.timer = SHIP_TIMER_S;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -366,6 +369,7 @@ entt::entity createBoss(entt::registry& registry, vec2 pos) {
 	Boss& boss = registry.emplace<Boss>(entity);
 	boss.agro_range = 500.f;
 	boss.spawn = pos;
+	UISystem::dropForMob(registry, entity);
 
 	debug_printf(DebugType::WORLD_INIT, "Boss created at: (%.1f, %.1f)\n", pos.x, pos.y);
 	return entity;
@@ -420,22 +424,25 @@ void createInventory(entt::registry& registry) {
 	const float startX = 50.0f;
 	const float startY = 50.0f;
 	const float SLOT_SIZE = 45.f;
-	for (int i = 0; i < MAX_INVENTORY_SLOTS; i++) {
+	for (int i = 0; i < 20; i++) {
 		auto entity = registry.create();
 		inventory.slots.push_back(entity);
 		auto& inventory_slot = registry.emplace<InventorySlot>(entity);
 		inventory_slot.id = i;
+		if (i > 4) {
+			registry.emplace<HiddenInventory>(entity);
+		}
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
 		auto& motion = registry.emplace<Motion>(entity);
 		motion.angle = 0.0f;
-		motion.position = { startX + SLOT_SIZE * i , startY };
+		motion.position = { startX + SLOT_SIZE * (i % 5) , startY + SLOT_SIZE * (i / 5)};
 		motion.scale = { SLOT_SIZE, SLOT_SIZE };
 		motion.velocity = { 0.f, 0.f };
 		auto& sprite = registry.emplace<Sprite>(entity);
 		sprite.coord = { 0, 0 };
-		sprite.dims = { 488.f, 488.f };
-		sprite.sheet_dims = { 488.f, 488.f};
+		sprite.dims = { 93.f, 95.f };
+		sprite.sheet_dims = { 93.f, 95.f};
 		auto& render_request = registry.emplace<RenderRequest>(entity);
 		render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT;
 		render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;

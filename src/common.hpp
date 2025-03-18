@@ -46,7 +46,7 @@ const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
 const int GRID_LINE_WIDTH_PX = 2;
 
-const int SHIP_TIMER_MS = 500;
+const float SHIP_TIMER_S = 1.f;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 

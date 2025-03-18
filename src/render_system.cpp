@@ -7,6 +7,7 @@
 #include "tinyECS/components.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "collision/hitbox.hpp"
+#include "quadtree/quadtree.hpp"
 // for the text rendering
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -16,8 +17,10 @@
 #include <sstream>
 
 
-RenderSystem::RenderSystem(entt::registry& reg) :
-	registry(reg)
+RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
+	registry(reg), 
+	quadTree(quadTree)
+
 {
 	screen_state_entity = registry.create();
 	screen_entity = registry.view<ScreenState>().front();
@@ -588,16 +591,6 @@ void RenderSystem::renderGamePlay()
 	mat3 flippedUIProjection = ui_projection_2D;
 	flippedUIProjection[1][1] *= -1.0f;
 
-	// render all the textboxes
-	// std::vector<entt::entity> textBoxesUI;
-	// auto textboxes = registry.view<Motion, RenderRequest, TextData>();
-	// for (auto entity : textboxes) {
-	// 	auto& textData = registry.get<TextData>(entity);
-	// 	// Only process active text boxes
-	// 	if (textData.active) {
-	// 		textBoxesUI.push_back(entity);
-	// 	}
-	// }
 
 	// for (auto entity : textBoxesUI) {
 	// 	drawTexturedMesh(entity, projection_2D);
@@ -616,28 +609,66 @@ void RenderSystem::renderGamePlay()
 	// 		flippedProjection);
 	// }
 
-	// Render huge background texture
+	// Render huge background texture 
 	auto background = registry.view<Background>().front();
-	drawTexturedMesh(background, projection_2D);
+	drawTexturedMesh(background, projection_2D); 
+	
+	auto playerView = registry.view<Player, Motion>();
+	if (playerView.begin() == playerView.end()) {
+		return; 
+	}
+	auto playerEntity = playerView.front();
+	const auto& playerMotion = registry.get<Motion>(playerEntity);
+	const float queryRange = WINDOW_WIDTH_PX * 1.25f; // Adjust based on your game's scale
+	Quad rangeQuad(
+		playerMotion.position.x,
+		playerMotion.position.y,
+		queryRange,
+		queryRange
+	);
 
-	// Render main entities
-	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
-        return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-    });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems>);
-    spriteRenders.use<Motion>();
-    for (auto entity : spriteRenders) {
-        drawTexturedMesh(entity, projection_2D);
-    }
+	std::vector<entt::entity> nearbyEntities = quadTree.quadTree->queryRange(rangeQuad, registry);
+	nearbyEntities.push_back(playerEntity); // never have to update player since all queries will be based off player anyways
+	auto mobs = registry.view<Mob>();
+	for (auto mob : mobs) {
+		nearbyEntities.push_back(mob);
+	}
+	auto projectiles = registry.view<Projectile>();
+	for (auto projectile : projectiles) {
+		nearbyEntities.push_back(projectile);
+	}
 
-	// Render dynamic UI
+	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+		nearbyEntities.push_back(item);
+	}
+
+	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
+		[this](entt::entity lhs, entt::entity rhs) {
+			const auto& lhsMotion = registry.get<Motion>(lhs);
+			const auto& rhsMotion = registry.get<Motion>(rhs);
+			return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+		});
+	for (auto entity : nearbyEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+	//auto uiMotions = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>); 
+
+	//std::sort(uiMotions.begin(), uiMotions.end(),
+	//	[this](entt::entity lhs, entt::entity rhs) {
+	//		const auto& lhsMotion = registry.get<Motion>(lhs);
+	//		const auto& rhsMotion = registry.get<Motion>(rhs);
+	//		return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+	//			(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+	//	});
+
 	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -654,22 +685,24 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-		} else {
-			// This is a regular UI element, not a textbox
+		}
+		else {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
 	}
-	
+
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
 	// multiple quantity item on ground and on the inventory system should have a text next to it
-	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
+	for (auto entity : registry.view<Item>(entt::exclude<DeathItems, HiddenInventory>)) {
 		auto& motion = registry.get<Motion>(entity);
 		auto& item = registry.get<Item>(entity);
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no == 1) continue;
+		// TODO use ternary operator instead
 		if (item.no >= 10) {
 			if (registry.all_of<UI>(entity)) {
 				textsToRender.push_back(
@@ -706,7 +739,7 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-			else if (item.no != 1) {
+			else {
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),

@@ -6,7 +6,6 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
-
 // stlib
 #include <cassert>
 #include <sstream>
@@ -14,10 +13,11 @@
 #include <glm/glm.hpp>
 
 // create the world
-WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system) :
+WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system, QuadTree& quadTree) :
 	registry(reg),
 	physics_system(physics_system),
-	flag_system(flag_system)
+	flag_system(flag_system), 
+	quadTree(quadTree)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 	player_entity = createPlayer(registry, {0, 0});
@@ -269,7 +269,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	ship.timer -= elapsed_s;
 
 	if (ship.timer <= 0) {
-		ship.timer = SHIP_TIMER_MS;
+		ship.timer = SHIP_TIMER_S;
 		
 		for (auto entity : mobs) {
 			auto motion = registry.get<Motion>(entity);
@@ -385,14 +385,25 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave>);
-	registry.destroy(motions.begin(), motions.end());
+	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, DeathItems, Grave>);
+	for (auto entity : motions) {
+		if (registry.any_of<FixedUI>(entity)) {
+			if (registry.any_of<Item>(entity)) {
+				registry.destroy(entity);
+			}
+			continue;
+		}
+		else registry.destroy(entity);
+	}
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	MapSystem::populate_ecs(registry, p_pos, s_pos);
-
+	
 	player_respawn();
+	/*createPlayerHealthBar(registry, p_pos);
+	createInventory(registry);*/
+	quadTree.initTree(registry); 
 }
 
 // Should the game be over ?
@@ -432,7 +443,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (key == GLFW_KEY_LEFT  || key == GLFW_KEY_A) key_state[KeyboardState::LEFT]  = (action != GLFW_RELEASE);
 	if (key == GLFW_KEY_RIGHT || key == GLFW_KEY_D) key_state[KeyboardState::RIGHT] = (action != GLFW_RELEASE);
 
-	//TODO
 	if (key == GLFW_KEY_P) {
 		auto debugView = registry.view<Debug>();
 		if (debugView.empty()) {
@@ -467,6 +477,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
         }
     }
+
+	if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
+		auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+		if (registry.view<HiddenInventory>().empty()) {
+			for (int i = 5; i < inventory.slots.size(); i++) {
+				registry.emplace<HiddenInventory>(inventory.slots[i]);
+				auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+				if (inventory_slot.hasItem) {
+					registry.emplace<HiddenInventory>(inventory_slot.item);
+				}
+			}
+		}
+		else {
+			for (int i = 5; i < inventory.slots.size(); i++) {
+				registry.remove<HiddenInventory>(inventory.slots[i]);
+				auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
+				if (inventory_slot.hasItem) {
+					registry.remove<HiddenInventory>(inventory_slot.item);
+				}
+			}
+		}
+	}
 
 	//// TODO: testing sound system. remove this later
 	//if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
@@ -504,7 +536,7 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 void WorldSystem::right_mouse_click(int mods) {
 	bool itemUsed = false;
 
-	if (click_delay > 0.5f) {
+	if (click_delay > 0.3f) {
 		if (mods & GLFW_MOD_CONTROL) {
 			itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::CTRLRIGHT);
 		}
@@ -522,7 +554,7 @@ void WorldSystem::right_mouse_click(int mods) {
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && click_delay && !itemUsed) {
+	if (!registry.view<Drag>().empty() && click_delay > 0.3f && !itemUsed) {
 		UISystem::resetDragItem(registry);
 		click_delay = 0.0f;
 	}
@@ -560,14 +592,14 @@ void WorldSystem::left_mouse_click() {
 
 	bool itemUsed = false;
 
-	if (click_delay > 0.5f) {
+	if (click_delay > 0.3f) {
 		itemUsed = UISystem::useItemFromInventory(registry, mouse_pos_x, mouse_pos_y, Click::LEFT);
 		if (itemUsed) {
 			click_delay = 0.0f;
 		}
 	}
 
-	if (!registry.view<Drag>().empty() && click_delay > 0.5f && !itemUsed) {
+	if (!registry.view<Drag>().empty() && click_delay > 0.3f && !itemUsed) {
 		UISystem::dropItem(registry, Click::LEFT);
 		UISystem::equip_delay = 0.0f;
 		click_delay = 0.0f;
@@ -575,7 +607,7 @@ void WorldSystem::left_mouse_click() {
 	
 	if (player_comp.weapon_cooldown <= 0 && 
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
-		click_delay > 0.5f) {
+		click_delay > 0.3f) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
