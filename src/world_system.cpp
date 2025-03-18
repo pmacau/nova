@@ -33,6 +33,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createTitleScreen(registry);
 	createPlayerHealthBar(registry);
 	createInventory(registry);
+	createMinimap(registry);
 
 
 	// seeding rng with random device

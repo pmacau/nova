@@ -173,22 +173,22 @@ void create_biome_map(GameMap& game_map) {
             unsigned char r, g, b;
             switch (get_biome(game_map[row][col])) {
                 case B_FOREST:
-                    r = 0; g=255; b=0;
+                    r = 62; g=137; b=72;
                     break;
                 case B_BEACH:
-                    r=255; g=0; b=255;
+                    r=184; g=188; b=78;
                     break;
                 case B_SAVANNA:
-                    r=255; g=255; b=0;
+                    r=120; g=138; b=50;
                     break;
                 case B_ICE:
-                    r=0; g=255; b=255;
+                    r=255; g=255; b=255;
                     break;
                 case B_JUNGLE:
-                    r=255; g=0; b=0;
+                    r=17; g=91; b=40;
                     break;
                 default:
-                    r=0; g=0; b=255;
+                    r=0; g=149; b=233;
             }
             int pixel_index = (row * w + col) * 3;
             out.data[pixel_index] = r;

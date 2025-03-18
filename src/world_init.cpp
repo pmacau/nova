@@ -607,3 +607,26 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 	return entity;
 }
+
+entt::entity createMinimap(entt::registry & registry) {
+	auto entity = registry.create();
+	registry.emplace<FixedUI>(entity);
+	registry.emplace<UI>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = { WINDOW_WIDTH_PX - 175.F, 100.F };
+	motion.angle = 0.f;
+	motion.velocity = vec2({ 0, 0 });
+	motion.scale = vec2(499.f / 3, 499.f / 3);
+	motion.offset_to_ground = vec2(0, motion.scale.y / 2.f);
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 499.f, 499.f };
+	sprite.sheet_dims = { 499.f, 499.f };
+
+	auto& render_request = registry.emplace<RenderRequest>(entity);
+	render_request.used_texture = TEXTURE_ASSET_ID::MINIMAP;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	return entity;
+}
