@@ -350,8 +350,8 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	vec2 centre_position = motion.position;
 	Transform model_transform;
 	model_transform.translate(centre_position);
-	model_transform.scale(motion.scale);
 	model_transform.rotate(radians(motion.angle));
+	model_transform.scale(motion.scale);
 
 	Transform camera_transform;
 	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
@@ -917,7 +917,7 @@ void RenderSystem::renderShipUI()
 		{"Blaster", vec2(3*WINDOW_WIDTH_PX/4 - 75.0f, WINDOW_HEIGHT_PX/4 + 75.0f)},
 		// shield line
 		{"", vec2(WINDOW_WIDTH_PX/2 - 30.0f, WINDOW_HEIGHT_PX/2 + 75.0f)},
-		{"Shield", vec2(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4)},
+		{"Range", vec2(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4)},
 		// fire rate line
 		{"", vec2(WINDOW_WIDTH_PX/2 + 75.0f, WINDOW_HEIGHT_PX/2 + 40.0f)},
 		{"Fire Rate", vec2(3*WINDOW_WIDTH_PX/4 - 75.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f)},

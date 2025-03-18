@@ -55,6 +55,15 @@ private:
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
 	entt::entity screen_entity;
+
+	enum class BulletType {
+        GOLD_PROJECTILE,
+		BLASTER_PROJECTILE,
+		MISSLE_PROJECTILE,
+		RAILGUN_PROJECTILE,
+		SMG_PROJECTILE
+    };
+    BulletType bulletType;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float click_delay; 

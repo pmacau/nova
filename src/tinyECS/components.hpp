@@ -225,7 +225,7 @@ struct ButtonOption
 		// for ship upgrade screen
 		SHIP_HEALTH_UPGRADE,
 		SHIP_BLASTER_UPGRADE,
-		SHIP_SHIELD_UPGRADE,
+		SHIP_RANGE_UPGRADE,
 		SHIP_FIRERATE_UPGRADE,
 	};
 	Option type;

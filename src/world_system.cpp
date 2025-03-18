@@ -78,9 +78,9 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createIcon(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), PLAYER_SPRITESHEET.dims * vec2(2.0f, 2.0f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
 
 
-	// init all the ui ship
+	// init all the ui ship stuff
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 150.0f, WINDOW_WIDTH_PX/3 - 150.0f), 4);
-	//smg
+	// smg weapon
 	createUIShipWeapon( registry, 
 						vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 
 						vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 150.0f), 
@@ -88,14 +88,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 						vec2(336.f, 48.f), 
 						{0, 0}, 
 						8 );
-
-	// blaster
-	// createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 9);
-	// missles
-	// createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 10);
-	// railgun
-	// createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 10.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 11);
-	// smg
+	// smg engin
 	createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 5.0f), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), 12);
 
 	// health
@@ -103,7 +96,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	// blaster
 	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 + 278.0f, WINDOW_HEIGHT_PX/2 - 30.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
 	// shield
-	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 - 252.0f, WINDOW_HEIGHT_PX/2 + 165.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_SHIELD_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 - 252.0f, WINDOW_HEIGHT_PX/2 + 165.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
 	// fire rate
 	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 + 308.0f, WINDOW_HEIGHT_PX/2 + 140.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
 
@@ -337,7 +330,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (glm::distance(shipPos, enemyPos) <= ship.range) {
 				vec2 direction = normalize(enemyPos - shipPos);
 				vec2 velocity = direction * PROJECTILE_SPEED;
-				createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+				switch (bulletType) {
+					case BulletType::GOLD_PROJECTILE:
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
+						break;
+					case BulletType::BLASTER_PROJECTILE:
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, TEXTURE_ASSET_ID::BLASTER_PROJECTILE);
+						break;
+					case BulletType::MISSLE_PROJECTILE:
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), velocity, TEXTURE_ASSET_ID::MISSLE_PROJECTILE);
+						break;
+					case BulletType::RAILGUN_PROJECTILE:
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), velocity, TEXTURE_ASSET_ID::RAILGUN_PROJECTILE);
+						break;
+					case BulletType::SMG_PROJECTILE:
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), velocity, TEXTURE_ASSET_ID::SMG_PROJECTILE);
+						break;
+					default:
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
+						break;
+				}
 			}
 		}
 	}
@@ -689,12 +701,16 @@ void WorldSystem::left_mouse_click() {
 					}
 					for (auto ship_entity : registry.view<Ship>()) {
 						auto& ship_render = registry.get<RenderRequest>(ship_entity);
+						auto& ship = registry.get<Ship>(ship_entity);
 						if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_DAMAGE;
+							ship.health += SHIP_HEALTH_UPGRADE;
 						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE;
+							ship.health += SHIP_HEALTH_UPGRADE;
 						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
+							ship.health += SHIP_HEALTH_UPGRADE;
 						} else {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 						}
@@ -736,9 +752,8 @@ void WorldSystem::left_mouse_click() {
 								6 );
 							
 							// change the bullet type
-							// auto& ship_bullet = registry.get<Ship>(ship_entity);
-							// ship_bullet.bulletType = Ship::BulletType::MISSLES_PROJ;
-							// TODO: ???????
+							bulletType = BulletType::MISSLE_PROJECTILE;
+
 						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_MISSLES_WEAPON) {
 							// change to blaster
 							registry.destroy(ui_ship_weapon_entity);
@@ -763,6 +778,9 @@ void WorldSystem::left_mouse_click() {
 								vec2(336.f, 48.f), 
 								{0, 0}, 
 								5 );
+							
+							// change the bullet type
+							bulletType = BulletType::BLASTER_PROJECTILE;
 
 						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_WEAPON) {
 							// change to railgun
@@ -787,6 +805,9 @@ void WorldSystem::left_mouse_click() {
 								vec2(336.f, 48.f), 
 								{0, 0}, 
 								7 );
+							
+							// change the bullet type
+							bulletType = BulletType::RAILGUN_PROJECTILE;
 
 						} else if (!ui_ship_weapon.active) {
 							// create a new weapon (start as smg)
@@ -812,6 +833,9 @@ void WorldSystem::left_mouse_click() {
 								vec2(336.f, 48.f), 
 								{0, 0}, 
 								8 );
+							
+							// change the bullet type
+							bulletType = BulletType::SMG_PROJECTILE;
 						}
 					}
 				}
@@ -855,7 +879,7 @@ void WorldSystem::left_mouse_click() {
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
 							registry.destroy(shipEngine.begin(), shipEngine.end());
-							createShipEngine(registry, vec2(ship_pos.x + 10.0f, ship_pos.y) , vec2(240.0f - 100.0f, 137.5f - 50.0f), 11);
+							createShipEngine(registry, vec2(ship_pos.x + 15.0f, ship_pos.y) , vec2(240.0f - 110.0f, 137.5f - 45.0f), 11);
 
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
@@ -871,18 +895,10 @@ void WorldSystem::left_mouse_click() {
 						}
 					}
 				}
-				// if (title_option.type == ButtonOption::Option::SHIP) {
-				// 	screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
-				// 	return;
-				// }
-				// else if (title_option.type == ButtonOption::Option::EXIT) {
-				// 	close_window();
-				// }
-				// else if (title_option.type == ButtonOption::Option::RESTART) {
-				// 	screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
-				// 	restart_game();
-				// 	return;
-				// }
+				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE) {
+					auto& ship = registry.get<Ship>(ship_entity);
+					ship.range += SHIP_RANGE_UPGRADE;
+				}
 				upgrade_option.hover = false;
 			}
 			
@@ -907,7 +923,7 @@ void WorldSystem::left_mouse_click() {
 	if (player_comp.weapon_cooldown <= 0 && 
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
 		click_delay > 0.5f) {
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
 	}

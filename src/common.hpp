@@ -52,6 +52,10 @@ const int SHIP_TIMER_MS = 50;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 
+const int SHIP_HEALTH_UPGRADE = 200;
+const int SHIP_RANGE_UPGRADE = 100;
+const int SHIP_DAMAGE_UPGRADE = 10;
+
 const int PROJECTILE_DAMAGE = 20;
 
 const int PLAYER_HEALTH = 100;

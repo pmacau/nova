@@ -246,14 +246,14 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	motion.scale = GAME_SCALE * vec2(120, 120);
 	motion.offset_to_ground = vec2(0, motion.scale.y / 2);
 
-	float w = motion.scale.x * 0.8;
-	float h = motion.scale.y;
+	float w = motion.scale.x * 0.5;
+	float h = motion.scale.y * 0.3;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = {
-		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+		{w * -0.45f, h * -0.9f}, {w * 0.45f, h * -0.9f},
+		{w * 0.45f, h * 0.15f},   {w * -0.45f, h * 0.15f}
 	};
-	hitbox.depth = 100;
+	hitbox.depth = 130;
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
@@ -448,7 +448,7 @@ entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, s
 	return entity;
 }
 
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity)
+entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, TEXTURE_ASSET_ID projectileType)
 {
 	debug_printf(DebugType::WORLD_INIT, "Projectile created: (%.1f, %.1f)\n", pos.x, pos.y);
 	auto entity = registry.create();
@@ -466,6 +466,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.position = pos;
 	motion.scale = size;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+	motion.angle = atan2(velocity.y, velocity.x) * (180.0f / M_PI) + 90.0f;
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
@@ -478,7 +479,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::RAILGUN_PROJECTILE;
+	renderRequest.used_texture = projectileType;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
