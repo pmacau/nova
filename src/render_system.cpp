@@ -140,6 +140,7 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
     // Set projection
     GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
     glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
