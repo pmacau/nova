@@ -84,7 +84,6 @@ std::unordered_map<Terrain, std::string> byte_map = {
     {Terrain::WATER, "W"}, {Terrain::SAND, "S"}, {Terrain::GRASS, "G"}
 };
 
-
 void update_tile(
     GameMap& game_map, int row, int col,
     Box& tile_box
@@ -122,6 +121,7 @@ void update_tile(
     tile_box.x = coord.second  * tile_box.w;
     tile_box.y = coord.first * tile_box.h;
 }
+
 
 void create_background(GameMap& game_map) {
     int h = game_map.size() - 1;
