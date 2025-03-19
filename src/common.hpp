@@ -39,24 +39,27 @@ inline std::string map_path(const std::string& name)  {return data_path() + "/ma
 //
 // game constants
 //
-// const int WINDOW_WIDTH_PX = 840;
-// const int WINDOW_HEIGHT_PX = 600;
-const int WINDOW_WIDTH_PX = 960;
-const int WINDOW_HEIGHT_PX = 540;
+const int WINDOW_WIDTH_PX = 840;
+const int WINDOW_HEIGHT_PX = 560;
 
 const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
 const int GRID_LINE_WIDTH_PX = 2;
 
-const int SHIP_TIMER_MS = 50;
+const float SHIP_TIMER_S = 1.f;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 
 const int SHIP_HEALTH_UPGRADE = 200;
 const int SHIP_RANGE_UPGRADE = 100;
 const int SHIP_DAMAGE_UPGRADE = 10;
+const int SHIP_TIMER_UPGRADE = 0.15;
 
 const int PROJECTILE_DAMAGE = 20;
+const int SMG_PROJ_DAMAGE = 25;
+const int MISSLE_PROJ_DAMAGE = 30;
+const int BLASTER_PROJ_DAMAGE = 40;
+const int RAILGUN_PROJ_DAMAGE = 50;
 
 const int PLAYER_HEALTH = 100;
 const int MOB_HEALTH = 50; 
@@ -67,6 +70,11 @@ const float GAME_SCALE = 2.f;
 
 const int MOB_DAMAGE = 25; 
 const float PROJECTILE_SPEED = 500.0f;
+const float SMG_PROJ_SPEED = 600.0f;
+const float MISSLE_PROJ_SPEED = 700.0f;
+const float BLASTER_PROJ_SPEED = 800.0f;
+const float RAILGUN_PROJ_SPEED = 1000.0f;
+
 const float PROJECTILE_SIZE = 20.0f;
 const int PROJECTILE_TIMER = 5000;
 

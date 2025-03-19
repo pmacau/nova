@@ -25,7 +25,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health = MO
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
 // projectile
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, TEXTURE_ASSET_ID projectileType);
+entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, TEXTURE_ASSET_ID projectileType);
 
 
 entt::entity createBoss(entt::registry& registry, vec2 pos);

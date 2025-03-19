@@ -10,8 +10,13 @@ With each milestone, we will add additional controls as necessary
 - Combat:
   - Aim with the mouse
   - Shoot projectiles at the enemy with left-mouse click
+- Gameplay:
+  - When near the ship, press "f" to toggle the ship UI
+  - Left click items in the inventory to consume them
 - Utility:
   - Press "r" to restart the game
+  - Press buttons 1-6 to change the background music track
+  - Press "esc" to pause the game and view the title screeen 
 
 # Milestone 1
 
@@ -43,3 +48,31 @@ With each milestone, we will add additional controls as necessary
   - View the FPS in the window title caption
   - Shoot many projectiles, and observe as the FPS will stay relatively constant
   - Leave the game on for an extended period of time (i.e. 5 minutes). Observe that the performance does not degrade
+ 
+# Milestone 2
+
+# Actions
+
+_All of the above actions from previous milestones and..._
+
+- **Traverse the island**:
+  - Notice the new trees and shrubbery. Trees spawn on grass tiles, and cacti spawn on sand tiles
+  - Run around to see different enemy types including blue goblins (periodically spawn), and boss enemies (found at the far corners of the map)
+  - Walk into different obstacles including water, trees/cacti, and the ship to see the collision detection
+
+- **Fight the enemy**:
+  - Experiment with running to and away the blue goblins to see their AI state transitions
+  - Observe that enemies spawn at set intervals randomly around the player, up to a certain mob cap
+  - Notice that enemies can spawn in groups/hoardes instead of individually
+  - Travel to all corners of the map to find and defeat the 4 boss enemies
+
+- **Performance testing**:
+  - View the FPS in the window title caption
+  - Shoot many projectiles, and observe as the FPS will stay relatively constant
+  - Leave the game on for an extended period of time (i.e. 5 minutes). Observe that the performance does not degrade
+ 
+- **UI**:
+  - Follow the prompts on screen during the tutorial to learn how to play the game
+  - Notice that the tutorial changes state after succesfully completing a stage
+  - Press "f" near the ship to view the ship upgrade UI (ship upgrades coming in a future milestone)
+  - Press "esc" to pause the game and view the title screen UI. Load and save functionality coming in a future milestone.

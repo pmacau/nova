@@ -6,6 +6,8 @@
 #include "render_system.hpp"
 #include "tinyECS/components.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "collision/hitbox.hpp"
+#include "quadtree/quadtree.hpp"
 // for the text rendering
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -14,8 +16,11 @@
 #include <filesystem>
 #include <sstream>
 
-RenderSystem::RenderSystem(entt::registry& reg) :
-	registry(reg)
+
+RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
+	registry(reg), 
+	quadTree(quadTree)
+
 {
 	screen_state_entity = registry.create();
 	screen_entity = registry.view<ScreenState>().front();
@@ -337,6 +342,106 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection, const glm::mat
 }
 */
 
+void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection) {
+	// Skip if debug mode is not enabled
+	//if (!debugModeEnabled) return;
+
+	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::DEBUG]);
+	gl_has_errors();
+
+	// Set shader uniforms
+	GLint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "projection");
+	glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	gl_has_errors();
+
+	// Get camera entity for offset
+	auto camera_entity = registry.view<Camera>().front();
+	auto& camera = registry.get<Camera>(camera_entity);
+
+	// Process all entities with HitBox and Motion components
+	auto view = registry.view<Hitbox, Motion>();
+	for (auto entity : view) {
+		auto& hitbox = registry.get<Hitbox>(entity);
+		auto& motion = registry.get<Motion>(entity);
+
+		// Skip drawing if entity is too far from camera view
+		vec2 entityPos = motion.position - camera.offset;
+		if (entityPos.x < -200 || entityPos.x > WINDOW_WIDTH_PX + 200 ||
+			entityPos.y < -200 || entityPos.y > WINDOW_HEIGHT_PX + 200) {
+			continue;
+		}
+
+		// Create transform matrix for this entity
+		glm::mat4 transform = glm::mat4(1.0f);
+		transform = glm::translate(transform, glm::vec3(motion.position, 0.0f));
+		transform = glm::rotate(transform, glm::radians(motion.angle), glm::vec3(0.0f, 0.0f, 1.0f));
+		transform = glm::scale(transform, glm::vec3(motion.scale, 1.0f));
+		// Convert back to mat3 if needed
+		glm::mat3 final_transform = glm::mat3(transform);
+
+
+		// Apply camera transform
+		glm::mat3 cameraTransform = glm::mat3(1.0f);
+		if (!registry.any_of<FixedUI>(entity)) {
+			//cameraTransform = glm::translate(cameraTransform, -camera.offset);
+		}
+
+		// Set transform uniform
+		GLint transformLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
+		//glUniformMatrix3fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cameraTransform * transform));
+
+		// Set color based on entity type
+		vec3 color = { 1.0f, 0.0f, 0.0f }; // Default red
+		if (registry.any_of<Player>(entity)) {
+			color = { 0.0f, 1.0f, 0.0f }; // Green for player
+		}
+		else if (registry.any_of<Mob>(entity)) {
+			color = { 1.0f, 0.5f, 0.0f }; // Orange for mobs
+		}
+		else if (registry.any_of<Projectile>(entity)) {
+			color = { 0.0f, 0.0f, 1.0f }; // Blue for projectiles
+		}
+
+		GLint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "debugColor");
+		glUniform3fv(colorLoc, 1, glm::value_ptr(color));
+		gl_has_errors();
+
+		// Create and bind VAO/VBO for this hitbox
+		GLuint debugVAO, debugVBO;
+		glGenVertexArrays(1, &debugVAO);
+		glGenBuffers(1, &debugVBO);
+
+		glBindVertexArray(debugVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, debugVBO);
+
+		// Convert hitbox points to vertices
+		std::vector<float> vertices;
+		for (const auto& pt : hitbox.pts) {
+			vertices.push_back(pt.x);
+			vertices.push_back(pt.y);
+		}
+
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+		// Draw the hitbox as a line loop
+		glDrawArrays(GL_LINE_LOOP, 0, hitbox.pts.size());
+
+		// Clean up
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		glDeleteBuffers(1, &debugVBO);
+		glDeleteVertexArrays(1, &debugVAO);
+	}
+
+	// Restore default VAO
+	glBindVertexArray(defaultVAO);
+	gl_has_errors();
+}
+
+
 void RenderSystem::drawTexturedMesh(entt::entity entity,
 									const mat3 &projection)
 {
@@ -563,16 +668,6 @@ void RenderSystem::renderGamePlay()
 	mat3 flippedUIProjection = ui_projection_2D;
 	flippedUIProjection[1][1] *= -1.0f;
 
-	// render all the textboxes
-	// std::vector<entt::entity> textBoxesUI;
-	// auto textboxes = registry.view<Motion, RenderRequest, TextData>();
-	// for (auto entity : textboxes) {
-	// 	auto& textData = registry.get<TextData>(entity);
-	// 	// Only process active text boxes
-	// 	if (textData.active) {
-	// 		textBoxesUI.push_back(entity);
-	// 	}
-	// }
 
 	// for (auto entity : textBoxesUI) {
 	// 	drawTexturedMesh(entity, projection_2D);
@@ -591,28 +686,78 @@ void RenderSystem::renderGamePlay()
 	// 		flippedProjection);
 	// }
 
-	// Render huge background texture
+	// Render huge background texture 
 	auto background = registry.view<Background>().front();
-	drawTexturedMesh(background, projection_2D);
+	drawTexturedMesh(background, projection_2D); 
 
-	// Render main entities
-	registry.sort<Motion>([](const Motion& lhs, const Motion& rhs) {
-        return (lhs.position.y + lhs.offset_to_ground.y) < (rhs.position.y + rhs.offset_to_ground.y);
-    });
-    auto spriteRenders = registry.view<Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
-    spriteRenders.use<Motion>();
-    for (auto entity : spriteRenders) {
+	auto playerView = registry.view<Player, Motion>();
+	if (playerView.begin() == playerView.end()) {
+		return; 
+	}
+	auto playerEntity = playerView.front();
+	const auto& playerMotion = registry.get<Motion>(playerEntity);
+	const float queryRange = WINDOW_WIDTH_PX * 1.25f; // Adjust based on your game's scale
+	Quad rangeQuad(
+		playerMotion.position.x,
+		playerMotion.position.y,
+		queryRange,
+		queryRange
+	);
+
+	std::vector<entt::entity> nearbyEntities = quadTree.quadTree->queryRange(rangeQuad, registry);
+	nearbyEntities.push_back(playerEntity); // never have to update player since all queries will be based off player anyways
+	auto mobs = registry.view<Mob>();
+	for (auto mob : mobs) {
+		nearbyEntities.push_back(mob);
+	}
+	auto projectiles = registry.view<Projectile>();
+	for (auto projectile : projectiles) {
+		nearbyEntities.push_back(projectile);
+	}
+
+	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+    shipEngineRenders.use<Motion>();
+    for (auto entity : shipEngineRenders) {
+        drawTexturedMesh(entity, projection_2D);
+    }
+	auto shipWeaponRenders = registry.view<ShipWeapon, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+    shipWeaponRenders.use<Motion>();
+    for (auto entity : shipWeaponRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
 
-	// Render dynamic UI
+	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+		nearbyEntities.push_back(item);
+	}
+
+	std::sort(nearbyEntities.begin(), nearbyEntities.end(),
+		[this](entt::entity lhs, entt::entity rhs) {
+			const auto& lhsMotion = registry.get<Motion>(lhs);
+			const auto& rhsMotion = registry.get<Motion>(rhs);
+			return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+				(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+		});
+	for (auto entity : nearbyEntities) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+	//auto uiMotions = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>); 
+
+	//std::sort(uiMotions.begin(), uiMotions.end(),
+	//	[this](entt::entity lhs, entt::entity rhs) {
+	//		const auto& lhsMotion = registry.get<Motion>(lhs);
+	//		const auto& rhsMotion = registry.get<Motion>(rhs);
+	//		return (lhsMotion.position.y + lhsMotion.offset_to_ground.y) <
+	//			(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
+	//	});
+
 	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -629,22 +774,25 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-		} else {
-			// This is a regular UI element, not a textbox
+		}
+		else {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
 	}
-	
+
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, Button, UIIcon>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory, Button, UIIcon>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
+	
 	// multiple quantity item on ground and on the inventory system should have a text next to it
-	for (auto entity : registry.view<Item>(entt::exclude<DeathItems>)) {
+	for (auto entity : registry.view<Item>(entt::exclude<DeathItems, HiddenInventory>)) {
 		auto& motion = registry.get<Motion>(entity);
 		auto& item = registry.get<Item>(entity);
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
+		if (item.no == 1) continue;
+		// TODO use ternary operator instead
 		if (item.no >= 10) {
 			if (registry.all_of<UI>(entity)) {
 				textsToRender.push_back(
@@ -681,7 +829,7 @@ void RenderSystem::renderGamePlay()
 					)
 				);
 			}
-			else if (item.no != 1) {
+			else {
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),
@@ -957,7 +1105,7 @@ void RenderSystem::renderShipUI()
 	for (auto& entity : buttonEntities) {
 		auto& button = registry.get<UpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
-		renderText(button.text, motion.position.x - 510.0f, -motion.position.y + 265.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+		renderText(button.text, motion.position.x - 450.0f, -motion.position.y + 275.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 	}
 	
 	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);

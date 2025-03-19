@@ -11,7 +11,7 @@
 #include "render_system.hpp"
 #include "physics_system.hpp"
 #include "flag_system.hpp"
-
+#include "quadtree/quadtree.hpp"
 enum KeyboardState {
 	UP, DOWN, LEFT, RIGHT, NUM_STATES,
 };
@@ -20,7 +20,7 @@ class WorldSystem
 {
 public:
 
-	WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system);
+	WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system, QuadTree& quadTree);
 
 	// creates main window
 	GLFWwindow* create_window();
@@ -49,6 +49,7 @@ public:
 private:
 	entt::registry& registry;
 	entt::entity player_entity;
+	QuadTree& quadTree; 
 	PhysicsSystem& physics_system;
 	FlagSystem& flag_system;
 
