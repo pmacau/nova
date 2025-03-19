@@ -308,7 +308,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 						break;
 					case BulletType::BLASTER_PROJECTILE:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), blaster_velocity, BLASTER_PROJ_DAMAGE, TEXTURE_ASSET_ID::BLASTER_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE*1.5, PROJECTILE_SIZE*1.5), blaster_velocity, BLASTER_PROJ_DAMAGE, TEXTURE_ASSET_ID::BLASTER_PROJECTILE);
 						break;
 					case BulletType::MISSLE_PROJECTILE:
 						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), missle_velocity, MISSLE_PROJ_DAMAGE, TEXTURE_ASSET_ID::MISSLE_PROJECTILE);
@@ -475,6 +475,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		else {
 			debug_printf(DebugType::USER_INPUT, "Opening pause title screen\n");
 			screen_state.current_screen = ScreenState::ScreenType::TITLE;
+			for (auto entity : registry.view<ButtonOption>()) {
+				auto& button_option = registry.get<ButtonOption>(entity);
+				button_option.hover = false;
+			}
 		}
 	}
 
