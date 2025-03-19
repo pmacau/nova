@@ -982,10 +982,9 @@ void RenderSystem::renderUpgradeUI()
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			// renderText(ui_option.text, ui_option.position.x - ui_option.size.x / 6.f, -ui_option.position.y - ui_option.size.y / 2.f - 25.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-			float textWidth = getTextWidth(ui_option.text, 0.5f); // Implement this function
+			float textWidth = getTextWidth(ui_option.text, 0.5f);
 			float centeredX = ui_option.position.x - textWidth / 2.0f;
-			float centeredY = -ui_option.position.y - ui_option.size.y / 2.f - 25.0f;
+			float centeredY = -ui_option.position.y - ui_option.size.y / 2.f - getScaledHeight(0.02f);
 			
 			renderText(ui_option.text, centeredX, centeredY, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 		
@@ -997,7 +996,7 @@ void RenderSystem::renderUpgradeUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	renderText("UPGRADES", WINDOW_WIDTH_PX/2 - 100.0f, -WINDOW_HEIGHT_PX/2 + 225.0f, 0.8f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	renderText("UPGRADES",  w/4 - getTextWidth("UPGRADES", 0.8f)/2, -h/2 + getScaledHeight(0.45f), 0.8f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -1066,33 +1065,33 @@ void RenderSystem::renderShipUI()
     // positions of upgradeable parts (start)
     std::vector<std::pair<std::string, vec2>> upgradePoints = {
 		// health line
-        {"", vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 - 25.0f)},
-		{"Health", vec2(WINDOW_WIDTH_PX/4 + 100.0f, WINDOW_HEIGHT_PX/4 + 50.0f)},
-		// weapon line
-		{"", vec2(WINDOW_WIDTH_PX/2 + 75.0f, WINDOW_HEIGHT_PX/2)},
-		{"Blaster", vec2(3*WINDOW_WIDTH_PX/4 - 75.0f, WINDOW_HEIGHT_PX/4 + 75.0f)},
-		// shield line
-		{"", vec2(WINDOW_WIDTH_PX/2 - 30.0f, WINDOW_HEIGHT_PX/2 + 75.0f)},
-		{"Range", vec2(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4)},
-		// fire rate line
-		{"", vec2(WINDOW_WIDTH_PX/2 + 75.0f, WINDOW_HEIGHT_PX/2 + 40.0f)},
-		{"Fire Rate", vec2(3*WINDOW_WIDTH_PX/4 - 75.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f)},
+        {"", vec2(w/4, h/4 - h/2*0.045f)},
+        {"Health", vec2(w/8 + w/2*0.12f, h/8 + h/2*0.09f)},
+        // weapon line
+        {"", vec2(w/4 + w/2*0.09f, h/4)},
+        {"Blaster", vec2(3*w/8 - w/2*0.09f, h/8 + h/2*0.13f)},
+        // shield line
+        {"", vec2(w/4 - w/2*0.035f, h/4 + h/2*0.13f)},
+        {"Range", vec2(w/8 + w/2*0.12f, 3*h/8)},
+        // fire rate line
+        {"", vec2(w/4 + w/2*0.09f, h/4 + h/2*0.07f)},
+        {"Fire Rate", vec2(3*w/8 - w/2*0.09f, 3*h/8 - h/2*0.045f)},
     };
     
     // where labels should be positioned (end)
     std::vector<vec3> labelPositions = {
-		//health line
-        vec3(WINDOW_WIDTH_PX/4 + 100.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 0.0f),
-		vec3(WINDOW_WIDTH_PX/4 + 25.0f, WINDOW_HEIGHT_PX/4 + 50.0f, 75.0f),
-		// weapon line
-		vec3(3*WINDOW_WIDTH_PX/4 - 75.0f, WINDOW_HEIGHT_PX/4 + 75.0f, 0.0f),
-		vec3(3*WINDOW_WIDTH_PX/4, WINDOW_HEIGHT_PX/4 + 75.0f, 0.0f),
-		// shield line
-		vec3(WINDOW_WIDTH_PX/4 + 100.0f, 3*WINDOW_HEIGHT_PX/4, 0.0f),
-		vec3(WINDOW_WIDTH_PX/4 + 25.0f, 3*WINDOW_HEIGHT_PX/4, 70.0f),
-		// fire rate line
-		vec3(3*WINDOW_WIDTH_PX/4 - 75.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 0.0f),
-		vec3(3*WINDOW_WIDTH_PX/4 + 21.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 0.0f),
+		// health line
+        vec3(w/8 + w/2*0.12f, h/8 + h/2*0.09f, 0.0f),
+        vec3(w/8 + w/2*0.03f, h/8 + h/2*0.09f, w/2*0.09f),
+        // weapon line
+        vec3(3*w/8 - w/2*0.09f, h/8 + h/2*0.13f, 0.0f),
+        vec3(3*w/8, h/8 + h/2*0.13f, 0.0f),
+        // shield line
+        vec3(w/8 + w/2*0.12f, 3*h/8, 0.0f),
+        vec3(w/8 + w/2*0.03f, 3*h/8, w/2*0.08f),
+        // fire rate line
+        vec3(3*w/8 - w/2*0.09f, 3*h/8 - h/2*0.045f, 0.0f),
+        vec3(3*w/8 + w/2*0.025f, 3*h/8 - h/2*0.045f, 0.0f),
     };
     
     // draw lines pointing to upgradeable parts
@@ -1101,7 +1100,7 @@ void RenderSystem::renderShipUI()
 		
         mat3 flippedProjection = ui_projection_2D;
         flippedProjection[1][1] *= -1.0f;
-        renderText(upgradePoints[i].first, labelPositions[i].x - labelPositions[i].z, -labelPositions[i].y - 5.0f, 
+        renderText(upgradePoints[i].first, labelPositions[i].x - labelPositions[i].z, -labelPositions[i].y - h/2*0.01, 
                    0.5f, vec3(1.0f, 1.0f, 1.0f), flippedProjection);
     }
 
@@ -1112,10 +1111,10 @@ void RenderSystem::renderShipUI()
 	for (auto& entity : buttonEntities) {
 		auto& button = registry.get<UpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
-		renderText(button.text, motion.position.x - 450.0f, -motion.position.y + 275.0f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+		renderText(button.text, motion.position.x - w/2*0.538f, -motion.position.y + h/2*0.49f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 	}
 	
-	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+	renderText("SHIP UPGRADES", -w/2*0.15f, h/2*0.4f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -1266,3 +1265,24 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 	// Re-enable depth test
     glEnable(GL_DEPTH_TEST);
 } 
+
+// helpers
+float RenderSystem::getScaledWidth(float percentage) {
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    return w * percentage;
+}
+
+float RenderSystem::getScaledHeight(float percentage) {
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    return h * percentage;
+}
+
+vec2 RenderSystem::getScaledPosition(float xPercentage, float yPercentage) {
+    return vec2(getScaledWidth(xPercentage), getScaledHeight(yPercentage));
+}
+
+vec2 RenderSystem::getScaledSize(float widthPercentage, float heightPercentage) {
+    return vec2(getScaledWidth(widthPercentage), getScaledHeight(heightPercentage));
+}

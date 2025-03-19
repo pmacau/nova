@@ -34,61 +34,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
-
-	// init everything for the main upgrade screen
-	createButton(registry, vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), ButtonOption::Option::SHIP, "Ship"); 
-	createButton(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), ButtonOption::Option::PLAYER, "Player"); 
-	createButton(registry, vec2(2*WINDOW_WIDTH_PX/3 + 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), ButtonOption::Option::WEAPON, "Weapons"); 
-
-	createIcon(registry, vec2(2*WINDOW_WIDTH_PX/3 - 405.0f, WINDOW_HEIGHT_PX/2 - 3.0f), vec2(WINDOW_WIDTH_PX/3 - 190.0f, WINDOW_WIDTH_PX/3 - 190.0f), 1, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
-	createIcon(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), PLAYER_SPRITESHEET.dims * vec2(1.8f, 1.8f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
-
-
-	// init all the ui ship stuff
-	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 100.0f, WINDOW_WIDTH_PX/3 - 100.0f), 4);
-	// smg weapon
-	createUIShipWeapon( registry, 
-						vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 
-						vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 100.0f), 
-						vec2(48.f, 48.f), 
-						vec2(336.f, 48.f), 
-						{0, 0}, 
-						8 );
-	// smg engine
-	createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 5.0f), vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 125.0f), 12);
-
-	// health
-	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 - 225.0f, WINDOW_HEIGHT_PX/2 - 63.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_HEALTH_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
-	// blaster
-	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 + 248.0f, WINDOW_HEIGHT_PX/2 - 38.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
-	// range
-	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 - 222.0f, WINDOW_HEIGHT_PX/2 + 165.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
-	// fire rate
-	createUpgradeButton(registry, vec2(WINDOW_WIDTH_PX/2 + 278.0f, WINDOW_HEIGHT_PX/2 + 140.0f), vec2(45.0f, 14.0f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
-
-	// init all of the text boxes for the tutorial
-	textBoxEntities.resize(5);
-    vec2 size = {0.4f, 3.0f};
-    textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
-    textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Great! Press 'F' near the ship to access or leave the ship upgrade", 0.35f, {1.0f, 1.0f, 1.0f});
-    textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Good job! Now use left click to firing your weapon.", 0.35f, {1.0f, 1.0f, 1.0f});
-    textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Nice shot! Go explore the planet.", 0.35f, {1.0f, 1.0f, 1.0f});
-    textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
-    
-    // make them all inactive initially
-    for (auto entity : textBoxEntities) {
-        auto& textData = registry.get<TextData>(entity);
-        textData.active = false;
-    }
-    
-    // then set only the first one to active
-    auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
-    firstTextData.active = true;
 }
 
 WorldSystem::~WorldSystem() {
@@ -173,6 +118,64 @@ void WorldSystem::init() {
 	// TODO: can move this next block into restart_game, but needs some debugging...
 	//       it put the player perma-stuck on the intiial tutorial screen on death
 
+	int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+
+	// init everything for the main upgrade screen
+	createButton(registry, vec2(w/6 - w/2*0.15f, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::SHIP, "Ship"); 
+	createButton(registry, vec2(w/4, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::PLAYER, "Player"); 
+	createButton(registry, vec2(2*w/6 + w/2*0.15f, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::WEAPON, "Weapons"); 
+
+	createIcon(registry, vec2(2*w/6 - w/2*0.48f, h/4 - h/2*0.005f), vec2(w/6 - w/2*0.23f, w/6 - w/2*0.23f), 1, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
+	createIcon(registry, vec2(w/4, h/4), PLAYER_SPRITESHEET.dims * vec2(1.8f, 1.8f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
+
+
+	// init all the ui ship stuff
+	createUIShip(registry, vec2(w/4, h/4), vec2(w/6 - w/2*0.12f, w/6 - w/2*0.12f), 4);
+	// smg weapon
+	createUIShipWeapon( registry, 
+						vec2(w/4, h/4), 
+						vec2(w/6 - w/2*0.15f, w/6 - w/2*0.12f),
+						vec2(48.f, 48.f), 
+						vec2(336.f, 48.f), 
+						{0, 0}, 
+						8 );
+	// smg engine
+	createUIShipEngine(registry, vec2(w/4, h/4 + h/2*0.01f), vec2(w/6 - w/2*0.15f, w/6 - w/2*0.15f), 12);
+
+	// health
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.27f, h/4 - h/2*0.11f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_HEALTH_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	// blaster
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.3f, h/4 - h/2*0.07f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	// range
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.26f, h/4 + h/2*0.3f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	// fire rate
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+
+	// init all of the text boxes for the tutorial
+	textBoxEntities.resize(5);
+    vec2 size = {0.4f, 3.0f};
+    textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
+    textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Great! Press 'F' near the ship to access or leave the ship upgrade", 0.35f, {1.0f, 1.0f, 1.0f});
+    textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Good job! Now use left click to firing your weapon.", 0.35f, {1.0f, 1.0f, 1.0f});
+    textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "Nice shot! Go explore the planet.", 0.35f, {1.0f, 1.0f, 1.0f});
+    textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
+        "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
+    
+    // make them all inactive initially
+    // for (auto entity : textBoxEntities) {
+    //     auto& textData = registry.get<TextData>(entity);
+    //     textData.active = false;
+    // }
+    
+    // // then set only the first one to active
+    // auto& firstTextData = registry.get<TextData>(textBoxEntities[0]);
+    // firstTextData.active = true;
+	
     //---------------------------------------
 	// reset all the text boxes
     for (auto entity : textBoxEntities) {
@@ -631,6 +634,10 @@ void WorldSystem::left_mouse_click() {
 
 	auto& player_comp = registry.get<Player>(player_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
+
+	int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 		for (auto entity : registry.view<ButtonOption>(entt::exclude<Button>)) {
 			auto& title_option = registry.get<ButtonOption>(entity);
@@ -725,8 +732,8 @@ void WorldSystem::left_mouse_click() {
 							// change to missles
 							registry.destroy(ui_ship_weapon_entity);
 							entt::entity curr = createUIShipWeapon( registry, 
-																	vec2(WINDOW_WIDTH_PX/2 + 10.0f, WINDOW_HEIGHT_PX/2), 
-																	vec2(WINDOW_WIDTH_PX/3 - 100.0f, WINDOW_WIDTH_PX/3 - 100.0f), 
+																	vec2(w/4 + w/2/84, h/4),
+																	vec2(w/6 - w/2/8.4, w/6 - w/2/8.4),
 																	vec2(51.f, 48.f), 
 																	vec2(816.f, 48.f), 
 																	{0, 0}, 
@@ -752,8 +759,8 @@ void WorldSystem::left_mouse_click() {
 							// change to blaster
 							registry.destroy(ui_ship_weapon_entity);
 							entt::entity curr = createUIShipWeapon( registry, 
-																	vec2(WINDOW_WIDTH_PX/2 - 37.0f, WINDOW_HEIGHT_PX/2), 
-																	vec2(WINDOW_WIDTH_PX/3 - 178.0f, WINDOW_WIDTH_PX/3 - 90.0f), 
+																	vec2(w/4 - w/2/22.7, h/4),
+																	vec2(w/6 - w/2/4.7, w/6 - w/2/9.3),
 																	vec2(51.f, 48.f), 
 																	vec2(816.f, 48.f), 
 																	{0, 0}, 
@@ -780,8 +787,8 @@ void WorldSystem::left_mouse_click() {
 							// change to railgun
 							registry.destroy(ui_ship_weapon_entity);
 							entt::entity curr = createUIShipWeapon( registry, 
-																	vec2(WINDOW_WIDTH_PX/2 - 20.0f, WINDOW_HEIGHT_PX/2), 
-																	vec2(WINDOW_WIDTH_PX/3 - 140.0f, WINDOW_WIDTH_PX/3 - 110.0f), 
+																	vec2(w/4 - w/2/42, h/4),
+																	vec2(w/6 - w/2/6, w/6 - w/2/7.6),
 																	vec2(51.f, 48.f), 
 																	vec2(816.f, 48.f), 
 																	{0, 0}, 
@@ -807,8 +814,8 @@ void WorldSystem::left_mouse_click() {
 							// create a new weapon (start as smg)
 							registry.destroy(ui_ship_weapon_entity);
 							entt::entity curr = createUIShipWeapon( registry, 
-																	vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), 
-																	vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 100.0f), 
+																	vec2(w/4, h/4), 
+																	vec2(w/6 - w/2/6.7, w/6 - w/2/8.4),
 																	vec2(48.f, 48.f), 
 																	vec2(336.f, 48.f), 
 																	{0, 0}, 
@@ -843,7 +850,10 @@ void WorldSystem::left_mouse_click() {
 						if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_ENGINE) {
 							// change to missles engine
 							registry.destroy(ui_ship_engine_entity);
-							entt::entity chosenEngine = createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 125.0f), 10);
+							entt::entity chosenEngine = createUIShipEngine(registry, 
+								vec2(w/4, h/4 + h/2/37.3),
+								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
+								10);
 							auto& currEngine = registry.get<UIShipEngine>(chosenEngine);
 							currEngine.active = true;
 
@@ -856,7 +866,10 @@ void WorldSystem::left_mouse_click() {
 						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_MISSLE_ENGINE) {
 							// change to blaster engine
 							registry.destroy(ui_ship_engine_entity);
-							entt::entity chosenEngine = createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 15.0f), vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 125.0f), 9);
+							entt::entity chosenEngine = createUIShipEngine(registry, 
+								vec2(w/4, h/4 + h/2/37.3),
+								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
+								9);
 							auto& currEngine = registry.get<UIShipEngine>(chosenEngine);
 							currEngine.active = true;
 
@@ -869,7 +882,10 @@ void WorldSystem::left_mouse_click() {
 						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE) {
 							// change to railgun engine
 							registry.destroy(ui_ship_engine_entity);
-							entt::entity chosenEngine = createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 10.0f), vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 125.0f), 11);
+							entt::entity chosenEngine = createUIShipEngine(registry, 
+								vec2(w/4, h/4 + h/2/56),
+								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
+								11);
 							auto& currEngine = registry.get<UIShipEngine>(chosenEngine);
 							currEngine.active = true;
 
@@ -882,7 +898,10 @@ void WorldSystem::left_mouse_click() {
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
 							registry.destroy(ui_ship_engine_entity);
-							entt::entity chosenEngine = createUIShipEngine(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2 + 5.0f), vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_WIDTH_PX/3 - 125.0f), 12);
+							entt::entity chosenEngine = createUIShipEngine(registry, 
+								vec2(w/4, h/4 + h/2/112),
+								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
+								12);
 							auto& currEngine = registry.get<UIShipEngine>(chosenEngine);
 							currEngine.active = true;
 							

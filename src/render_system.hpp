@@ -132,6 +132,12 @@ private:
 	void drawDebugHitBoxes(const glm::mat3& projection);
 	void drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection);
 
+	// helpers
+	float getScaledWidth(float percentage);
+	float getScaledHeight(float percentage);
+	vec2 getScaledPosition(float xPercentage, float yPercentage);
+	vec2 getScaledSize(float widthPercentage, float heightPercentage);
+
 
 	// void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
