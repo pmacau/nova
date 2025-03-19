@@ -459,7 +459,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	
+	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
+		set_debug(DebugType::TIME, true);
+	}
 
 	// F to toggle opening/closing ship ui
 	if (key == GLFW_KEY_F && action == GLFW_RELEASE) {
