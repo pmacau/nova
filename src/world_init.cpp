@@ -276,7 +276,6 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 
 entt::entity createShipWeapon(entt::registry& registry, vec2 position, vec2 size, vec2 sprite_dims, vec2 sprite_sheet_dims, FrameIndex sprite_coords, int weaponNum)
 {
-	std::cout << "creating ship weapon" << std::endl;
 	auto entity = registry.create();
 
 	registry.emplace<ShipWeapon>(entity);

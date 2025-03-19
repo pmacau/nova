@@ -715,6 +715,7 @@ void RenderSystem::renderGamePlay()
 		nearbyEntities.push_back(projectile);
 	}
 
+	// render all the ship weapons/engine
 	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
     shipEngineRenders.use<Motion>();
     for (auto entity : shipEngineRenders) {
@@ -952,21 +953,10 @@ void RenderSystem::renderUpgradeUI()
 	// mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
-	// render ship
-	// std::vector<entt::entity> buttonEntities;
-	// auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
-
-	// for (auto entity : UIShips) {
-	// 	buttonEntities.push_back(entity);
-	// }
-
-	// for (auto entity : buttonEntities) {
-	// 	drawTexturedMesh(entity, ui_projection_2D);
-	// }
-
-	// RENDER THE UI SCREENENA:SJDLAKJSDLKJAHSDLJKASLKDJBNLAK
+	// RENDER THE UI SCREEN
 	auto buttons = registry.view<Button, Motion, RenderRequest>();
 
+	// render the buttons
 	for (auto entity : buttons) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
@@ -976,10 +966,9 @@ void RenderSystem::renderUpgradeUI()
 	mat3 flippedProjection = ui_projection_2D;
 	flippedProjection[1][1] *= -1.0f;
 
-	
-
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
+	// render all the texts for the buttons
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
@@ -987,6 +976,7 @@ void RenderSystem::renderUpgradeUI()
 		}
 	}
 
+	// render the icons for each button
 	for (auto entity : registry.view<UIIcon, Motion, RenderRequest>()) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
@@ -1038,6 +1028,7 @@ void RenderSystem::renderShipUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
+	// render ship weapons
 	for (auto entity : registry.view<UIShipWeapon, Motion, RenderRequest>()) {
 		auto& shipWeapon = registry.get<UIShipWeapon>(entity);
 		if (shipWeapon.active) {
@@ -1045,6 +1036,7 @@ void RenderSystem::renderShipUI()
 		}
 	}
 
+	// render ship engine
 	for (auto entity : registry.view<UIShipEngine, Motion, RenderRequest>()) {
 		auto& shipEngine = registry.get<UIShipEngine>(entity);
 		if (shipEngine.active) {
@@ -1087,12 +1079,10 @@ void RenderSystem::renderShipUI()
 		vec3(3*WINDOW_WIDTH_PX/4 + 21.0f, 3*WINDOW_HEIGHT_PX/4 - 25.0f, 0.0f),
     };
     
-    // Draw lines pointing to upgradeable parts
+    // draw lines pointing to upgradeable parts
     for (int i = 0; i < upgradePoints.size(); i++) {
-        // Draw the line
         drawLine(upgradePoints[i].second, labelPositions[i], vec3(0.49f, 0.43f, 0.63f), 2.0f, ui_projection_2D);
 		
-        // Draw the label
         mat3 flippedProjection = ui_projection_2D;
         flippedProjection[1][1] *= -1.0f;
         renderText(upgradePoints[i].first, labelPositions[i].x - labelPositions[i].z, -labelPositions[i].y - 5.0f, 
@@ -1102,6 +1092,7 @@ void RenderSystem::renderShipUI()
 	mat3 flippedProjection = projection_2D;
 	flippedProjection[1][1] *= -1.0f; 
 
+	// display all the text for the buttons
 	for (auto& entity : buttonEntities) {
 		auto& button = registry.get<UpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
