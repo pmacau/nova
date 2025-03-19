@@ -53,7 +53,7 @@ const int SHIP_RANGE = 250;
 const int SHIP_HEALTH_UPGRADE = 200;
 const int SHIP_RANGE_UPGRADE = 100;
 const int SHIP_DAMAGE_UPGRADE = 10;
-const int SHIP_TIMER_UPGRADE = 0.15;
+const float SHIP_TIMER_UPGRADE = 0.15f;
 
 const int PROJECTILE_DAMAGE = 20;
 const int SMG_PROJ_DAMAGE = 25;

@@ -155,6 +155,7 @@ private:
 	mat3 shipUITransform = mat3(1.0f);
 	
 	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
+	float getTextWidth(const std::string& text, float scale);
 };
 
 bool loadEffectFromFile(

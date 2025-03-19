@@ -36,9 +36,9 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	rng = std::default_random_engine(std::random_device()());
 
 	// init everything for the main upgrade screen
-	createButton(registry, vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::SHIP, "Ship"); 
-	createButton(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::PLAYER, "Player"); 
-	createButton(registry, vec2(2*WINDOW_WIDTH_PX/3 + 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 200.0f, WINDOW_WIDTH_PX/3 - 200.0f), ButtonOption::Option::WEAPON, "Weapons"); 
+	createButton(registry, vec2(WINDOW_WIDTH_PX/3 - 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), ButtonOption::Option::SHIP, "Ship"); 
+	createButton(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), ButtonOption::Option::PLAYER, "Player"); 
+	createButton(registry, vec2(2*WINDOW_WIDTH_PX/3 + 125.0f, WINDOW_HEIGHT_PX/2), vec2(WINDOW_WIDTH_PX/3 - 175.0f, WINDOW_WIDTH_PX/3 - 175.0f), ButtonOption::Option::WEAPON, "Weapons"); 
 
 	createIcon(registry, vec2(2*WINDOW_WIDTH_PX/3 - 405.0f, WINDOW_HEIGHT_PX/2 - 3.0f), vec2(WINDOW_WIDTH_PX/3 - 190.0f, WINDOW_WIDTH_PX/3 - 190.0f), 1, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
 	createIcon(registry, vec2(WINDOW_WIDTH_PX/2, WINDOW_HEIGHT_PX/2), PLAYER_SPRITESHEET.dims * vec2(1.8f, 1.8f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 

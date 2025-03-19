@@ -208,6 +208,16 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
     gl_has_errors();
 }
 
+float RenderSystem::getTextWidth(const std::string& text, float scale) {
+    float width = 0.0f;
+    for (char c : text) {
+        if (Characters.find(c) != Characters.end()) {
+            Character ch = Characters[c];
+            width += (ch.Advance >> 6) * scale;
+        }
+    }
+    return width;
+}
 
 void RenderSystem::drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection) {
     // Use the existing shader program or create a new one for simple colored lines
@@ -972,7 +982,13 @@ void RenderSystem::renderUpgradeUI()
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			renderText(ui_option.text, ui_option.position.x - ui_option.size.x / 6.f + 13.0f, -ui_option.position.y - ui_option.size.y / 2.f - 25.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+			// renderText(ui_option.text, ui_option.position.x - ui_option.size.x / 6.f, -ui_option.position.y - ui_option.size.y / 2.f - 25.0f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+			float textWidth = getTextWidth(ui_option.text, 0.5f); // Implement this function
+			float centeredX = ui_option.position.x - textWidth / 2.0f;
+			float centeredY = -ui_option.position.y - ui_option.size.y / 2.f - 25.0f;
+			
+			renderText(ui_option.text, centeredX, centeredY, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+		
 		}
 	}
 
