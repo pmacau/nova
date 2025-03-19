@@ -918,7 +918,7 @@ void WorldSystem::left_mouse_click() {
 					auto& ship = registry.get<Ship>(ship_entity);
 					ship.range += SHIP_RANGE_UPGRADE;
 				}
-				upgrade_option.hover = false;
+				// upgrade_option.hover = false;
 			}
 			
 		}
