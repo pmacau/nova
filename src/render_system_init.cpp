@@ -107,6 +107,13 @@ void RenderSystem::initializeGlEffects()
 		bool is_valid = loadEffectFromFile(vertex_shader_name, fragment_shader_name, effects[i]);
 		assert(is_valid && (GLuint)effects[i] != 0);
 	}
+	
+	shaders.try_emplace("textured", "textured");
+	shaders.try_emplace("vignette", "vignette");
+	shaders.try_emplace("coloured", "coloured");
+	shaders.try_emplace("debug", "debug");
+	shaders.try_emplace("text", "text");
+	shaders.try_emplace("snow", "snow");
 }
 
 // One could merge the following two functions as a template function...

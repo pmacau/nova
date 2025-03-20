@@ -128,9 +128,10 @@ bool RenderSystem::initFreetype() {
 }
 
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
-    // Activate corresponding render state	
-	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
-    gl_has_errors();
+    // Activate corresponding render state
+	Shader& s = shaders.at("text");
+	s.use();
+	gl_has_errors();
 
     // Validate VAO and VBO
     if (textVAO == 0 || textVBO == 0) {
@@ -141,12 +142,8 @@ void RenderSystem::renderText(const std::string& text, float x, float y, float s
 	glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
-    // Set projection
-    GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
-    glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-    // Set text color
-    GLuint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "textColor");
-    glUniform3f(colorLoc, color.x, color.y, color.z);
+	s.setMat3("projection", projection);
+	s.setVec3("textColor", color);
     gl_has_errors();
 
     glActiveTexture(GL_TEXTURE0);
@@ -511,36 +508,24 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	auto& screen = registry.get<ScreenState>(screen_entity);
-	GLuint program;
+	unsigned int program = 0;
 
 	if (!ENABLE_WEATHER || screen.effect != EFFECT_ASSET_ID::E_SNOW) {
-		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE]);
-		gl_has_errors();
+		Shader& s = shaders.at("vignette");
+		s.use();
+		program = s.ID;
 
-		// add the "vignette" effect
-		program = effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE];
-
-		// set clock
-		GLuint time_uloc       = glGetUniformLocation(program, "time");
-		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
-
-		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
-		gl_has_errors();
+		s.setFloat("time", (float)(glfwGetTime() * 10.0f));
+		s.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
+		
 	} else if (screen.effect == EFFECT_ASSET_ID::E_SNOW) {
-		glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::E_SNOW]);
-		gl_has_errors();
+		Shader& snow = shaders.at("snow");
+		snow.use();
+		program = snow.ID;
 
-		// add the "snow" effect
-		program = effects[(GLuint)EFFECT_ASSET_ID::E_SNOW];
-		const GLuint time_uloc = glGetUniformLocation(program, "time");
-		const GLuint resolution_uloc = glGetUniformLocation(program, "resolution");
-		GLuint dead_timer_uloc = glGetUniformLocation(program, "darken_screen_factor");
-
-		glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
-		glUniform2f(resolution_uloc, (float) w, (float) h);
-		glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
-		gl_has_errors();
+		snow.setFloat("time", (float)(glfwGetTime() * 10.0f));
+		snow.setVec2("resolution", vec2(w, h));
+		snow.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 	}
 
 	// Set the vertex position and vertex texture coordinates (both stored in the

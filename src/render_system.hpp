@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 #include "quadtree/quadtree.hpp"
+#include "render/shader.h"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -49,6 +50,9 @@ class RenderSystem {
 	};
 
 	std::array<GLuint, effect_count> effects;
+
+	std::unordered_map<std::string, Shader> shaders;
+
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("textured"),

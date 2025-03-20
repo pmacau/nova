@@ -170,7 +170,7 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
             break;
     }
 
-    MusicSystem::playMusic(newTrack);
+    MusicSystem::playMusic(newTrack, -1, 500);
 }
 
 /*
