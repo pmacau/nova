@@ -144,13 +144,13 @@ void WorldSystem::init() {
 	createUIShipEngine(registry, vec2(w/4, h/4 + h/2*0.01f), vec2(w/6 - w/2*0.15f, w/6 - w/2*0.15f), 12);
 
 	// health
-	createUpgradeButton(registry, vec2(w/4 - w/2*0.27f, h/4 - h/2*0.11f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_HEALTH_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.27f, h/4 - h/2*0.11f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_HEALTH_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 	// blaster
-	createUpgradeButton(registry, vec2(w/4 + w/2*0.3f, h/4 - h/2*0.07f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.3f, h/4 - h/2*0.07f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 	// range
-	createUpgradeButton(registry, vec2(w/4 - w/2*0.26f, h/4 + h/2*0.3f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.26f, h/4 + h/2*0.3f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 	// fire rate
-	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE);
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(5);
@@ -353,6 +353,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
 
+	update_upgrade_buttons();
+	
 	return true;
 }
 
@@ -686,13 +688,32 @@ void WorldSystem::left_mouse_click() {
 			
 		}
 	} else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+		// count number of items the player currently has
+		// TODO: once blue prints are added into game, make sure that each upgrade requires at least one blueprint
+		auto itemsInInv = registry.view<Item, FixedUI>();
+		int copperCount = 0;
+		int ironCount = 0;
+		for (auto entity : itemsInInv) {
+			auto& item = registry.get<Item>(entity);
+
+			if (item.type == Item::Type::COPPER) copperCount += item.no;
+			if (item.type == Item::Type::IRON) ironCount += item.no;
+		}
+
 		for (auto entity : registry.view<UpgradeButton>()) {
 			auto& upgrade_option = registry.get<ButtonOption>(entity);
 			auto& upgrade_render = registry.get<RenderRequest>(entity);
 			if (upgrade_option.hover) {
 				upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 				MusicSystem::playSoundEffect(SFX::SELECT);
-				if (upgrade_option.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE) {
+
+				// UPGRADE HEALTH ---------------------------------------------------------------------------
+				// 5 iron to upgrade health
+				if (upgrade_option.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON) {
+					
+					// update inventory
+					ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
+
 					for (auto ui_ship_entity : registry.view<UIShip>()) {
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_entity);
 						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE) {
@@ -722,16 +743,20 @@ void WorldSystem::left_mouse_click() {
 						}
 					}
 				}
-				if (upgrade_option.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE) {
+
+				// UPGRADE BLASTER ---------------------------------------------------------------------------
+				// 3 copper, 3 iron to upgrade blasters
+				if (upgrade_option.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER) {
 					// smg --> missles --> blaster --> railgun
-					// TODO: change the type of bullet that the ship shoots as well
-					// TODO: make sure this upgrade in the ship ui is reflected in the actual game as well.
+					
+					// update inventory
+					ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
+
 					for (auto ui_ship_weapon_entity : registry.view<UIShipWeapon>()) {
-						// TODO: change the type of bullet that the ship shoots as well
-						// TODO: make sure this upgrade in the ship ui is reflected in the actual game as well.
 						auto& ui_ship_weapon = registry.get<UIShipWeapon>(ui_ship_weapon_entity);
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_weapon_entity);
 						vec2& ship_pos = registry.get<Motion>(ship_entity).position;
+
 						if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_WEAPON) {
 							// change to missles
 							registry.destroy(ui_ship_weapon_entity);
@@ -807,8 +832,8 @@ void WorldSystem::left_mouse_click() {
 								vec2(ship_pos.x, ship_pos.y),
 								vec2(110, 100),
 								vec2(24.f, 48.f), 
-								vec2(336.f, 48.f), 
-								{0, 0}, 
+								vec2(336.f, 48.f),
+								{0, 3}, 
 								7 );
 							
 							// change the bullet type
@@ -844,8 +869,14 @@ void WorldSystem::left_mouse_click() {
 						}
 					}
 				}
-				if (upgrade_option.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE) {
-					// smg engine --> missles engine --> blaster engine --> railgun engine
+
+				// UPGRADE FIRE RATE ---------------------------------------------------------------------------
+				// smg engine --> missles engine --> blaster engine --> railgun engine
+				if (upgrade_option.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER) {
+					
+					// update inventory
+					ship_upgrade_inventory(SHIP_FIRERATE_UPGRADE_IRON, SHIP_FIRERATE_UPGRADE_COPPER);
+
 					for (auto ui_ship_engine_entity : registry.view<UIShipEngine>()) {
 						auto& ui_ship_engine = registry.get<UIShipEngine>(ui_ship_engine_entity);
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_engine_entity);
@@ -918,7 +949,13 @@ void WorldSystem::left_mouse_click() {
 						}
 					}
 				}
-				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE) {
+
+				// UPGRADE RANGE ---------------------------------------------------------------------------
+				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON) {
+
+					// update inventory
+					ship_upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
+
 					auto& ship = registry.get<Ship>(ship_entity);
 					ship.range += SHIP_RANGE_UPGRADE;
 				}
@@ -958,7 +995,10 @@ void WorldSystem::left_mouse_release() {
     if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
         for (auto entity : registry.view<UpgradeButton>()) {
             auto& upgrade_render = registry.get<RenderRequest>(entity);
-            upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			// if (upgrade_render.used_texture != TEXTURE_ASSET_ID::RED_BUTTON_PRESSED) {
+			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			// }
+			update_upgrade_buttons();
         }
     }
 }
@@ -981,4 +1021,84 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
     }
 }
 
+// update inventory for ship upgrades
+void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
+	auto itemsInInv = registry.view<Item, FixedUI>();
+
+	int numIronLeftToUse = ironCount;
+	int numCopperLeftToUse = copperCount;
+
+	for (auto& entity : itemsInInv) {
+		auto& item = registry.get<Item>(entity);
+
+		if (item.type == Item::Type::IRON) {
+			if (item.no <= numIronLeftToUse) {
+				numIronLeftToUse -= item.no;
+				registry.destroy(entity);
+			} else { 
+				item.no -= numIronLeftToUse;
+				numIronLeftToUse = 0;
+				break;
+			}
+		}
+
+		if (item.type == Item::Type::COPPER) {
+			if (item.no <= numCopperLeftToUse) {
+				numCopperLeftToUse -= item.no;
+				registry.destroy(entity);
+			} else { 
+				item.no -= numCopperLeftToUse;
+				numCopperLeftToUse = 0;
+				break;
+			}
+		}
+	}
+}
+
+
+void WorldSystem::update_upgrade_buttons() {
+	// get num of each item needed for upgrades
+	auto itemsInInv = registry.view<Item, FixedUI>();
+	int copperCount = 0;
+	int ironCount = 0;
+	for (auto entity : itemsInInv) {
+		auto& item = registry.get<Item>(entity);
+		
+		if (item.type == Item::Type::COPPER) copperCount += item.no;
+		if (item.type == Item::Type::IRON) ironCount += item.no;
+	}
+	std::cout << "copper " << copperCount << std::endl;
+	std::cout << "iron " << ironCount << std::endl;
+	
+	// if have enough resources, change the buttons in the UI to green (upgradeable)
+	auto upgradeButtons = registry.view<UpgradeButton, ButtonOption>();
+	for (auto entity : upgradeButtons) {
+		auto& buttonOption = registry.get<ButtonOption>(entity);
+		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
+		
+		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+		}
+		
+		if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+		}
+		
+		if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+		}
+		
+		if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+		}
+	}
+}
 

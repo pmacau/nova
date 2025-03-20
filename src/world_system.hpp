@@ -83,6 +83,10 @@ private:
 
 	void handleTextBoxes(float elapsed_ms_since_last_update);
 
+	void ship_upgrade_inventory(int ironCount, int copperCount);
+
+	void update_upgrade_buttons();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

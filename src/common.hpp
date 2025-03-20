@@ -83,6 +83,17 @@ const int MAX_INVENTORY_SLOTS = 5;
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
+// Ship Upgrade Constants
+const int SHIP_HEALTH_UPGRADE_IRON = 7;
+
+const int SHIP_WEAPON_UPGRADE_IRON = 3;
+const int SHIP_WEAPON_UPGRADE_COPPER = 3;
+
+const int SHIP_FIRERATE_UPGRADE_IRON = 2;
+const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
+
+const int SHIP_RANGE_UPGRADE_IRON = 5;
+
 
 // Camera system
 const float CAMERA_SPEED = 0.2f;
