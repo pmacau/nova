@@ -308,14 +308,11 @@ entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, s
 	registry.emplace<TextData>(entity, text, scale, textColor);
 
 	auto& motion = registry.emplace<Motion>(entity);
-	// motion.scale = GAME_SCALE * size;
-	motion.scale = GAME_SCALE * vec2(120.f / size.x, 128.f / size.y);
-	// motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.scale = size;
 	motion.position = position;
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	// sprite.coord = position;
 	sprite.coord = {0, 0};
 	sprite.dims = {128.f, 128.f};
     sprite.sheet_dims = {128.f, 128.f};

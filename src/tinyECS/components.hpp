@@ -8,6 +8,7 @@
 #include <entt.hpp>
 #include <animation/animation_definition.hpp>
 
+struct Glyph{};
 struct Tree{};
 struct Background{};
 
@@ -308,6 +309,7 @@ enum class TEXTURE_ASSET_ID {
 	TITLE, 
 	TEXTBOX_BACKGROUND,
 	MINIMAP,
+	TEXT,
 	TEXTURE_COUNT
 };
 

@@ -33,11 +33,8 @@ using Clock = std::chrono::high_resolution_clock;
 int main()
 {
 	// TOGGLE this if you don't want a new map every time...
-	int mapWidth; 
-	int mapHeight; 
+	int mapWidth = 500, mapHeight = 500; 
 	if (false) {
-		mapWidth = 500; 
-		mapHeight = 500; 
 		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		create_biome_map(generated_map);

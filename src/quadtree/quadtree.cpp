@@ -3,8 +3,6 @@
 
 void QuadTree::initTree(entt::registry& registry) {
     quadTree = new QuadTree(400.0f * 16.f, 400.0f * 16.f, 800 * 16.f, 800 * 16.f);
-    auto playerEntity = registry.view<Player>().front();
-    // quadTree->insert(playerEntity, registry);
     auto view = registry.view<Motion, Hitbox>(entt::exclude<Player, UIShip, Item, Title, TextData>); //currently reloads entire tree per frame
     for (auto entity : view) { 
         quadTree->insert(entity, registry);

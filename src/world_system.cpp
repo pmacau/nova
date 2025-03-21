@@ -15,9 +15,9 @@
 // create the world
 WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, FlagSystem& flag_system, QuadTree& quadTree) :
 	registry(reg),
+	quadTree(quadTree),
 	physics_system(physics_system),
-	flag_system(flag_system), 
-	quadTree(quadTree)
+	flag_system(flag_system)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
 	player_entity = createPlayer(registry, {0, 0});
@@ -52,21 +52,21 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(5);
-    vec2 size = {0.4f, 3.0f};
+    vec2 size = vec2(WINDOW_WIDTH_PX / 2, 100);
     textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Welcome to Nova! Use the 'W', 'A', 'S', 'D' keys to move around!", 0.35f, {1.0f, 1.0f, 1.0f});
+        "Welcome to Nova! Use WASD to move around!", 2.f, vec3(1));
     
     textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Great! Press 'F' near the ship to access or leave the ship upgrade", 0.35f, {1.0f, 1.0f, 1.0f});
+        "Great! Press F to toggle the ship upgrade UI", 2.f, vec3(1));
     
     textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Good job! Now use left click to firing your weapon.", 0.35f, {1.0f, 1.0f, 1.0f});
+        "Good job! Now use left click to fire your weapon.", 2.f, vec3(1));
     
     textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Nice shot! Go explore the planet.", 0.35f, {1.0f, 1.0f, 1.0f});
+        "Nice shot! Go explore the planet.", 2.f, vec3(1));
     
     textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "You defeated an enemy! Keep exploring.", 0.35f, {1.0f, 1.0f, 1.0f});
+        "You defeated an enemy! Keep exploring.", 2.f, vec3(1));
     
     // make them all inactive initially
     for (auto entity : textBoxEntities) {

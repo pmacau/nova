@@ -69,7 +69,7 @@ const int MAX_INVENTORY_SLOTS = 5;
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
-const bool ENABLE_WEATHER = true;
+const bool ENABLE_WEATHER = false;
 
 // Camera system
 const float CAMERA_SPEED = 0.2f;

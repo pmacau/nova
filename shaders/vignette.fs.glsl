@@ -3,6 +3,7 @@
 uniform sampler2D screen_texture;
 uniform float time;
 uniform float darken_screen_factor;
+uniform vec2 resolution;
 
 in vec2 texcoord;
 
@@ -41,8 +42,45 @@ vec4 vignette(vec4 in_color)
 // 	return in_color;
 // }
 
+// vec4 day_night_mix(vec4 in_color, float k) {
+//     float pi = 3.1415926;
+//     float t = time / 200.0;
+
+//     vec2 center = vec2(0.5, 0.5);
+//     vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
+//     float dist = distance((texcoord - center) * aspect, vec2(0.0));
+
+//     float radius = 0.1;
+//     float darkness = 0.5 * (1.0 + tanh(k * sin(t - pi/2)));
+
+//     if (dist <= 0.1 && darkness > 0.5) {
+//         return mix(in_color, vec4(0, 0, 0, 1), 0.5);
+//     } else {
+//         return mix(in_color, vec4(0, 0, 0, 1), darkness);
+//     }
+// }
+vec4 day_night_mix(vec4 in_color, float k) {
+    float pi = 3.1415926;
+    float t = time / 60.0;
+
+    vec2 center = vec2(0.5, 0.5);
+    vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
+    float dist = distance((texcoord - center) * aspect, vec2(0.0));
+
+    float radius = 0.3;
+
+    float darkness = 0.5 * (1.0 + tanh(k * sin(t - pi / 2)));
+    float light_strength = smoothstep(0, radius, dist);
+
+    if (dist <= radius && darkness > 0.5) {
+        return mix(in_color, vec4(0, 0, 0, 1), light_strength * darkness);
+    } else {
+        return mix(in_color, vec4(0, 0, 0, 1), darkness);
+    }
+}
+
 void main()
 {
     vec4 in_color = texture(screen_texture, texcoord);
-    color = vignette(in_color);
+    color = day_night_mix(vignette(in_color), 3.0);
 }

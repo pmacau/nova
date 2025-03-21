@@ -47,6 +47,7 @@ class RenderSystem {
 		textures_path("title/screen.png"), 
 		textures_path("textBackground/textbox.png"),
 		map_path("biome_map.png"),
+		textures_path("text/text.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -139,7 +140,6 @@ private:
 	GLuint textVBO = 0;
 
 	mat3 shipUITransform = mat3(1.0f);
-	
 	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
 };
 
