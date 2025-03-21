@@ -54,16 +54,16 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	textBoxEntities.resize(5);
     vec2 size = vec2(WINDOW_WIDTH_PX / 2, 100);
     textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Welcome to Nova! Use WASD to move around!", 2.f, vec3(1));
+        "Welcome to @Nova! Use @WASD to move around!", 2.f, vec3(1));
     
     textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Great! Press F to toggle the ship upgrade UI", 2.f, vec3(1));
+        "Great! Press @F to toggle the ship @upgrade @UI", 2.f, vec3(1));
     
     textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Good job! Now use left click to fire your weapon.", 2.f, vec3(1));
+        "Good job! Now use @left-click to fire your @weapon.", 2.f, vec3(1));
     
     textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Nice shot! Go explore the planet.", 2.f, vec3(1));
+        "Nice shot! Go explore the @planet.", 2.f, vec3(1));
     
     textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
         "You defeated an enemy! Keep exploring.", 2.f, vec3(1));

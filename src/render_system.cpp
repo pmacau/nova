@@ -190,8 +190,15 @@ entt::entity createGlyph(
 
 void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
 	int offset = 0;
-	for (const unsigned char c : text) {
-		auto entity = createGlyph(registry, c, x + offset, y, scale, color);
+	vec3 textColor = color;
+
+	for (const unsigned char& c: text) {
+		if (c == '@') {
+			textColor = {0, 0, 1};
+			continue;
+		}
+		if (c == ' ') textColor = color;
+		auto entity = createGlyph(registry, c, x + offset, y, scale, textColor);
 		drawTexturedMesh(entity, projection);
 		offset += scale * (5 + 1);
 	}
