@@ -42,23 +42,6 @@ vec4 vignette(vec4 in_color)
 // 	return in_color;
 // }
 
-// vec4 day_night_mix(vec4 in_color, float k) {
-//     float pi = 3.1415926;
-//     float t = time / 200.0;
-
-//     vec2 center = vec2(0.5, 0.5);
-//     vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
-//     float dist = distance((texcoord - center) * aspect, vec2(0.0));
-
-//     float radius = 0.1;
-//     float darkness = 0.5 * (1.0 + tanh(k * sin(t - pi/2)));
-
-//     if (dist <= 0.1 && darkness > 0.5) {
-//         return mix(in_color, vec4(0, 0, 0, 1), 0.5);
-//     } else {
-//         return mix(in_color, vec4(0, 0, 0, 1), darkness);
-//     }
-// }
 vec4 day_night_mix(vec4 in_color, float k) {
     float pi = 3.1415926;
     float t = 4 * time / (60.0 * pi);
