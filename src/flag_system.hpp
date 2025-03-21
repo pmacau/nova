@@ -12,8 +12,8 @@ public:
         Moved,
         Accessed,
         Shot,
+        Biome_Read,
         MobKilled, 
-        
     };
     bool is_paused;
     float time_spent_s; 
@@ -58,7 +58,8 @@ public:
         }
 
         if (!is_paused) {
-            time_spent_s = std::min(elapsed_ms / 1000.f + time_spent_s, 10.f);
+            //time_spent_s = std::min(elapsed_ms / 1000.f + time_spent_s, 10.f);
+            time_spent_s += (elapsed_ms / 1000.f);
             //debug_printf(DebugType::FLAG, "time is now %f\n", time_spent_s);
         }
         if (tutorial_step == TutorialStep::None) {
@@ -87,6 +88,12 @@ public:
             auto proj_view = registry.view<Projectile>();
             if (!proj_view.empty()) {
                 setShot(true); // just leave it at Shot and then display the text. 
+            }
+        }
+        else if (tutorial_step == TutorialStep::Shot) {
+            // timer for 10s to read the prompt
+            if (time_spent_s > 10.0f) {
+                setBiomeRead(true);
             }
         }
         /*else if (tutorial_step == TutorialStep::Shot) { Don't really know a good way about going about this, we can leave this out since it should be enough. 
@@ -137,11 +144,18 @@ public:
         if (value && tutorial_step == TutorialStep::Accessed) {
             tutorial_step = TutorialStep::Shot;
             time_spent_s = 0;
-            done = true;
             debug_printf(DebugType::FLAG, "setShot: stepped from accessed to shot\n");
         }
     }
 
+    void setBiomeRead(bool value) {
+        if (value && tutorial_step == TutorialStep::Shot) {
+            tutorial_step = TutorialStep::Biome_Read;
+            time_spent_s = 0;
+            done = true;
+            debug_printf(DebugType::FLAG, "setBiomeRead: stepped from shot to biomeRead\n");
+        }
+    }
     
     void setIsPaused(bool value) {
         is_paused = value;

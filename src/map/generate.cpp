@@ -97,11 +97,11 @@ std::pair<int, int> find_valid_area(
     };
 
     auto is_valid = [&terrain, width, height](std::pair<int, int> curr, int range) {
-        int min_row = max(0, curr.first - range / 2);
-        int max_row = min(height, curr.first + range / 2);
+        int min_row = max(0, curr.first - range);
+        int max_row = min(height, curr.first + range);
 
-        int min_col = max(0, curr.second - range / 2);
-        int max_col = min(width, curr.second + range / 2);
+        int min_col = max(0, curr.second - range);
+        int max_col = min(width, curr.second + range);
 
         for (int i = min_row; i < max_row; i++) {
             for (int j = min_col; j < max_col; j++) {
@@ -137,7 +137,7 @@ std::pair<int, int> player_spawn(
     const GameMap& terrain, int width, int height
 ) {
     int c_row = height / 2, c_col = width / 2;
-    return find_valid_area(terrain, {c_row, c_col}, 5);
+    return find_valid_area(terrain, {c_row, c_col}, 3);
 }
 
 std::pair<int, int> ship_spawn(
@@ -146,7 +146,7 @@ std::pair<int, int> ship_spawn(
     return find_valid_area(
         terrain,
         {player_spawn.first - 15, player_spawn.second},
-        10
+        5
     );
 }
 

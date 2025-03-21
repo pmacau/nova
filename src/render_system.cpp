@@ -149,7 +149,12 @@ ivec2 get_char_coords(const unsigned char& glyph) {
 			case ',':  {val += 3; break;}
 			case ';':  {val += 4; break;}
 			case '\'': {val += 5; break;}
-			case ' ':  {val += 6; break;}
+			case '#':  {val += 6; break;}
+			case '$':  {val += 7; break;}
+			case '%':  {val += 8; break;}
+			case '&':  {val += 9; break;}
+			case '*':  {val += 10; break;}
+			case ' ':  {val += 11; break;}
 			default:   {val += 0; break;}
 		}
 		return ivec2(1, val);
@@ -188,95 +193,70 @@ entt::entity createGlyph(
 	return e;
 }
 
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
-	int offset = 0;
-	vec3 textColor = color;
+const std::unordered_map<char, vec3> color_codes = {
+	// Biome codes
+	{'I', {135.f/255.f, 206.f/255.f, 235.f/255.f}},
+	{'S', {120.f/255.f, 138.f/255.f, 50.f/255.f}},
+	{'J', {17.f/255.f,  91.f/255.f,  40.f/255.f}},
+	{'B', {235.f/255.f, 200.f/255.f, 65.f/255.f}},
+	{'F', {62.f/255.f,  137.f/255.f, 72.f/255.f}},
+	{'W', {0.f/255.f,   149.f/255.f, 233.f/255.f}},
 
-	for (const unsigned char& c: text) {
-		if (c == '@') {
-			textColor = {0, 0, 1};
-			continue;
+	{'0', {124.f/255.f, 109.f/255.f, 162.f/255.f}},
+	{'1', {0, 0, 1}},
+	{'2', {1, 0, 0}},
+};
+
+void RenderSystem::renderText(
+	const std::string& text,
+	float x, float y, float scale,
+	glm::vec3 color, const mat3& projection,
+	bool wrap
+) {
+    std::istringstream iss(text);
+    std::vector<std::string> words;
+    std::string word;
+    while (iss >> word) {
+        words.push_back(word);
+    }
+
+	int x_offset = 0, y_offset = 0;
+	int char_space = (5 + 1);
+
+	vec3 tColor = color;
+	bool changeColor = false;
+	
+	// TODO: make this a parameter
+	int max_width = WINDOW_WIDTH_PX / 3 - (WINDOW_WIDTH_PX / 15);
+
+	for (const auto& word: words) {
+		if (wrap &&
+			(x + x_offset + (word.length() * scale * char_space) > max_width)
+		) {
+			y_offset += scale * (7 + 3);
+			x_offset = 0;
 		}
-		if (c == ' ') textColor = color;
-		auto entity = createGlyph(registry, c, x + offset, y, scale, textColor);
-		drawTexturedMesh(entity, projection);
-		offset += scale * (5 + 1);
+		for (const char& c: word) {
+			if (c == '{') {changeColor = true; continue;}
+			if (c == '}') {tColor = color;     continue;}
+			if (changeColor) {
+				auto it = color_codes.find(c);
+				if (it != color_codes.end()) {
+					tColor = it->second;
+				} else {
+					tColor = color;
+				}
+				changeColor = false;
+				continue;
+			}
+	
+			auto entity = createGlyph(registry, c, x + x_offset, y + y_offset, scale, tColor);
+			drawTexturedMesh(entity, projection);
+			x_offset += scale * char_space;
+		}
+		// Add space for a ' ' character
+		x_offset += scale * char_space;
 	}
-    // // Activate corresponding render state
-	// Shader& s = shaders.at("text");
-	// s.use();
-	// gl_has_errors();
-
-    // // Validate VAO and VBO
-    // if (textVAO == 0 || textVBO == 0) {
-    //     std::cerr << "ERROR: Text VAO or VBO not initialized" << std::endl;
-    //     return;
-    // }
-
-	// glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	// s.setMat3("projection", projection);
-	// s.setVec3("textColor", color);
-    // gl_has_errors();
-
-    // glActiveTexture(GL_TEXTURE0);
-    // glBindVertexArray(textVAO);
-
-    // // Iterate through all characters
-	// int offset = 0;
-    // for (const unsigned char c : text) {
-	// 	ivec2 coord = get_char_coords(c);
-
-    //     Character ch = Characters[c];
-
-    //     float xpos = x + ch.Bearing.x * scale;
-    //     float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-
-    //     float w = ch.Size.x * scale;
-    //     float h = ch.Size.y * scale;
-        
-    //     // Update VBO for each character
-	// 	float vertices[6][4] = {
-	// 		{ xpos,     ypos + h,   0.0f, 0.0f },            
-	// 		{ xpos,     ypos,       0.0f, 1.0f },
-	// 		{ xpos + w, ypos,       1.0f, 1.0f },
-	
-	// 		{ xpos,     ypos + h,   0.0f, 0.0f },
-	// 		{ xpos + w, ypos,       1.0f, 1.0f },
-	// 		{ xpos + w, ypos + h,   1.0f, 0.0f }        
-	// 	};
-        
-        
-    //     // Render glyph texture over quad
-    //     glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-    //     if (gl_has_errors()) {
-    //         std::cerr << "Error binding texture for character" << std::endl;
-    //         continue;
-    //     }
-        
-    //     // Update content of VBO memory
-    //     glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-    //     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    //     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //     if (gl_has_errors()) {
-    //         std::cerr << "Error updating VBO data" << std::endl;
-    //         continue;
-    //     }
-
-    //     // Render quad
-    //     glDrawArrays(GL_TRIANGLES, 0, 6);
-    //     if (gl_has_errors()) {
-    //         std::cerr << "Error drawing text quad" << std::endl;
-    //     }
-
-    //     // Advance cursor for next glyph
-    //     x += (ch.Advance >> 6) * scale;
-    // }
-    
-	// glBindVertexArray(0); 
-    // glBindTexture(GL_TEXTURE_2D, 0);
-    // gl_has_errors();
 }
 
 // TODO: fix debug rendering later
@@ -694,7 +674,7 @@ void RenderSystem::renderGamePlay()
 	// adding "vignette" effect when applied
 	drawToScreen(true);
 	
-	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
+	std::vector<std::tuple<std::string, vec2, float, vec3, mat3, bool>> textsToRender;
 	// Render static UI
 	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory>)) {
 		if (registry.all_of<TextData>(entity)) {
@@ -707,12 +687,13 @@ void RenderSystem::renderGamePlay()
 					std::make_tuple(
 						textData.content,
 						vec2(
-							motion.position.x - motion.scale.x / 2 + 50,
-							motion.position.y
+							motion.position.x - motion.scale.x / 2 + (motion.scale.x / 10.f),
+							motion.position.y - motion.scale.y / 2 + (motion.scale.y / 4.f)
 						),
 						textData.scale,
 						textData.color,
-						projection_2D
+						projection_2D,
+						true
 					)
 				);
 			}
@@ -745,7 +726,8 @@ void RenderSystem::renderGamePlay()
 						),
 						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						ui_projection_2D
+						ui_projection_2D,
+						false
 					)
 				);
 			}
@@ -758,7 +740,8 @@ void RenderSystem::renderGamePlay()
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f),
 						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						projection_2D
+						projection_2D,
+						false
 					)
 				);
 			}
@@ -773,7 +756,8 @@ void RenderSystem::renderGamePlay()
 							motion.position.y + motion.scale.y / 2.f - 10.f),
 						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						ui_projection_2D
+						ui_projection_2D,
+						false
 					)
 				);
 			}
@@ -787,7 +771,8 @@ void RenderSystem::renderGamePlay()
 						),
 						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						projection_2D
+						projection_2D,
+						false
 					)
 				);
 			}
@@ -795,8 +780,8 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// RENDERING ALL THE TEXT
-	for (const auto& [content, position, scale, color, projection] : textsToRender) {
-		renderText(content, position.x, position.y, scale, color, projection);
+	for (const auto& [content, position, scale, color, projection, wrap] : textsToRender) {
+		renderText(content, position.x, position.y, scale, color, projection, wrap);
 	}
 
 	// flicker-free display with a double buffer

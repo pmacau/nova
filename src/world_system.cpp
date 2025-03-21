@@ -51,22 +51,42 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createUIShip(registry, vec2(WINDOW_WIDTH_PX/2 + 250, WINDOW_HEIGHT_PX/2 + 190), vec2(1.5f, 1.5f), 4);
 
 	// init all of the text boxes for the tutorial
-	textBoxEntities.resize(5);
-    vec2 size = vec2(WINDOW_WIDTH_PX / 2, 100);
-    textBoxEntities[0] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Welcome to @Nova! Use @WASD to move around!", 2.f, vec3(1));
-    
-    textBoxEntities[1] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Great! Press @F to toggle the ship @upgrade @UI", 2.f, vec3(1));
-    
-    textBoxEntities[2] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Good job! Now use @left-click to fire your @weapon.", 2.f, vec3(1));
-    
-    textBoxEntities[3] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "Nice shot! Go explore the @planet.", 2.f, vec3(1));
-    
-    textBoxEntities[4] = createTextBox(registry, vec2(1.0f, 200.0f), size, 
-        "You defeated an enemy! Keep exploring.", 2.f, vec3(1));
+	textBoxEntities.resize(6);
+    vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
+	float scale = 2.f;
+
+	std::string tut_0 =
+		std::string("... wait...? it looks like you survived the crash... holy s#%t! ") +
+		std::string("can you hear us astronaut? welcome to C#42A, AKA planet {1Nova}, the universe's biggest s%?#thole. ") +
+		std::string("it looks like the ship is pretty banged up. you're going to have to repair it to get out of here. ") +
+		std::string("can you walk? try using {1'W', 'A', 'S', 'D'} to move.");
+    textBoxEntities[0] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_0, scale, vec3(1));
+
+	std::string tut_1 = 
+		std::string("great! let's see if the ship's interface is still working. ") + 
+		std::string("press {1'F'} to toggle the ship {1upgrade UI}");
+    textBoxEntities[1] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_1, scale, vec3(1));
+
+	std::string tut_2 =
+		std::string("well, it looks like you're not totally screwed after all. ") +
+		std::string("we're going to need some {1materials} to repair the ship. go kill some {1alien} scum for their resources! ") +
+		std::string("what, you already forgot how to use your blaster? use {1left click} to shoot!");
+    textBoxEntities[2] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_2, scale, vec3(1));
+
+	std::string tut_3 =
+		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
+		std::string("be careful though; our signals indicate the presence of some {1stronger aliens} around. ") +
+		std::string("taking those beasts down are sure to net you a hefty reward.");
+    textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
+
+	std::string tut_4 =
+		std::string("oh, and one more thing. on {1Nova}, each day is only {15 minutes}, so you're only going to ") +
+		std::string("get around {1150 seconds} of daylight. it gets really dark, so you'll probably want to camp out ") +
+		std::string("by the ship for protection. or don't; it's your funeral...");
+	textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.f), size, tut_4, scale, vec3(1));
+
+    textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.0f), size, 
+        "You defeated an enemy! Keep exploring.", scale, vec3(1));
     
     // make them all inactive initially
     for (auto entity : textBoxEntities) {
@@ -332,10 +352,10 @@ void WorldSystem::player_respawn() {
 void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
     
-	// gets rid of the last text box after 5 seconds
-	if (currentStep == FlagSystem::TutorialStep::Shot) {
+	// gets rid of the last text box after 10 seconds
+	if (currentStep == FlagSystem::TutorialStep::Biome_Read) {
 		mobKilledTextTimer += elapsed_ms_since_last_update / 1000.0f;
-		if (mobKilledTextTimer > 5.0f) {
+		if (mobKilledTextTimer > 10.0f) {
 			for (auto entity : textBoxEntities) {
 				auto& textData = registry.get<TextData>(entity);
 				textData.active = false;
@@ -365,8 +385,11 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
         case FlagSystem::TutorialStep::Shot:
             activeIndex = 3;
             break;
+		case FlagSystem::TutorialStep::Biome_Read:
+			activeIndex = 4;
+			break;
         case FlagSystem::TutorialStep::MobKilled:
-            activeIndex = 4;
+            activeIndex = 5;
             break;
     }
     
