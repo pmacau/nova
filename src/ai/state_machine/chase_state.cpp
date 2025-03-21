@@ -67,7 +67,7 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
             auto& playerMotion = registry.get<Motion>(playerEntity);
             ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(motion.position));
             ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerMotion.position));
-            
+
             regeneratePath(registry, enemyTile, playerTile);
         }
     }
@@ -102,13 +102,13 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
                     if (distToPlayer > config.attackRange) {
                         pathRecalcTimer = pathRecalcInterval; // Force recalculation next update.
 
-                        std::cout << "v = 0 (1)" << std::endl;
+                        // std::cout << "v = 0 (1)" << std::endl;
                         motion.velocity = {0, 0};
                         return;
                     }
                 }
 
-                std::cout << "v = 0 (2)" << std::endl;
+                // std::cout << "v = 0 (2)" << std::endl;
                 motion.velocity = {0, 0};
                 return;
             }
@@ -121,7 +121,7 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
         }
     } else {
         // if no valid path is available
-        std::cout << "v = 0 (3)" << std::endl;
+        // std::cout << "v = 0 (3)" << std::endl;
 
         motion.velocity = {0, 0};
     }
@@ -130,7 +130,7 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
 void ChaseState::onExit(entt::registry& registry, entt::entity entity) {
     // Stop movement on exit
     auto& motion = registry.get<Motion>(entity);
-    std::cout << "v = 0 (4)" << std::endl;
+    // std::cout << "v = 0 (4)" << std::endl;
 
     motion.velocity = {0, 0};
     currentPath.clear();
