@@ -1115,6 +1115,8 @@ void RenderSystem::renderShipUI()
 
 		if (button.missingResources) {
 			renderText(button.missingResourcesText, motion.position.x - w/2 * 0.55f, -motion.position.y + h/2 * 0.45f, 0.3f, glm::vec3(1.0f, 0.0f, 0.0f), flippedProjection);
+		} else {
+			renderText(button.missingResourcesText, motion.position.x - w/2 * 0.55f, -motion.position.y + h/2 * 0.45f, 0.3f, glm::vec3(0.0f, 1.0f, 0.0f), flippedProjection);
 		}
 	}
 	
