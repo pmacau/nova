@@ -70,14 +70,34 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
         vec2 nextWaypoint = MapSystem::get_tile_center_pos(vec2(nextTile.x, nextTile.y));
         
         vec2 toWaypoint = nextWaypoint - motion.position;
-        float distance = std::sqrt(toWaypoint.x * toWaypoint.x + toWaypoint.y * toWaypoint.y);
-        const float waypointThreshold = 5.0f; // Threshold in world units.
+        float distance = length(toWaypoint);
+        const float waypointThreshold = TILE_SIZE / 2.f; // Threshold in world units.
         
         if (distance < waypointThreshold) {
             // Waypoint reached; move to next.
             currentWaypointIndex++;
+            // If we've reached the final waypoint, check if we need to recalc.
             if (currentWaypointIndex >= currentPath.size()) {
-                // Reached final waypoint; stop movement.
+                // Retrieve player's current position.
+                auto playerView = registry.view<Player, Motion>();
+                if (!(playerView.size_hint() == 0)) {
+                    auto playerEntity = *playerView.begin();
+                    auto& playerMotion = registry.get<Motion>(playerEntity);
+                    vec2 diff = playerMotion.position - motion.position;
+                    float distToPlayer = length(diff);
+                    // If the player is still far away, force path recalculation.
+                    auto& aiComp = registry.get<AIComponent>(entity);
+                    const AIConfig& config = aiComp.stateMachine->getConfig();
+                    if (distToPlayer > config.attackRange) {
+                        pathRecalcTimer = pathRecalcInterval; // Force recalculation next update.
+
+                        std::cout << "v = 0 (1)" << std::endl;
+                        motion.velocity = {0, 0};
+                        return;
+                    }
+                }
+
+                std::cout << "v = 0 (2)" << std::endl;
                 motion.velocity = {0, 0};
                 return;
             }
@@ -90,6 +110,8 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
         }
     } else {
         // if no valid path is available
+        std::cout << "v = 0 (3)" << std::endl;
+
         motion.velocity = {0, 0};
     }
 }
@@ -97,6 +119,8 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
 void ChaseState::onExit(entt::registry& registry, entt::entity entity) {
     // Stop movement on exit
     auto& motion = registry.get<Motion>(entity);
+    std::cout << "v = 0 (4)" << std::endl;
+
     motion.velocity = {0, 0};
     currentPath.clear();
     currentWaypointIndex = 0;

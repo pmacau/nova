@@ -14,23 +14,18 @@ static inline int heuristic(const ivec2& a, const ivec2& b) {
 std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
     std::vector<ivec2> path;
     
-    // Open set as a priority queue.
     PriorityQueue<Node, int> openSet;
     
-    // For reconstructing path.
     std::unordered_map<ivec2, ivec2, IVec2Hash> cameFrom;
     
-    // g_score: cost from start to a given node.
     std::unordered_map<ivec2, int, IVec2Hash> gScore;
     gScore[start] = 0;
     
-    // f_score: estimated total cost (g + heuristic)
     std::unordered_map<ivec2, int, IVec2Hash> fScore;
     fScore[start] = heuristic(start, goal);
     
     openSet.put(Node(start, start, 0, fScore[start]), fScore[start]);
     
-    // Define the 4-connected grid (no diagonals).
     const std::vector<ivec2> directions = {
         ivec2(0, -1), // up
         ivec2(1, 0),  // right
@@ -76,6 +71,6 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
         }
     }
     
-    // If we reach here, no path was found.
+    // no path was found.
     return path;
 }
