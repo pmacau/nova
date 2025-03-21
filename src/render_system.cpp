@@ -653,6 +653,12 @@ void RenderSystem::renderGamePlay()
 	//			(rhsMotion.position.y + rhsMotion.offset_to_ground.y);
 	//	});
 
+	// draw all the debug tiles
+	for (auto entity : registry.view<DebugTile>()) {
+		drawTexturedMesh(entity, projection_2D);
+	}
+
+
 	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}

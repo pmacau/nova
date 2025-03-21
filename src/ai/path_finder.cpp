@@ -6,9 +6,9 @@
 #include <cmath>
 #include <algorithm>
 
-// Heuristic function: Manhattan distance.
 static inline int heuristic(const ivec2& a, const ivec2& b) {
-    return std::abs(a.x - b.x) + std::abs(a.y - b.y);
+    // return std::abs(a.x - b.x) + std::abs(a.y - b.y);
+    return glm::distance((vec2) a,  (vec2) b);
 }
 
 std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {

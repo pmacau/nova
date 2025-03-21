@@ -20,4 +20,8 @@ private:
     int currentWaypointIndex = 0;
     // Timer to control how often the path is recalculated.
     float pathRecalcTimer = 0.0f;
+
+    void regeneratePath(entt::registry& registry, ivec2 startTile, ivec2 targetTile);
+
+    bool debugMode = false;
 };

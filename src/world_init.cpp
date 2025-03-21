@@ -10,6 +10,7 @@
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
 #include "ui_system.hpp"
+#include <map/map_system.hpp>
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
@@ -600,5 +601,32 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	load_option.text = "Load";
 	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
 	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
+	return entity;
+}
+
+
+entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices) {
+	auto entity = registry.create();
+
+	registry.emplace<DebugTile>(entity);
+
+	vec2 pos = MapSystem::get_tile_center_pos(tile_indices);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.scale = vec2(TILE_SIZE, TILE_SIZE);
+	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.position = pos;
+	motion.velocity = {0.f, 0.f};
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {6,7};
+	sprite.dims = {TILE_SIZE, TILE_SIZE};
+	sprite.sheet_dims = {128.f, 112.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::TILESET;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
 	return entity;
 }

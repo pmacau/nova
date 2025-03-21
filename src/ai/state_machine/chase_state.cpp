@@ -10,8 +10,22 @@
 #include <map/map_system.hpp>
 
 #include <util/debug.hpp>
+#include <world_init.hpp>
 
 static Pathfinder g_pathFinder;
+
+void ChaseState::regeneratePath(entt::registry& registry, ivec2 startTile, ivec2 targetTile) {
+    currentPath = g_pathFinder.findPath(startTile, targetTile);
+    currentWaypointIndex = 0;
+    pathRecalcTimer = 0.0f;
+
+    if (debugMode) {
+        for (auto tile : currentPath) {
+            createDebugTile(registry, tile);
+        }
+    }
+}
+
 
 void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
     debug_printf(DebugType::AI, "ChaseState: onEnter, finding path to player\n");
@@ -33,11 +47,8 @@ void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
     // Convert enemy and player world positions to tile indices.
     ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(motion.position));
     ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerMotion.position));
-    
-    currentPath = g_pathFinder.findPath(enemyTile, playerTile);
-    currentWaypointIndex = 0;
-    debug_printf(DebugType::AI, "ChaseState: path found\n");
 
+    regeneratePath(registry, enemyTile, playerTile);
 }
 
 void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
@@ -56,8 +67,8 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
             auto& playerMotion = registry.get<Motion>(playerEntity);
             ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(motion.position));
             ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerMotion.position));
-            currentPath = g_pathFinder.findPath(enemyTile, playerTile);
-            currentWaypointIndex = 0;
+            
+            regeneratePath(registry, enemyTile, playerTile);
         }
     }
     
