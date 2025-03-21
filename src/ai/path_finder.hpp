@@ -6,6 +6,11 @@
 // For tile coordinates, we use ivec2 (from glm)
 using ivec2 = glm::ivec2;
 
+struct Direction {
+    ivec2 offset;
+    int cost; // cost to move in this direction (e.g., 10 for cardinal, 14 for diagonal)
+};
+
 // A simple A* node.
 struct Node {
     ivec2 position;

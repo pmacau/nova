@@ -8,7 +8,7 @@
 
 static inline int heuristic(const ivec2& a, const ivec2& b) {
     // return std::abs(a.x - b.x) + std::abs(a.y - b.y);
-    return glm::distance((vec2) a,  (vec2) b);
+    return glm::distance((vec2) a,  (vec2) b) * 10.0f; // to match the dir cost
 }
 
 std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
@@ -26,11 +26,15 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
     
     openSet.put(Node(start, start, 0, fScore[start]), fScore[start]);
     
-    const std::vector<ivec2> directions = {
-        ivec2(0, -1), // up
-        ivec2(1, 0),  // right
-        ivec2(0, 1),  // down
-        ivec2(-1, 0)  // left
+    const std::vector<Direction> directions = {
+        { ivec2(0, -1), 10 },   // up
+        { ivec2(1, 0), 10 },    // right
+        { ivec2(0, 1), 10 },    // down
+        { ivec2(-1, 0), 10 },   // left
+        { ivec2(1, -1), 14 },   // up-right
+        { ivec2(1, 1), 14 },    // down-right
+        { ivec2(-1, 1), 14 },   // down-left
+        { ivec2(-1, -1), 14 }   // up-left
     };
     
     while (!openSet.empty()) {
@@ -50,7 +54,7 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
         
         // For each neighbor.
         for (const auto& dir : directions) {
-            ivec2 neighbor = current.position + dir;
+            ivec2 neighbor = current.position + dir.offset;
             // Check bounds using MapSystem.
             if (neighbor.x < 0 || neighbor.x >= MapSystem::map_width ||
                 neighbor.y < 0 || neighbor.y >= MapSystem::map_height)
@@ -60,13 +64,14 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
             if (!MapSystem::walkable_tile(MapSystem::get_tile_type_by_indices(neighbor.x, neighbor.y)))
                 continue;
             
-            int tentativeG = current.G + 1; // Assuming cost 1 for each move.
+            int tentativeG = current.G + dir.cost; // Assuming cost 1 for each move.
             if (gScore.find(neighbor) == gScore.end() || tentativeG < gScore[neighbor]) {
                 cameFrom[neighbor] = current.position;
                 gScore[neighbor] = tentativeG;
-                int f = tentativeG + heuristic(neighbor, goal);
+                float h = heuristic(neighbor, goal);
+                float f = tentativeG + h;
                 fScore[neighbor] = f;
-                openSet.put(Node(neighbor, current.position, tentativeG, heuristic(neighbor, goal)), f);
+                openSet.put(Node(neighbor, current.position, tentativeG, h), f);
             }
         }
     }
