@@ -1112,6 +1112,10 @@ void RenderSystem::renderShipUI()
 		auto& button = registry.get<UpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
 		renderText(button.text, motion.position.x - w/2*0.538f, -motion.position.y + h/2*0.49f, 0.3f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+
+		if (button.missingResources) {
+			renderText(button.missingResourcesText, motion.position.x - w/2 * 0.55f, -motion.position.y + h/2 * 0.45f, 0.3f, glm::vec3(1.0f, 0.0f, 0.0f), flippedProjection);
+		}
 	}
 	
 	renderText("SHIP UPGRADES", -w/2*0.15f, h/2*0.4f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);

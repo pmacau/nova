@@ -1067,37 +1067,48 @@ void WorldSystem::update_upgrade_buttons() {
 		if (item.type == Item::Type::COPPER) copperCount += item.no;
 		if (item.type == Item::Type::IRON) ironCount += item.no;
 	}
-	std::cout << "copper " << copperCount << std::endl;
-	std::cout << "iron " << ironCount << std::endl;
 	
 	// if have enough resources, change the buttons in the UI to green (upgradeable)
 	auto upgradeButtons = registry.view<UpgradeButton, ButtonOption>();
 	for (auto entity : upgradeButtons) {
 		auto& buttonOption = registry.get<ButtonOption>(entity);
 		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
+		auto& upgradeButton = registry.get<UpgradeButton>(entity);
 		
 		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
 		} else if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = "Need: " + std::to_string(SHIP_HEALTH_UPGRADE_IRON) + " iron";
 		}
 		
 		if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
 		} else if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = "Need: " + std::to_string(SHIP_WEAPON_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_WEAPON_UPGRADE_COPPER) + " copper";
 		}
 		
 		if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
 		} else if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = "Need: " + std::to_string(SHIP_FIRERATE_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_FIRERATE_UPGRADE_COPPER) + " copper";
 		}
 		
 		if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
 		} else if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = "Need: " + std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";
 		}
 	}
 }

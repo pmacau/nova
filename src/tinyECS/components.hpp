@@ -162,6 +162,8 @@ struct Button
 struct UpgradeButton
 {
 	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
 };
 
 struct MobHealthBar
