@@ -36,6 +36,7 @@ void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
     
     // Compute the initial path.
     auto& motion = registry.get<Motion>(entity);
+    vec2 footPos = motion.position + motion.offset_to_ground;
     
     // Retrieve player position.
     auto playerView = registry.view<Player, Motion>();
@@ -43,16 +44,18 @@ void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
 
     auto playerEntity = *playerView.begin();
     auto& playerMotion = registry.get<Motion>(playerEntity);
+    vec2 playerFootPos = playerMotion.position + playerMotion.offset_to_ground;
     
     // Convert enemy and player world positions to tile indices.
-    ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(motion.position));
-    ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerMotion.position));
+    ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(footPos));
+    ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerFootPos));
 
     regeneratePath(registry, enemyTile, playerTile);
 }
 
 void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
     auto& motion = registry.get<Motion>(entity);
+    vec2 footPos = motion.position + motion.offset_to_ground;
     
     // Update the path recalculation timer.
     pathRecalcTimer += deltaTime;
@@ -65,8 +68,10 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
         if (!(playerView.size_hint() == 0)) {
             auto playerEntity = *playerView.begin();
             auto& playerMotion = registry.get<Motion>(playerEntity);
-            ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(motion.position));
-            ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerMotion.position));
+            vec2 playerFootPos = playerMotion.position + playerMotion.offset_to_ground;
+
+            ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(footPos));
+            ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerFootPos));
 
             regeneratePath(registry, enemyTile, playerTile);
         }
@@ -80,7 +85,7 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
         // Convert tile index to world coordinates (center of tile).
         vec2 nextWaypoint = MapSystem::get_tile_center_pos(vec2(nextTile.x, nextTile.y));
         
-        vec2 toWaypoint = nextWaypoint - motion.position;
+        vec2 toWaypoint = nextWaypoint - footPos;
         float distance = length(toWaypoint);
         const float waypointThreshold = TILE_SIZE / 2.f; // Threshold in world units.
         
@@ -94,7 +99,9 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
                 if (!(playerView.size_hint() == 0)) {
                     auto playerEntity = *playerView.begin();
                     auto& playerMotion = registry.get<Motion>(playerEntity);
-                    vec2 diff = playerMotion.position - motion.position;
+                    vec2 playerFootPos = playerMotion.position + playerMotion.offset_to_ground;
+
+                    vec2 diff = playerFootPos - footPos;
                     float distToPlayer = length(diff);
                     // If the player is still far away, force path recalculation.
                     auto& aiComp = registry.get<AIComponent>(entity);
