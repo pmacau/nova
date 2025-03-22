@@ -165,7 +165,6 @@ void CollisionSystem::handle<Projectile, Mob>(
 				break;
 			}
 		}
-		auto& mob_motion = registry.get<Motion>(mob_ent);
 		if (registry.any_of<Drop>(mob_ent)) {
 			UISystem::mobDrop(registry, mob_ent);
 		}

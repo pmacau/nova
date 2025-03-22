@@ -84,9 +84,8 @@ std::unordered_map<Terrain, std::string> byte_map = {
     {Terrain::WATER, "W"}, {Terrain::SAND, "S"}, {Terrain::GRASS, "G"}
 };
 
-
 void update_tile(
-    std::vector<std::vector<uint8_t>>& game_map, int row, int col,
+    GameMap& game_map, int row, int col,
     Box& tile_box
 ) {
     std::string tl_s, tr_s, bl_s, br_s;
@@ -95,21 +94,36 @@ void update_tile(
     bl_s = byte_map[get_terrain(game_map[row + 1][col])];
     br_s = byte_map[get_terrain(game_map[row + 1][col + 1])];
 
-    // std::string tl_s, tr_s, bl_s, br_s;
-    // tl_s = (byte_map.find(tl) != byte_map.end()) ? byte_map[tl] : "R";
-    // tr_s = (byte_map.find(tr) != byte_map.end()) ? byte_map[tr] : "R";
-    // bl_s = (byte_map.find(bl) != byte_map.end()) ? byte_map[bl] : "R";
-    // br_s = (byte_map.find(br) != byte_map.end()) ? byte_map[br] : "R";
-
     std::string tile_str = tl_s + tr_s + bl_s + br_s;
     std::pair<int, int> coord =
         (tileset_map.find(tile_str) != tileset_map.end()) ? tileset_map[tile_str] : std::pair(6, 7);
+
+    switch (get_biome(game_map[row][col])) {
+        case B_FOREST:
+            coord.first += (0 * 7);
+            break;
+        case B_ICE:
+            coord.first += (1 * 7);
+            break;
+        case B_SAVANNA:
+            coord.first += (2 * 7);
+            break;
+        case B_JUNGLE:
+            coord.first += (3 * 7);
+            break;
+        case B_BEACH:
+            coord.first += (4 * 7);
+            break;
+        default:
+            break;
+    }
 
     tile_box.x = coord.second  * tile_box.w;
     tile_box.y = coord.first * tile_box.h;
 }
 
-void create_background(std::vector<std::vector<uint8_t>>& game_map) {
+
+void create_background(GameMap& game_map) {
     int h = game_map.size() - 1;
     int w = game_map[0].size() - 1;
 
@@ -143,5 +157,53 @@ void create_background(std::vector<std::vector<uint8_t>>& game_map) {
 
     stbi_image_free(src.data);
     delete[] tile.data;
+    delete[] out.data;
+}
+
+void create_biome_map(GameMap& game_map) {
+    int h = game_map.size() - 1;
+    int w = game_map[0].size() - 1;
+
+    Image out = create_image(w, h, 3);
+    std::memset(out.data, 255, out.w * out.h * out.channels);
+
+    debug_printf(DebugType::WORLD_INIT, "Generating biome map\n");
+    for (int row = 0; row < h; row++) {
+        for (int col = 0; col < w; col++) {
+            unsigned char r, g, b;
+            switch (get_biome(game_map[row][col])) {
+                case B_FOREST:
+                    r = 62; g=137; b=72;
+                    break;
+                case B_BEACH:
+                    r=184; g=188; b=78;
+                    break;
+                case B_SAVANNA:
+                    r=120; g=138; b=50;
+                    break;
+                case B_ICE:
+                    r=255; g=255; b=255;
+                    break;
+                case B_JUNGLE:
+                    r=17; g=91; b=40;
+                    break;
+                default:
+                    r=0; g=149; b=233;
+            }
+            int pixel_index = (row * w + col) * 3;
+            out.data[pixel_index] = r;
+            out.data[pixel_index + 1] = g;
+            out.data[pixel_index + 2] = b;
+        }
+    }
+
+    int success = stbi_write_png(
+        map_path("biome_map.png").c_str(),
+        out.w, out.h, out.channels, out.data, out.w * out.channels
+    );
+
+    if (success) debug_printf(DebugType::GAME_INIT, "Wrote biome map file successfully.\n");
+    else         debug_printf(DebugType::GAME_INIT, "Error biome map file.\n");
+
     delete[] out.data;
 }

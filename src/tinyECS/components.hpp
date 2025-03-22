@@ -8,6 +8,7 @@
 #include <entt.hpp>
 #include <animation/animation_definition.hpp>
 
+struct Glyph{};
 struct Tree{};
 struct Background{};
 
@@ -239,19 +240,6 @@ struct Debug {
 };
 extern Debug debugging;
 
-// Sets the brightness of the screen
-struct ScreenState
-{
-	enum class ScreenType {
-        GAMEPLAY,
-        SHIP_UPGRADE_UI,
-		TITLE
-    };
-
-    ScreenType current_screen;
-	float darken_screen_factor = 0;
-};
-
 // will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 
 struct Object {
 
@@ -324,6 +312,8 @@ enum class TEXTURE_ASSET_ID {
 	GOBLIN_TORCH_BLUE,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
+	MINIMAP,
+	TEXT,
 	TEXTURE_COUNT
 };
 
@@ -331,7 +321,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, E_SNOW, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -381,6 +371,20 @@ struct Camera
 	vec2 offset = vec2(0.f, 0.f); // offset from the player
 
 	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
+};
+
+// Sets the brightness of the screen
+struct ScreenState
+{
+	enum class ScreenType {
+        GAMEPLAY,
+        SHIP_UPGRADE_UI,
+		TITLE
+    };
+    ScreenType current_screen;
+	EFFECT_ASSET_ID effect;
+
+	float darken_screen_factor = 0;
 };
 
 const Sprite PLAYER_SPRITESHEET = {

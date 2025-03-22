@@ -15,7 +15,9 @@ public:
     static void init(entt::registry& reg);
     static void generate_new_map();
     static vec2 populate_ecs(entt::registry& reg, vec2& p_pos, vec2& s_pos);
+
     static void update_location(entt::registry& reg, entt::entity ent);
+    static void update_background_music(entt::registry& reg, entt::entity ent);
 
     inline static int map_width  = -1;
     inline static int map_height = -1;

@@ -97,11 +97,11 @@ std::pair<int, int> find_valid_area(
     };
 
     auto is_valid = [&terrain, width, height](std::pair<int, int> curr, int range) {
-        int min_row = max(0, curr.first - range / 2);
-        int max_row = min(height, curr.first + range / 2);
+        int min_row = max(0, curr.first - range);
+        int max_row = min(height, curr.first + range);
 
-        int min_col = max(0, curr.second - range / 2);
-        int max_col = min(width, curr.second + range / 2);
+        int min_col = max(0, curr.second - range);
+        int max_col = min(width, curr.second + range);
 
         for (int i = min_row; i < max_row; i++) {
             for (int j = min_col; j < max_col; j++) {
@@ -123,10 +123,10 @@ std::pair<int, int> find_valid_area(
         if (is_valid(curr, range)) return curr;
 
         int row = curr.first, col = curr.second;
-        process(row - 1, col - 1);
-        process(row - 1, col + 1);
-        process(row + 1, col - 1);
-        process(row + 1, col + 1);
+        process(row - 1, col);
+        process(row + 1, col);
+        process(row, col - 1);
+        process(row, col + 1);
     }
 
     debug_printf(DebugType::GAME_INIT, "Bad news, aborting\n");
@@ -137,7 +137,7 @@ std::pair<int, int> player_spawn(
     const GameMap& terrain, int width, int height
 ) {
     int c_row = height / 2, c_col = width / 2;
-    return find_valid_area(terrain, {c_row, c_col}, 5);
+    return find_valid_area(terrain, {c_row, c_col}, 3);
 }
 
 std::pair<int, int> ship_spawn(
@@ -146,7 +146,7 @@ std::pair<int, int> ship_spawn(
     return find_valid_area(
         terrain,
         {player_spawn.first - 15, player_spawn.second},
-        10
+        5
     );
 }
 
@@ -180,11 +180,11 @@ std::vector<std::vector<bool>> find_mainland(
         queue.pop();
 
         int row = curr.first, col = curr.second;
-        
-        process(row - 1, col - 1);
-        process(row - 1, col + 1);
-        process(row + 1, col - 1);
-        process(row + 1, col + 1);
+
+        process(row - 1, col);
+        process(row + 1, col);
+        process(row, col - 1);
+        process(row, col + 1);
     }
 
     return mainland;
@@ -236,6 +236,63 @@ std::vector<std::pair<int, int>> find_biome_seeds(
     }
     
     return selected_points;
+}
+
+void add_biomes(GameMap& terrain, std::vector<std::pair<int, int>> seeds) {
+    int height = terrain.size(), width = terrain[0].size();
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+
+    std::vector<std::vector<bool>> visited(height, std::vector<bool>(width, false));
+    std::queue<std::pair<std::pair<int, int>, Biome>> queue;
+
+    Biome biomes[5] = {
+        Biome::B_FOREST, Biome::B_BEACH, Biome::B_SAVANNA, Biome::B_JUNGLE, Biome::B_ICE
+    };
+    for (int i = 0; i < seeds.size(); i++) {
+        queue.push({seeds[i], biomes[i % 5]});
+        visited[seeds[i].first][seeds[i].second] = true;
+        set_biome(terrain[seeds[i].first][seeds[i].second], biomes[i % 5]);
+    }
+
+    auto process = [&](int row, int col, Biome biome) {
+        if (
+            (0 <= row && row < height) && (0 <= col && col < width) &&
+            !visited[row][col] &&
+            get_terrain(terrain[row][col]) != Terrain::WATER
+        ) {
+            queue.push({{row, col}, biome});
+            visited[row][col] = true;
+            set_biome(terrain[row][col], biome);
+        }
+    };
+
+    while (!queue.empty()) {
+        auto curr = queue.front();
+        auto seed = curr.first;
+        Biome biome = curr.second;
+
+        queue.pop();
+        int row = seed.first, col = seed.second;
+
+        // Chance to reject; injects a more "natural" boundary
+        float flip = dist(gen);
+        if (
+            // Bias against forest; it has the "best" seed location (center of the landmass)
+            (biome == Biome::B_FOREST && flip < 0.75) ||
+            (biome != Biome::B_FOREST && flip < 0.25)
+        ) {
+            queue.push({seed, biome});
+            continue;
+        }
+        
+        process(row - 1, col, biome);
+        process(row + 1, col, biome);
+        process(row, col - 1, biome);
+        process(row, col + 1, biome);
+    }
 }
 
 std::vector<std::pair<int, int>> get_trees(const GameMap& terrain, int num_trees, int min_dist) {
@@ -317,6 +374,7 @@ GameMap create_map(int width, int height) {
         auto seed = biome_seeds[i];
         set_decoration(terrain[seed.first][seed.second], Decoration::BOSS);
     }
+    add_biomes(terrain, biome_seeds);
     debug_printf(DebugType::WORLD_INIT, "Planted biome seeds\n");
 
     auto trees = get_trees(terrain, 1500, 15);

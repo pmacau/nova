@@ -6,6 +6,7 @@
 #include "common.hpp"
 #include "tinyECS/components.hpp"
 #include "quadtree/quadtree.hpp"
+#include "render/shader.h"
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -44,10 +45,15 @@ class RenderSystem {
 		textures_path("terrain/tree.png"),
 		textures_path("mob/goblin_torch_blue.png"), 
 		textures_path("title/screen.png"), 
-		textures_path("textBackground/textbox.png")
+		textures_path("textBackground/textbox.png"),
+		map_path("biome_map.png"),
+		textures_path("text/text.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
+
+	std::unordered_map<std::string, Shader> shaders;
+
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, effect_count> effect_paths = {
 		shader_path("textured"),
@@ -55,6 +61,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("debug"),
 		shader_path("text"),
+		shader_path("snow"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -102,7 +109,7 @@ public:
 
 	mat3 createProjectionMatrix();
 
-	entt::entity get_screen_state_entity() { return screen_state_entity; }
+	//entt::entity get_screen_state_entity() { return screen_state_entity; }
 
 private:
 	entt::registry& registry;
@@ -123,7 +130,7 @@ private:
 	GLuint frame_buffer;
 	GLuint off_screen_render_buffer_color;
 	GLuint off_screen_render_buffer_depth;
-	entt::entity screen_state_entity;
+	//entt::entity screen_state_entity;
 	entt::entity screen_entity;
 
 	// text based stuff
@@ -133,8 +140,7 @@ private:
 	GLuint textVBO = 0;
 
 	mat3 shipUITransform = mat3(1.0f);
-	
-	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
+	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection, bool wrap=false);
 };
 
 bool loadEffectFromFile(

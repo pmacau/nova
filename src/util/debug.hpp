@@ -7,6 +7,8 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <chrono>
+#include <functional>
 
 // Change this flag to false if your terminal does not support ANSI colored text
 const bool ENABLE_COLOR = true;
@@ -24,6 +26,7 @@ enum class DebugType {
     SPAWN, 
     AI,
     USER_INPUT,
+    TIME,
     DEBUG_TYPE_COUNT
 };
 
@@ -37,12 +40,19 @@ inline std::unordered_map<DebugType, DebugData> debug_options = {
     {DebugType::SPAWN,  {true, 37, "[SPAWN]"}},
      {DebugType::FLAG,  {true, 38, "[FLAG]"}},
     // Fine-grain debug types
-    {DebugType::USER_INPUT, {true, 36, "[INPUT]"}}
+    {DebugType::USER_INPUT, {true, 36, "[INPUT]"}},
+    {DebugType::TIME, {false, 30, "[TIME]"}},
 };
 
 inline void toggle_debug(DebugType type) {
     if (debug_options.find(type) != debug_options.end()) {
         debug_options[type].enabled = !debug_options[type].enabled;
+    }
+}
+
+inline void set_debug(DebugType type, bool val) {
+    if (debug_options.find(type) != debug_options.end()) {
+        debug_options[type].enabled = val;
     }
 }
 
@@ -62,3 +72,21 @@ inline void debug_printf(DebugType type, const char *format, ...) {
         va_end(args);
     }
 };
+
+template <typename R>
+inline R time_exe(
+    const std::string& name, const std::function<R()>& func
+){
+    auto start = std::chrono::high_resolution_clock::now();
+    auto result = func();
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    debug_printf(
+        DebugType::TIME,
+        "%s took %.4f ms\n",
+        name.c_str(), elapsed.count()
+    );
+
+    return result;
+}
