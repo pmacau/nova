@@ -1,11 +1,49 @@
 #include "patrol_state.hpp"
-#include "tinyECS/components.hpp"  // For Motion component.
+#include "tinyECS/components.hpp"
 #include <iostream>
 #include <cmath>
 #include <random>
 #include "chase_state.hpp"
 #include <ai/ai_component.hpp>
 #include "attack_state.hpp"
+#include <map/map_system.hpp>
+
+// Helper: Attempt to find a valid patrol target given current position and patrol radius.
+// Returns a candidate world position that is in a walkable tile.
+static glm::vec2 findValidPatrolTarget(const glm::vec2& currentPos, float patrolRadius, std::default_random_engine& rng) {
+    const int maxAttempts = 5;
+    for (int i = 0; i < maxAttempts; ++i) {
+        std::uniform_real_distribution<float> angleDist(0.0f, 2 * 3.14159265f);
+        float angle = angleDist(rng);
+        glm::vec2 direction = { std::cos(angle), std::sin(angle) };
+
+        // Determine the maximum valid distance along that direction
+        const ivec2 currentPosTileIndices = MapSystem::get_tile_indices(currentPos);
+        const float stepSize = TILE_SIZE / 2.f; // TODO: make this a parameter?
+        float maxValidDistance = 0.0f;
+        for (float d = 0.0f; d <= patrolRadius; d += stepSize) {
+            glm::vec2 candidate = currentPos + direction * d;
+
+            glm::vec2 candidateIndices = MapSystem::get_tile_indices(candidate);
+            int tileX = static_cast<int>(candidateIndices.x);
+            int tileY = static_cast<int>(candidateIndices.y);
+            // If the candidate tile is not walkable, break out.
+            if (!MapSystem::walkable_tile(MapSystem::get_tile_type_by_indices(tileX, tileY))) {
+                break;
+            }
+            maxValidDistance = d;
+        }
+
+        if (maxValidDistance > 0.0f) {
+            // random distance within the valid range
+            std::uniform_real_distribution<float> distDist(0.0f, maxValidDistance);
+            float chosenDistance = distDist(rng);
+            return currentPos + direction * chosenDistance;
+        }
+    }
+    // no valid candidate was found
+    return currentPos;
+}
 
 PatrolState::PatrolState()
     : patrolTarget({0.f, 0.f})
@@ -16,25 +54,16 @@ PatrolState::PatrolState()
 }
 
 void PatrolState::onEnter(entt::registry& registry, entt::entity entity) {
-    // When entering patrol, choose a new target within the patrol radius.
     auto& motion = registry.get<Motion>(entity);
-
     auto& aiComp = registry.get<AIComponent>(entity);
     const AIConfig& config = aiComp.stateMachine->getConfig();
     
-    std::uniform_real_distribution<float> angleDist(0.0f, 2 * 3.14159265f);
-    std::uniform_real_distribution<float> radiusDist(0.0f, config.patrolRadius);
-    
-    float angle = angleDist(rng);
-    float radius = radiusDist(rng);
-    
-    vec2 offset = { radius * std::cos(angle), radius * std::sin(angle) };
-    patrolTarget = motion.position + offset;
+    // find a valid patrol target
+    patrolTarget = findValidPatrolTarget(motion.position, config.patrolRadius, rng);
 }
 
 void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
     auto& motion = registry.get<Motion>(entity);
-
     auto& aiComp = registry.get<AIComponent>(entity);
     const AIConfig& config = aiComp.stateMachine->getConfig();
 
@@ -43,18 +72,12 @@ void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float 
     float distance = std::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y);
 
     if (distance < config.patrolThreshold) {
-        // Target reached: choose a new patrol target.
-        std::uniform_real_distribution<float> angleDist(0.0f, 2 * 3.14159265f);
-        std::uniform_real_distribution<float> radiusDist(0.0f, config.patrolRadius);
-        float angle = angleDist(rng);
-        float radius = radiusDist(rng);
-        vec2 offset = { radius * std::cos(angle), radius * std::sin(angle) };
-        patrolTarget = motion.position + offset;
-        
-        // Optionally, stop movement briefly.
+        // Target reached
+        patrolTarget = findValidPatrolTarget(motion.position, config.patrolRadius, rng);
+
         motion.velocity = {0, 0};
     } else {
-        // Move toward the patrol target.
+        // Move toward the patrol target
         vec2 direction = toTarget / distance;
         motion.velocity = direction * config.patrolSpeed;
     }

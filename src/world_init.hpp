@@ -46,3 +46,5 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureTyp
 entt::entity createTitleScreen(entt::registry & registry);
 
 entt::entity createMinimap(entt::registry & registry);
+
+entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices);

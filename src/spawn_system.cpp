@@ -79,7 +79,7 @@ void SpawnSystem::processNaturalSpawning()
     int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / TILE_SIZE));
     int safeTileMaxY = std::min<int>(MapSystem::map_height - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
 
-    std::vector<vec2> validTiles;
+    std::vector<ivec2> validTiles;
 
     // Iterate over tile indices within the spawn area.
     for (int tileY = spawnTileMinY; tileY <= spawnTileMaxY; ++tileY)
@@ -98,7 +98,7 @@ void SpawnSystem::processNaturalSpawning()
             Tile tileType = MapSystem::get_tile_type_by_indices(tileX, tileY);
             if (MapSystem::walkable_tile(tileType))
             {
-                validTiles.push_back(vec2(tileX, tileY));
+                validTiles.push_back(ivec2(tileX, tileY));
             }
         }
     }
@@ -110,7 +110,7 @@ void SpawnSystem::processNaturalSpawning()
     
     // Randomly pick a valid tile
     std::uniform_int_distribution<size_t> tileDist(0, validTiles.size() - 1);
-    vec2 candidate_tile_indices = validTiles[tileDist(rng)];
+    ivec2 candidate_tile_indices = validTiles[tileDist(rng)];
 
     // Assume candidate's biome is 0 for now
     // TODO: biome system
@@ -200,12 +200,12 @@ void SpawnSystem::processNaturalSpawning()
 }
 
 
-void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const vec2 &tileIndices, int groupSize)
+void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const ivec2 &tileIndices, int groupSize)
 {
     std::vector<vec2> validNeighborTiles;
 
-    int baseTileX = static_cast<int>(tileIndices.x);
-    int baseTileY = static_cast<int>(tileIndices.y);
+    int baseTileX = tileIndices.x;
+    int baseTileY = tileIndices.y;
 
     // TODO: change later for customizable radius
     int spawnAreaMinX = std::max(0, baseTileX - 1);
