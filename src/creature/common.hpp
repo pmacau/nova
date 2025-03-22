@@ -1,29 +1,27 @@
 #pragma once
-
-#include "common.hpp"      // for vec2 and any common types
-#include "ai_common.hpp"   // for CreatureType (if defined here) or define it here
-
-#include <vector>
-#include <string>
-#include <map/tile.hpp>
+#include <glm/glm.hpp>
 #include <tinyECS/components.hpp>
+#include <map/tile.hpp>
 
-// Structure representing an animation sequence for a sprite.
+
+enum class CreatureType {
+    Mob,
+    Boss,
+    Mutual,
+};
+
 struct SpriteAnimation {
     std::string name;           // Animation name (e.g., "idle", "attack")
     std::vector<vec2> frames;   // Coordinates in the spritesheet for each frame
     float frameDuration;        // Duration of each frame in milliseconds
 };
 
-// Group properties for spawn.
 struct GroupProperties {
     int minSize; // Minimum number in a group.
     int maxSize; // Maximum number in a group.
 };
 
-// The enemy definition structure.
-// This holds all data relevant for creating an enemy creature.
-struct EnemyDefinition {
+struct CreatureDefinition {
     CreatureType creatureType;  // Type: Mob, Boss, or Mutual
     std::string id;             // Unique identifier (e.g., "goblin", "skeleton")
 
@@ -46,8 +44,5 @@ struct EnemyDefinition {
     // Drop information.
     std::vector<std::string> dropItems; // Item IDs that can drop when defeated.
 
-    // Future parameters (like AI-specific settings, agro range, etc.) can be added here.
+    // AI-specific settings, agro range
 };
-
-extern std::vector<EnemyDefinition> enemyDefinitions;
-void initializeEnemyDefinitions();

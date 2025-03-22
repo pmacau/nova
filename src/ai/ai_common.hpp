@@ -1,11 +1,5 @@
 #pragma once
 
-enum class CreatureType {
-    Mob,
-    Boss,
-    Mutual,
-};
-
 struct AIConfig {
     float detectionRange = 300.0f;
     float unchaseRange = 500.0f;

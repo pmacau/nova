@@ -2,8 +2,7 @@
 #include <random>
 #include <entt.hpp>
 #include "spawn_definitions.hpp"  
-#include "ai/enemy_definition.hpp"
-
+#include <creature/enemy_definition.hpp>
 
 class SpawnSystem {
 public:
@@ -24,7 +23,7 @@ private:
 
     void processDespawning();
 
-    void spawnCreaturesByTileIndices(const EnemyDefinition &def, const ivec2 &tileIndices, int groupSize);
+    void spawnCreaturesByTileIndices(const CreatureDefinition &def, const ivec2 &tileIndices, int groupSize);
 
 
     void checkAndSpawnBoss();

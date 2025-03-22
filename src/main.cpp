@@ -34,7 +34,7 @@ int main()
 {
 	// TOGGLE this if you don't want a new map every time...
 	int mapWidth = 500, mapHeight = 500; 
-	if (false) {
+	if (true) {
 		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		create_biome_map(generated_map);
@@ -44,7 +44,6 @@ int main()
 	entt::registry reg;
 
 	// assets and constants
-	initializeEnemyDefinitions();
 	initializeAIStates(g_stateFactory);
 	// QuadTree
 	QuadTree quadTree((mapWidth / 2) * 16.f, (mapHeight / 2) * 16.f, mapWidth, mapHeight);
