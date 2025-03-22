@@ -28,6 +28,8 @@ public:
     static vec2 get_tile_center_pos(vec2 tile_indices);
     static bool walkable_tile(Tile tile);
 
+    static Biome get_biome_by_indices(ivec2 tile_indices);
+
     static std::vector<vec2>& getBossSpawnIndices();
 
 private:

@@ -9,6 +9,7 @@
 #include "ai/state_machine/patrol_state.hpp"
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
+#include <creature/common.hpp>
 #include "ui_system.hpp"
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)

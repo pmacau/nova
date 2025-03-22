@@ -44,7 +44,6 @@ int main()
 	entt::registry reg;
 
 	// assets and constants
-	initializeEnemyDefinitions();
 	initializeAIStates(g_stateFactory);
 	// QuadTree
 	QuadTree quadTree((mapWidth / 2) * 16.f, (mapHeight / 2) * 16.f, mapWidth, mapHeight);

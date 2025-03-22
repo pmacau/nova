@@ -234,6 +234,10 @@ bool MapSystem::walkable_tile(Tile tile) {
     );
 };
 
+Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
+    return get_biome(game_map[tile_indices.y][tile_indices.x]);
+};
+
 
 std::vector<vec2>& MapSystem::getBossSpawnIndices() {
     return bossSpawnIndices;
