@@ -66,7 +66,7 @@ public:
             auto view = registry.view<Motion, Player>();
             for (auto entity : view) {
                 auto& motion = view.get<Motion>(entity);
-                if (motion.velocity.x != 0.0f || motion.velocity.y != 0.0f) {
+                if ((motion.velocity.x != 0.0f || motion.velocity.y != 0.0f) && time_spent_s > 10.0f) {
                     setMoved(true);
                     break;
                 }
@@ -91,8 +91,8 @@ public:
             }
         }
         else if (tutorial_step == TutorialStep::Shot) {
-            // timer for 10s to read the prompt
-            if (time_spent_s > 10.0f) {
+            // timer for 20s to read the prompt
+            if (time_spent_s > 20.0f) {
                 setBiomeRead(true);
             }
         }

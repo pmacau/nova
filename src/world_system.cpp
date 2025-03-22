@@ -57,7 +57,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 
 	std::string tut_0 =
 		std::string("... wait...? it looks like you survived the crash... holy s#%t! ") +
-		std::string("can you hear us astronaut? welcome to C#42A, AKA planet {1Nova}, the universe's biggest s%?#thole. ") +
+		std::string("can you hear us astronaut? welcome to C#42A, AKA planet {1Nova}, the universe's biggest hellhole. ") +
 		std::string("it looks like the ship is pretty banged up. you're going to have to repair it to get out of here. ") +
 		std::string("can you walk? try using {1'W', 'A', 'S', 'D'} to move.");
     textBoxEntities[0] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_0, scale, vec3(1));
@@ -75,7 +75,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 
 	std::string tut_3 =
 		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
-		std::string("be careful though; our signals indicate the presence of some {1stronger aliens} around. ") +
+		std::string("be careful though; our signals indicate the presence of a {1stronger alien} in each biome. ") +
 		std::string("taking those beasts down are sure to net you a hefty reward.");
     textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
 
@@ -352,10 +352,10 @@ void WorldSystem::player_respawn() {
 void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
     
-	// gets rid of the last text box after 10 seconds
+	// gets rid of the last text box after 15 seconds
 	if (currentStep == FlagSystem::TutorialStep::Biome_Read) {
 		mobKilledTextTimer += elapsed_ms_since_last_update / 1000.0f;
-		if (mobKilledTextTimer > 10.0f) {
+		if (mobKilledTextTimer > 15.0f) {
 			for (auto entity : textBoxEntities) {
 				auto& textData = registry.get<TextData>(entity);
 				textData.active = false;

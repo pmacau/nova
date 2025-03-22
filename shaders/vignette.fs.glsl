@@ -52,7 +52,7 @@ vec4 day_night_mix(vec4 in_color, float k) {
 
     float radius = 0.1;
 
-    float darkness = clamp(0.5 * (1.0 + tanh(k * sin(t - (5.0 * pi / 6.0)))), 0.0, 0.90);
+    float darkness = clamp(0.5 * (1.0 + tanh(k * sin(t - (5.0 * pi / 6.0)))), 0.0, 0.95);
     float light_strength = smoothstep(0, radius, dist);
 
     if (dist <= radius && darkness > 0.5) {
