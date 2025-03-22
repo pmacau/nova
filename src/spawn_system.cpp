@@ -265,7 +265,9 @@ void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinition &def, con
 
         // Add a random offset within the tile
         vec2 offset = {offsetWithinTile(rng), offsetWithinTile(rng)};
-        vec2 spawnPos = baseSpawnPos + offset;
+        vec2 spawnFootPos = baseSpawnPos + offset;
+
+        vec2 spawnPos = spawnFootPos - def.offset_to_ground;
 
         // Spawn the creature based on its type
         switch (def.creatureType)
@@ -348,7 +350,10 @@ void SpawnSystem::checkAndSpawnBoss() {
         vec2 tileCenter = MapSystem::get_tile_center_pos(spawnData.spawnTile);
         if (tileCenter.x >= spawnAreaMin.x && tileCenter.x <= spawnAreaMax.x &&
             tileCenter.y >= spawnAreaMin.y && tileCenter.y <= spawnAreaMax.y) {
-            createBoss(registry, tileCenter);
+
+            vec2 spawnPos = tileCenter - CreatureManager::getInstance().getDefinition(spawnData.id)->offset_to_ground;
+
+            createBoss(registry, spawnPos);
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
                          tileCenter.x, tileCenter.y, spawnData.spawnTile.x, spawnData.spawnTile.y);
 
