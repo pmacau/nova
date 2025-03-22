@@ -11,7 +11,8 @@ struct BossSpawn {
     bool spawned;
 };
 
-inline void initBossSpawnData(std::vector<BossSpawn> bossSpawns) {
+inline void initBossSpawnData(std::vector<BossSpawn>& bossSpawns) {
+    bossSpawns.clear();
     auto& bossIndices = MapSystem::getBossSpawnIndices();
 
     for (auto& bossIndex : bossIndices) {

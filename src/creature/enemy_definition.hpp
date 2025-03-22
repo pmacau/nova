@@ -11,4 +11,4 @@
 
 #include "common.hpp"
 
-void initializeEnemyDefinitions(std::vector<CreatureDefinition> enemyDefinitions);
+std::vector<CreatureDefinition> createEnemyDefinitions();

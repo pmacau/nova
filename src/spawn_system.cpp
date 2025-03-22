@@ -340,8 +340,8 @@ void SpawnSystem::checkAndSpawnBoss() {
     vec2 halfSpawnZone = SPAWN_ZONE * 0.5f;
     vec2 spawnAreaMin = playerPos - halfSpawnZone;
     vec2 spawnAreaMax = playerPos + halfSpawnZone;
-    
 
+    
     for (auto& spawnData : CreatureManager::getInstance().bossSpawnData) {
         if (spawnData.spawned) {
             continue;

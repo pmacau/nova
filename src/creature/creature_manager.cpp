@@ -20,9 +20,7 @@ void CreatureManager::loadDefinitions() {
     // TDOD: Load from file
     definitions.clear();
 
-    std::vector<CreatureDefinition> enemyDefinitions;
-
-    initializeEnemyDefinitions(enemyDefinitions);
+    std::vector<CreatureDefinition> enemyDefinitions= createEnemyDefinitions();
 
     for (const auto& def : enemyDefinitions) {
         definitions[def.id] = def;
@@ -45,7 +43,8 @@ const CreatureDefinition* CreatureManager::getDefinition(const std::string& id) 
 }
 
 std::vector<const CreatureDefinition*> CreatureManager::queryDefinitions(
-    const std::function<bool(const CreatureDefinition&)>& predicate) const {
+    const std::function<bool(const CreatureDefinition&)>& predicate) const 
+{
     std::vector<const CreatureDefinition*> results;
     for (const auto& kv : definitions) {
         if (predicate(kv.second)) {

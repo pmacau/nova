@@ -2,9 +2,8 @@
 #include <glm/glm.hpp>
 #include <tinyECS/components.hpp>
 
-void initializeEnemyDefinitions(std::vector<CreatureDefinition> enemyDefinitions) {
-    enemyDefinitions.clear();
-
+std::vector<CreatureDefinition> createEnemyDefinitions() {
+    std::vector<CreatureDefinition> enemyDefinitions;
     {
         // testing
         CreatureDefinition def;
@@ -13,6 +12,7 @@ void initializeEnemyDefinitions(std::vector<CreatureDefinition> enemyDefinitions
         def.spawnProbability = 0.5f;
         def.group.minSize = 1;
         def.group.maxSize = 2;
+
         def.biomes = {Biome::B_FOREST, Biome::B_BEACH, Biome::B_ICE, Biome::B_JUNGLE, Biome::B_SAVANNA};
 
         // Basic stats
@@ -66,5 +66,6 @@ void initializeEnemyDefinitions(std::vector<CreatureDefinition> enemyDefinitions
         enemyDefinitions.push_back(def);
     }
 
+    return enemyDefinitions;
     // ... define other enemies similarly ...
 }
