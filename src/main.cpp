@@ -33,13 +33,11 @@ using Clock = std::chrono::high_resolution_clock;
 int main()
 {
 	// TOGGLE this if you don't want a new map every time...
-	int mapWidth; 
-	int mapHeight; 
-	if (true) {
-		mapWidth = 500; 
-		mapHeight = 500; 
+	int mapWidth = 500, mapHeight = 500; 
+	if (false) {
 		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
+		create_biome_map(generated_map);
 		save_map(generated_map, map_path("map.bin").c_str());
 	}
 
@@ -121,22 +119,22 @@ int main()
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		if (!flag_system.is_paused) {
-			physics_system.step(elapsed_ms);
-			world_system.step(elapsed_ms);
-			playerSystem.update(elapsed_ms);
-			animationSystem.update(elapsed_ms);
+			time_exe<int>("PHYS", [&](){physics_system.step(elapsed_ms); return 0;});
+			time_exe<int>("WORL", [&](){world_system.step(elapsed_ms); return 0;});
+			time_exe<int>("PLAY", [&](){playerSystem.update(elapsed_ms); return 0;});
+			time_exe<int>("ANIM", [&](){animationSystem.update(elapsed_ms); return 0;});
 			if (flag_system.done) {
-				spawn_system.update(elapsed_ms);
+				time_exe<int>("SPAW", [&](){spawn_system.update(elapsed_ms); return 0;});	
 			}
-			collision_system.step(elapsed_ms);
-			camera_system.step(elapsed_ms);
-			ai_system.step(elapsed_ms); // AI system should be before physics system
+			time_exe<int>("COLL", [&](){collision_system.step(elapsed_ms); return 0;});
+			time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
+			time_exe<int>("AI  ", [&](){ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
 		}
-		
-		flag_system.step(elapsed_ms);
-		renderer_system.draw();
-		
-		
+
+		time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});
+		time_exe<int>("REND", [&](){renderer_system.draw(); return 0;});
+		debug_printf(DebugType::TIME, "-----------------------\n");
+		set_debug(DebugType::TIME, false);
 	}
 
 	return EXIT_SUCCESS;

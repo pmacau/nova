@@ -135,7 +135,6 @@ void UISystem::dropItem(entt::registry& registry, Click click) {
 		auto& drag_entity = *registry.view<Drag>().begin();
 		auto& player_entity = *registry.view<Player>().begin();
 		auto& motion = registry.get<Motion>(player_entity);
-		auto& item = registry.get<Item>(drag_entity);
 		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false, false);
 		registry.destroy(drag_entity);
 		MusicSystem::playSoundEffect(SFX::DROP); 

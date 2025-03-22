@@ -39,8 +39,8 @@ inline std::string map_path(const std::string& name)  {return data_path() + "/ma
 //
 // game constants
 //
-const int WINDOW_WIDTH_PX = 840;
-const int WINDOW_HEIGHT_PX = 560;
+const int WINDOW_WIDTH_PX = 960 * 1.5;
+const int WINDOW_HEIGHT_PX = 540 * 1.5;
 
 const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
@@ -69,6 +69,7 @@ const int MAX_INVENTORY_SLOTS = 5;
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
+const bool ENABLE_WEATHER = false;
 
 // Camera system
 const float CAMERA_SPEED = 0.2f;

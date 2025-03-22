@@ -15,6 +15,7 @@
 #include <string>
 #include <filesystem>
 #include <sstream>
+#include <cctype>
 
 
 RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
@@ -22,7 +23,7 @@ RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
 	quadTree(quadTree)
 
 {
-	screen_state_entity = registry.create();
+	// screen_state_entity = registry.create();
 	screen_entity = registry.view<ScreenState>().front();
 }
 
@@ -127,85 +128,135 @@ bool RenderSystem::initFreetype() {
     return true;
 }
 
-void RenderSystem::renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection) {
-    // Activate corresponding render state	
-	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::TEXT]);
-    gl_has_errors();
+ivec2 get_char_coords(const unsigned char& glyph) {
+	unsigned char upper = std::toupper(glyph);
+	int ascii_value = static_cast<int>(upper);
 
-    // Validate VAO and VBO
-    if (textVAO == 0 || textVBO == 0) {
-        std::cerr << "ERROR: Text VAO or VBO not initialized" << std::endl;
-        return;
+	if (std::isalpha(glyph)) {
+		ascii_value -= 65; // ASCII for 'A'
+		return ivec2(0, ascii_value);
+	}
+	else if (std::isdigit(glyph)) {
+		ascii_value -= 48; // ASCII for '0'
+		return ivec2(1, ascii_value);
+	}
+	else {
+		int val = 10;
+		switch (upper) {
+			case '!':  {val += 0; break;}
+			case '?':  {val += 1; break;}
+			case '.':  {val += 2; break;}
+			case ',':  {val += 3; break;}
+			case ';':  {val += 4; break;}
+			case '\'': {val += 5; break;}
+			case '#':  {val += 6; break;}
+			case '$':  {val += 7; break;}
+			case '%':  {val += 8; break;}
+			case '&':  {val += 9; break;}
+			case '*':  {val += 10; break;}
+			case ' ':  {val += 11; break;}
+			default:   {val += 0; break;}
+		}
+		return ivec2(1, val);
+	}
+}
+
+entt::entity createGlyph(
+	entt::registry& reg, const unsigned char& c,
+	float x, float y, float scale, vec3 color
+) {
+	ivec2 coord = get_char_coords(c);
+	auto e = reg.create();
+
+	reg.emplace<Glyph>(e);
+	reg.emplace<FixedUI>(e);
+
+	auto& motion = reg.emplace<Motion>(e);
+	motion.scale = scale * vec2(5, 7);
+	motion.position = {x, y};
+
+	auto& sprite = reg.emplace<Sprite>(e);
+	sprite.coord.row = coord.x;
+	sprite.coord.col = coord.y;
+	
+	sprite.dims = {5, 7};
+	sprite.sheet_dims = {130, 14};
+
+	auto& render = reg.emplace<RenderRequest>(e);
+	render.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	render.used_texture = TEXTURE_ASSET_ID::TEXT;
+
+	auto& tColor = reg.emplace<vec3>(e);
+	tColor = color;
+
+	return e;
+}
+
+const std::unordered_map<char, vec3> color_codes = {
+	// Biome codes
+	{'I', {155.f/255.f, 226.f/255.f, 255.f/255.f}},
+	{'S', {120.f/255.f, 138.f/255.f, 50.f/255.f}},
+	{'J', {17.f/255.f,  91.f/255.f,  40.f/255.f}},
+	{'B', {255.f/255.f, 220.f/255.f, 85.f/255.f}},
+	{'F', {62.f/255.f,  137.f/255.f, 72.f/255.f}},
+	{'W', {0.f/255.f,   149.f/255.f, 233.f/255.f}},
+
+	{'0', {124.f/255.f, 109.f/255.f, 162.f/255.f}},
+	{'1', {0, 0, 1}},
+	{'2', {1, 0, 0}},
+};
+
+void RenderSystem::renderText(
+	const std::string& text,
+	float x, float y, float scale,
+	glm::vec3 color, const mat3& projection,
+	bool wrap
+) {
+    std::istringstream iss(text);
+    std::vector<std::string> words;
+    std::string word;
+    while (iss >> word) {
+        words.push_back(word);
     }
 
-	glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // Set projection
-    GLuint projLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "projection");
-    glUniformMatrix3fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-    // Set text color
-    GLuint colorLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::TEXT], "textColor");
-    glUniform3f(colorLoc, color.x, color.y, color.z);
-    gl_has_errors();
+	int x_offset = 0, y_offset = 0;
+	int char_space = (5 + 1);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(textVAO);
+	vec3 tColor = color;
+	bool changeColor = false;
+	
+	// TODO: make this a parameter
+	int max_width = WINDOW_WIDTH_PX / 3 - (WINDOW_WIDTH_PX / 15);
 
-    // Iterate through all characters
-    for (char c : text) {
-        if (Characters.find(c) == Characters.end()) {
-            std::cerr << "Character not found in font map: " << c << std::endl;
-            continue;
-        }
-
-        Character ch = Characters[c];
-
-        float xpos = x + ch.Bearing.x * scale;
-        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-
-        float w = ch.Size.x * scale;
-        float h = ch.Size.y * scale;
-        
-        // Update VBO for each character
-        float vertices[6][4] = {
-            { xpos,     ypos + h,   0.0f, 0.0f },            
-            { xpos,     ypos,       0.0f, 1.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
-
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
-            { xpos + w, ypos + h,   1.0f, 0.0f }           
-        };
-        
-        // Render glyph texture over quad
-        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-        if (gl_has_errors()) {
-            std::cerr << "Error binding texture for character" << std::endl;
-            continue;
-        }
-        
-        // Update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        if (gl_has_errors()) {
-            std::cerr << "Error updating VBO data" << std::endl;
-            continue;
-        }
-
-        // Render quad
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        if (gl_has_errors()) {
-            std::cerr << "Error drawing text quad" << std::endl;
-        }
-
-        // Advance cursor for next glyph
-        x += (ch.Advance >> 6) * scale;
-    }
-    
-	glBindVertexArray(0); 
-    glBindTexture(GL_TEXTURE_2D, 0);
-    gl_has_errors();
+	for (const auto& word: words) {
+		if (wrap &&
+			(x + x_offset + (word.length() * scale * char_space) > max_width)
+		) {
+			y_offset += scale * (7 + 3);
+			x_offset = 0;
+		}
+		for (const char& c: word) {
+			if (c == '{') {changeColor = true; continue;}
+			if (c == '}') {tColor = color;     continue;}
+			if (changeColor) {
+				auto it = color_codes.find(c);
+				if (it != color_codes.end()) {
+					tColor = it->second;
+				} else {
+					tColor = color;
+				}
+				changeColor = false;
+				continue;
+			}
+	
+			auto entity = createGlyph(registry, c, x + x_offset, y + y_offset, scale, tColor);
+			drawTexturedMesh(entity, projection);
+			x_offset += scale * char_space;
+		}
+		// Add space for a ' ' character
+		x_offset += scale * char_space;
+	}
 }
 
 // TODO: fix debug rendering later
@@ -290,19 +341,6 @@ void RenderSystem::drawDebugHitBoxes(const glm::mat3& projection) {
 		transform = glm::translate(transform, glm::vec3(motion.position, 0.0f));
 		transform = glm::rotate(transform, glm::radians(motion.angle), glm::vec3(0.0f, 0.0f, 1.0f));
 		transform = glm::scale(transform, glm::vec3(motion.scale, 1.0f));
-		// Convert back to mat3 if needed
-		glm::mat3 final_transform = glm::mat3(transform);
-
-
-		// Apply camera transform
-		glm::mat3 cameraTransform = glm::mat3(1.0f);
-		if (!registry.any_of<FixedUI>(entity)) {
-			//cameraTransform = glm::translate(cameraTransform, -camera.offset);
-		}
-
-		// Set transform uniform
-		GLint transformLoc = glGetUniformLocation(effects[(GLuint)EFFECT_ASSET_ID::DEBUG], "transform");
-		//glUniformMatrix3fv(transformLoc, 1, GL_FALSE, glm::value_ptr(cameraTransform * transform));
 
 		// Set color based on entity type
 		vec3 color = { 1.0f, 0.0f, 0.0f }; // Default red
@@ -483,11 +521,6 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 // then draw the intermediate texture
 void RenderSystem::drawToScreen(bool vignette)
 {
-	// Setting shaders
-	// get the vignette texture, sprite mesh, and program
-	glUseProgram(effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE]);
-	gl_has_errors();
-
 	// Clearing backbuffer
 	int w, h;
 	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
@@ -499,12 +532,10 @@ void RenderSystem::drawToScreen(bool vignette)
 	glClearDepth(1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	gl_has_errors();
+
 	// Enabling alpha channel for textures
 	glDisable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST); // Debug: disable depth test
-
-	// glEnable(GL_DEPTH_TEST);
 
 	// Draw the screen texture on the quad geometry
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(GLuint)GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE]);
@@ -514,29 +545,26 @@ void RenderSystem::drawToScreen(bool vignette)
 																	 // indices to the bound GL_ARRAY_BUFFER
 	gl_has_errors();
 
-	// add the "vignette" effect
-	const GLuint vignette_program = effects[(GLuint)EFFECT_ASSET_ID::VIGNETTE];
-
-	// set clock
-	GLuint time_uloc       = glGetUniformLocation(vignette_program, "time");
-	GLuint dead_timer_uloc = glGetUniformLocation(vignette_program, "darken_screen_factor");
-
-	glUniform1f(time_uloc, (float)(glfwGetTime() * 10.0f));
+	auto& screen = registry.get<ScreenState>(screen_entity);
 	
-	auto& screen = registry.get<ScreenState>(screen_state_entity);
-	glUniform1f(dead_timer_uloc, vignette ? screen.darken_screen_factor : 0);
-	gl_has_errors();
 
+	Shader& v = shaders.at("vignette");
+	v.use();
+	unsigned int program = v.ID;
+
+	v.setFloat("time", vignette ? (float)(glfwGetTime()) : 0.f);
+	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
+	v.setVec2("resolution", vec2(w, h));
+		
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(vignette_program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();
 
 	// Bind our texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
-
 	glBindTexture(GL_TEXTURE_2D, off_screen_render_buffer_color);
 	gl_has_errors();
 
@@ -544,8 +572,11 @@ void RenderSystem::drawToScreen(bool vignette)
 	glDrawElements(
 		GL_TRIANGLES, 3, GL_UNSIGNED_SHORT,
 		nullptr); // one triangle = 3 vertices; nullptr indicates that there is
-				  // no offset from the bound index buffer
+				// no offset from the bound index buffer
 	gl_has_errors();
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void RenderSystem::renderGamePlay()
@@ -581,24 +612,6 @@ void RenderSystem::renderGamePlay()
 	flippedProjection[1][1] *= -1.0f;
 	mat3 flippedUIProjection = ui_projection_2D;
 	flippedUIProjection[1][1] *= -1.0f;
-
-
-	// for (auto entity : textBoxesUI) {
-	// 	drawTexturedMesh(entity, projection_2D);
-
-	// 	auto& motion = registry.get<Motion>(entity);
-	// 	auto& textData = registry.get<TextData>(entity);
-
-	// 	mat3 flippedProjection = projection_2D;
-    // 	flippedProjection[1][1] *= -1.0f;
-
-	// 	renderText(textData.content, 
-	// 		motion.position.x - 230, 
-	// 		-motion.position.y, 
-	// 		textData.scale, 
-	// 		textData.color, 
-	// 		flippedProjection);
-	// }
 
 	// Render huge background texture 
 	auto background = registry.view<Background>().front();
@@ -656,8 +669,12 @@ void RenderSystem::renderGamePlay()
 	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
+
+	// draw framebuffer to screen
+	// adding "vignette" effect when applied
+	drawToScreen(true);
 	
-	std::vector<std::tuple<std::string, vec2, float, vec3, mat3>> textsToRender;
+	std::vector<std::tuple<std::string, vec2, float, vec3, mat3, bool>> textsToRender;
 	// Render static UI
 	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory>)) {
 		if (registry.all_of<TextData>(entity)) {
@@ -669,10 +686,14 @@ void RenderSystem::renderGamePlay()
 				textsToRender.push_back(
 					std::make_tuple(
 						textData.content,
-						vec2(motion.position.x - 230, -motion.position.y),
+						vec2(
+							motion.position.x - motion.scale.x / 2 + (motion.scale.x / 10.f),
+							motion.position.y - motion.scale.y / 2 + (motion.scale.y / 4.f)
+						),
 						textData.scale,
 						textData.color,
-						flippedProjection
+						projection_2D,
+						true
 					)
 				);
 			}
@@ -699,10 +720,14 @@ void RenderSystem::renderGamePlay()
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),
-						vec2({ motion.position.x + motion.scale.x / 2.f - 13.f, -motion.position.y + motion.scale.y / 2.f - 10.f }),
-						0.3f,
+						vec2(
+							motion.position.x + motion.scale.x / 2.f - 13.f, 
+							motion.position.y + motion.scale.y / 2.f - 10.f
+						),
+						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						flippedUIProjection
+						ui_projection_2D,
+						false
 					)
 				);
 			}
@@ -710,10 +735,13 @@ void RenderSystem::renderGamePlay()
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),
-						vec2({ motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f, -motion.position.y + camera.offset.y + motion.scale.y / 2.f - 10.f }),
-						0.3f,
+						vec2(
+							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f,
+							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f),
+						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						flippedProjection
+						projection_2D,
+						false
 					)
 				);
 			}
@@ -723,10 +751,13 @@ void RenderSystem::renderGamePlay()
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),
-						vec2({ motion.position.x + motion.scale.x / 2.f - 8.f, -motion.position.y + motion.scale.y / 2.f - 10.f }),
-						0.3f,
+						vec2(
+							motion.position.x + motion.scale.x / 2.f - 8.f,
+							motion.position.y + motion.scale.y / 2.f - 10.f),
+						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						flippedUIProjection
+						ui_projection_2D,
+						false
 					)
 				);
 			}
@@ -734,39 +765,31 @@ void RenderSystem::renderGamePlay()
 				textsToRender.push_back(
 					std::make_tuple(
 						std::to_string(item.no),
-						vec2({ motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f, -motion.position.y + camera.offset.y + motion.scale.y / 2.f - 10.f }),
-						0.3f,
+						vec2(
+							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f,
+							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f
+						),
+						2.f,
 						vec3({ 1.f, 1.f, 1.f }),
-						flippedProjection
+						projection_2D,
+						false
 					)
 				);
 			}
 		}
 	}
-	
-	// draw framebuffer to screen
-	// adding "vignette" effect when applied
-	drawToScreen(true);
 
 	// RENDERING ALL THE TEXT
-	for (const auto& [content, position, scale, color, projection] : textsToRender) {
-		renderText(content, position.x, position.y, scale, color, projection);
+	for (const auto& [content, position, scale, color, projection, wrap] : textsToRender) {
+		renderText(content, position.x, position.y, scale, color, projection, wrap);
 	}
-
-	
-	// DEBUG
-	// auto debugView = registry.view<Debug>();
-	// if (!debugView.empty()) {
-	// 	glm::mat3 projection = createProjectionMatrix();
-	// 	glm::mat3 transform = glm::mat3(1.0f);
-	// 	drawDebugHitBoxes(projection, transform);
-	// }
-
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
 
+	auto glyphs = registry.view<Glyph>();
+    registry.destroy(glyphs.begin(), glyphs.end());
 }
 
 
@@ -785,9 +808,6 @@ void RenderSystem::renderTitle()
 		return;
 	}
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-
 	// clear backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.0, 10);
@@ -795,8 +815,9 @@ void RenderSystem::renderTitle()
 	// black background
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	mat3 projection_2D = createProjectionMatrix();
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	auto title = registry.view<Title, Motion, RenderRequest>();
@@ -805,17 +826,21 @@ void RenderSystem::renderTitle()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	drawToScreen(false);
-
-	mat3 flippedProjection = ui_projection_2D;
-	flippedProjection[1][1] *= -1.0f;
 	for (auto entity : registry.view<TitleOption>()) {
 		auto& title_option = registry.get<TitleOption>(entity);
 		if (title_option.hover) {
-			renderText(title_option.text, title_option.position.x - title_option.size.x / 2.f, -title_option.position.y - title_option.size.y / 2.f - 25.f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
+			renderText(
+				title_option.text,
+				title_option.position.x - title_option.size.x / 2,
+				WINDOW_HEIGHT_PX - 35,
+				2.f,
+				glm::vec3(1.0f, 1.0f, 1.0f),
+				ui_projection_2D
+			);
 		}
 	}
 
+	drawToScreen(false);
 
 	glfwSwapBuffers(window);
 	gl_has_errors();
@@ -836,9 +861,6 @@ void RenderSystem::renderShipUI()
         return;
     }
 
-	glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
 	// clear backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.0, 10);
@@ -847,7 +869,9 @@ void RenderSystem::renderShipUI()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	mat3 projection_2D = createProjectionMatrix();
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
 	// render ship
@@ -862,38 +886,12 @@ void RenderSystem::renderShipUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
+	renderText(
+		"SHIP UPGRADES", WINDOW_WIDTH_PX / 2 - 100, 100.f,
+		3.f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D
+	);
+
 	drawToScreen(false);
-
-	mat3 flippedProjection = projection_2D;
-	flippedProjection[1][1] *= -1.0f; 
-	//renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	renderText("SHIP UPGRADES", -125.0f, 225.0f, 0.7f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	renderText("Current ship", -348.0f, -35.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// current ship
-	// renderText("Damage: 10", -220.0f, 40.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Atk Spd: 10", -220.0f, 28.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("HP: 500", -220.0f, 18.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Range: 250", -220.0f, 8.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 1
-	renderText("Ship 1", -40.0f, 100.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Damage: 40", 50.0f, 160.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Atk Spd: 30", 50.0f, 148.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("HP: 300", 50.0f, 138.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// renderText("Range: 400", 50.0f, 128.0f, 0.2f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 2
-	renderText("Ship 2", -35.0f, -151.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 3
-	renderText("Ship 3", 220.0f, 90.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 4
-	renderText("Ship 4", 225.0f, -70.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-
-	// ship 5
-	renderText("Ship 5", 225.0f, -245.0f, 0.4f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
