@@ -704,12 +704,11 @@ void WorldSystem::left_mouse_click() {
 			auto& upgrade_option = registry.get<ButtonOption>(entity);
 			auto& upgrade_render = registry.get<RenderRequest>(entity);
 			if (upgrade_option.hover) {
-				upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
-				MusicSystem::playSoundEffect(SFX::SELECT);
-
 				// UPGRADE HEALTH ---------------------------------------------------------------------------
 				// 5 iron to upgrade health
 				if (upgrade_option.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON) {
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
 					
 					// update inventory
 					ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
@@ -746,8 +745,10 @@ void WorldSystem::left_mouse_click() {
 
 				// UPGRADE BLASTER ---------------------------------------------------------------------------
 				// 3 copper, 3 iron to upgrade blasters
+				// smg --> missles --> blaster --> railgun
 				if (upgrade_option.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER) {
-					// smg --> missles --> blaster --> railgun
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
 					
 					// update inventory
 					ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
@@ -873,7 +874,9 @@ void WorldSystem::left_mouse_click() {
 				// UPGRADE FIRE RATE ---------------------------------------------------------------------------
 				// smg engine --> missles engine --> blaster engine --> railgun engine
 				if (upgrade_option.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER) {
-					
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
+
 					// update inventory
 					ship_upgrade_inventory(SHIP_FIRERATE_UPGRADE_IRON, SHIP_FIRERATE_UPGRADE_COPPER);
 
@@ -952,7 +955,9 @@ void WorldSystem::left_mouse_click() {
 
 				// UPGRADE RANGE ---------------------------------------------------------------------------
 				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON) {
-
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
+					
 					// update inventory
 					ship_upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
 
