@@ -23,7 +23,7 @@ private:
 
     void processDespawning();
 
-    void spawnCreaturesByTileIndices(const CreatureDefinition &def, const vec2 &tileIndices, int groupSize);
+    void spawnCreaturesByTileIndices(const CreatureDefinition &def, const ivec2 &tileIndices, int groupSize);
 
 
     void checkAndSpawnBoss();

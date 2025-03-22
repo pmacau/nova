@@ -15,7 +15,7 @@ void initializeAIStates(StateFactory& stateFactory) {
 const TransitionTable& getGoblinTransitionTable() {
     static TransitionTable goblinTransitions;
     if (goblinTransitions.empty()) {
-        // Transition from "idle" to "chase"
+        // Transition from "patrol" to "chase"
         goblinTransitions["patrol"].push_back({
             "chase",
             [](entt::registry& reg, entt::entity entity, const AIConfig& config) -> bool {
@@ -51,7 +51,7 @@ const TransitionTable& getGoblinTransitionTable() {
                 auto& playerMotion = reg.get<Motion>(playerEntity);
                 auto& motion = reg.get<Motion>(entity);
                 vec2 diff = playerMotion.position - motion.position;
-                return (length(diff) > config.detectionRange);
+                return (length(diff) > config.unchaseRange);
             }
         });
         // Transition from "attack" to "chase"
@@ -65,9 +65,24 @@ const TransitionTable& getGoblinTransitionTable() {
                 auto& motion = reg.get<Motion>(entity);
                 vec2 diff = playerMotion.position - motion.position;
                 float dist = length(diff);
-                return (dist >= config.attackRange && dist < config.detectionRange);
+                return (dist >= config.attackRange && dist < config.unchaseRange);
             }
         });
+
+        // Transition from "attack" to "patrol"
+        goblinTransitions["attack"].push_back({
+            "patrol",
+            [](entt::registry& reg, entt::entity entity, const AIConfig& config) -> bool {
+                auto playerView = reg.view<Player, Motion>();
+                if (playerView.size_hint() == 0) return false;
+                auto playerEntity = *playerView.begin();
+                auto& playerMotion = reg.get<Motion>(playerEntity);
+                auto& motion = reg.get<Motion>(entity);
+                vec2 diff = playerMotion.position - motion.position;
+                return (length(diff) > config.unchaseRange);
+            }
+        });
+
     }
     return goblinTransitions;
 }
@@ -76,6 +91,7 @@ AIConfig getGoblinAIConfig() {
     AIConfig config;
 
     config.detectionRange = 300.0f;
+    config.unchaseRange = 500.0f;
     config.chaseSpeed = 100.0f;
     config.attackRange = 50.0f;
     config.patrolRadius = 100.0f;
@@ -87,6 +103,7 @@ AIConfig getGoblinAIConfig() {
 AIConfig getBossAIConfig() {
     AIConfig config;
     config.detectionRange = 500.0f;
+    config.unchaseRange = 800.0f;
     config.chaseSpeed = 160.0f;
     config.attackRange = 50.0f;
     return config;
