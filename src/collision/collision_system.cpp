@@ -85,7 +85,11 @@ void CollisionSystem::step(float elapsed_ms) {
 	}
 
 	
-	for (auto entity : destroy_entities) registry.destroy(entity);
+	for (auto entity : destroy_entities) {
+		if (registry.valid(entity)) {
+			registry.destroy(entity);
+		}
+	}
 
 
 	/*for (auto&& [e1, m1, h1] : registry.view<Motion, Hitbox>().each()) {

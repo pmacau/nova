@@ -51,7 +51,10 @@ bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 		}
 		if (item.no == 1) {
 			item.no = 0;
-			registry.destroy(entity);
+
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
 			return false;
 		}
 		else {
@@ -136,7 +139,10 @@ void UISystem::dropItem(entt::registry& registry, Click click) {
 		auto& player_entity = *registry.view<Player>().begin();
 		auto& motion = registry.get<Motion>(player_entity);
 		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false, false);
-		registry.destroy(drag_entity);
+
+		if (registry.valid(drag_entity)) {
+			registry.destroy(drag_entity);
+		}
 		MusicSystem::playSoundEffect(SFX::DROP); 
 	}
 }
@@ -158,7 +164,10 @@ void UISystem::resetDragItem(entt::registry& registry) {
 		auto& inventory_item = registry.get<Item>(inventory_slot.item);
 		inventory_item.no = registry.get<Item>(drag_entity).no;
 	}
-	registry.destroy(drag_entity);
+
+	if (registry.valid(drag_entity)) {
+		registry.destroy(drag_entity);
+	}
 }
 
 void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
@@ -196,7 +205,10 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							}
 							else {
 								inventory_item.no += drag_item.no;
-								registry.destroy(drag_entity);
+
+								if (registry.valid(drag_entity)) {
+									registry.destroy(drag_entity);
+								}
 							}
 						}
 						// put the dragged item to original inventory slot if the item is of different type
@@ -262,14 +274,20 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						inventory_item.no = 0;
 						inventory_slot.hasItem = false;
 						debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-						registry.destroy(inventory_slot.item);
+
+						if (registry.valid(inventory_slot.item)) {
+							registry.destroy(inventory_slot.item);
+						}
 					}
 					else if (click == Click::SHIFTRIGHT) {
 						if (inventory_item.no == 1) {
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
+
+							if (registry.valid(inventory_slot.item)) {
+								registry.destroy(inventory_slot.item);
+							}
 						}
 						else {
 							inventory_item.no -= std::max(1, inventory_item.no / 2);
@@ -280,7 +298,10 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
+
+							if (registry.valid(inventory_slot.item)) {
+								registry.destroy(inventory_slot.item);
+							}
 						}
 						else {
 							inventory_item.no -= std::min(inventory_item.no, 5);
@@ -291,7 +312,10 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
+
+							if (registry.valid(inventory_slot.item)) {
+								registry.destroy(inventory_slot.item);
+							}
 						}
 						else {
 							inventory_item.no -= 1;
@@ -314,7 +338,10 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 					}
 					else {
 						inventory_item.no = drag_item.no;
-						registry.destroy(drag_entity);
+
+						if (registry.valid(drag_entity)) {
+							registry.destroy(drag_entity);
+						}
 					}
 				}
 			}
@@ -345,7 +372,10 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 					pickup = true;
 					if (item.no == 0) {
 						MusicSystem::playSoundEffect(SFX::PICKUP);
-						registry.destroy(item_entity);
+
+						if (registry.valid(item_entity)) {
+							registry.destroy(item_entity);
+						}
 						return;
 					}
 				}
@@ -385,7 +415,10 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 		}
 	}
 	else {
-		registry.destroy(item_entity);
+
+		if (registry.valid(item_entity)) {
+			registry.destroy(item_entity);
+		}
 	}
 }
 

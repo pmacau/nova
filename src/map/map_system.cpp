@@ -12,7 +12,9 @@ std::vector<vec2> MapSystem::bossSpawnIndices;
 
 void createBackground(entt::registry& reg, int width, int height, int tile_size) {
     auto background_ents = reg.view<Background>();
-    reg.destroy(background_ents.begin(), background_ents.end());
+    if (!background_ents.empty()) {
+        reg.destroy(background_ents.begin(), background_ents.end());
+    }
 
     auto entity = reg.create();
     reg.emplace<Background>(entity);
