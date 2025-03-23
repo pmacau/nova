@@ -4,7 +4,7 @@
 #include <entt.hpp>
 #include "render_system.hpp"
 #include "ai/ai_common.hpp"
-#include <creature/common.hpp>
+#include <creature/creature_common.hpp>
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position);
