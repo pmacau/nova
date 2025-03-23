@@ -9,6 +9,6 @@
 #include <tinyECS/components.hpp>
 #include "boss_def.hpp"
 
-#include "common.hpp"
+#include "creature_common.hpp"
 
 std::vector<CreatureDefinition> createEnemyDefinitions();
