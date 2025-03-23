@@ -211,7 +211,7 @@ const int x_char_space = (5 + 1);
 
 void RenderSystem::renderText(
 	const std::string& text,
-	float x, float y, float scale,
+	float x, float y, int scale,
 	glm::vec3 color, const mat3& projection,
 	bool wrap
 ) {
@@ -260,7 +260,7 @@ void RenderSystem::renderText(
 	}
 }
 
-float RenderSystem::getTextWidth(const std::string& text, float scale) {
+int RenderSystem::getTextWidth(const std::string& text, int scale) {
 	return (text.length() * scale * x_char_space);
 }
 
@@ -834,7 +834,7 @@ void RenderSystem::renderGamePlay()
 							motion.position.x + motion.scale.x / 2.f - 13.f, 
 							motion.position.y + motion.scale.y / 2.f - 10.f
 						),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						ui_projection_2D,
 						false
@@ -848,7 +848,7 @@ void RenderSystem::renderGamePlay()
 						vec2(
 							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f,
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						projection_2D,
 						false
@@ -864,7 +864,7 @@ void RenderSystem::renderGamePlay()
 						vec2(
 							motion.position.x + motion.scale.x / 2.f - 8.f,
 							motion.position.y + motion.scale.y / 2.f - 10.f),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						ui_projection_2D,
 						false
@@ -879,7 +879,7 @@ void RenderSystem::renderGamePlay()
 							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f,
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f
 						),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						projection_2D,
 						false
@@ -940,7 +940,7 @@ void RenderSystem::renderTitle()
 				title_option.text,
 				title_option.position.x - title_option.size.x / 2,
 				WINDOW_HEIGHT_PX - 35,
-				2.f,
+				2,
 				glm::vec3(1.0f, 1.0f, 1.0f),
 				ui_projection_2D
 			);
@@ -1002,7 +1002,7 @@ void RenderSystem::renderUpgradeUI()
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			float textWidth = getTextWidth(ui_option.text, 4.f);
+			int textWidth = getTextWidth(ui_option.text, 4);
 			float centeredX = ui_option.position.x - textWidth / 2.0f;
 			float centeredY = ui_option.position.y + ui_option.size.y / 2.0f + 10.0f;
 			
@@ -1010,7 +1010,7 @@ void RenderSystem::renderUpgradeUI()
 				ui_option.text, 
 				centeredX, 
 				centeredY, 
-				4.0f, 
+				4, 
 				glm::vec3(1.0f, 1.0f, 1.0f), 
 				ui_projection_2D
 			);
@@ -1024,9 +1024,9 @@ void RenderSystem::renderUpgradeUI()
 
 	renderText(
 		"UPGRADES",  
-		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 5.0f)/2, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 5)/2, 
 		100.f,
-		5.0f, 
+		5, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1097,7 +1097,7 @@ void RenderSystem::renderShipUI()
 		"SHIP UPGRADES", 
 		WINDOW_WIDTH_PX / 2 - 180, 
 		100.f,
-		5.0f, 
+		5, 
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1125,7 +1125,7 @@ void RenderSystem::renderShipUI()
     std::vector<vec3> labelPositions = {
 		// health line
         vec3(width/8 + width/2*0.12f, height/8 + height/2*0.09f, 0.0f),
-        vec3(width/8 + width/2*0.03f, h/8 + h/2*0.09f, width/2*0.09f),
+        vec3(width/8 + width/2*0.03f, height/8 + height/2*0.09f, width/2*0.09f),
         // weapon line
         vec3(3*width/8 - width/2*0.09f, height/8 + height/2*0.13f, 0.0f),
         vec3(3*width/8, height/8 + height/2*0.13f, 0.0f),
@@ -1148,7 +1148,7 @@ void RenderSystem::renderShipUI()
 			upgradePoints[i].first, 
 			labelPositions[i].x - labelPositions[i].z + 20.0f, 
 			labelPositions[i].y - height/2*0.01 + 10.0f, 
-            3.0f, 
+            3, 
 			vec3(1.0f, 1.0f, 1.0f), 
 			ui_projection_2D
 		);
@@ -1165,7 +1165,7 @@ void RenderSystem::renderShipUI()
 			button.text, 
 			motion.position.x - 35.0f, 
 			motion.position.y, 
-			2.0f, 
+			2, 
 			glm::vec3(1.0f, 1.0f, 1.0f),
 			ui_projection_2D)
 		;
@@ -1175,7 +1175,7 @@ void RenderSystem::renderShipUI()
 				button.missingResourcesText, 
 				motion.position.x - 65.0f,
 				motion.position.y + 35.0f,
-				2.f, 
+				2, 
 				glm::vec3(1.0f, 0.0f, 0.0f), 
 				ui_projection_2D
 			);
@@ -1184,7 +1184,7 @@ void RenderSystem::renderShipUI()
 				button.missingResourcesText, 
 				motion.position.x - 65.0f, 
 				motion.position.y + 35.0f, 
-				2.f, 
+				2, 
 				glm::vec3(0.0f, 1.0f, 0.0f), 
 				ui_projection_2D);
 		}
@@ -1194,7 +1194,7 @@ void RenderSystem::renderShipUI()
 		"SHIP UPGRADES", 
 		-width/2*0.15f,
 		height/2*0.4f, 
-		1.f, 
+		1, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
