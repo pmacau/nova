@@ -34,7 +34,7 @@ int main()
 {
 	// TOGGLE this if you don't want a new map every time...
 	int mapWidth = 500, mapHeight = 500; 
-	if (true) {
+	if (false) {
 		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		create_biome_map(generated_map);
@@ -122,7 +122,7 @@ int main()
 			time_exe<int>("WORL", [&](){world_system.step(elapsed_ms); return 0;});
 			time_exe<int>("PLAY", [&](){playerSystem.update(elapsed_ms); return 0;});
 			time_exe<int>("ANIM", [&](){animationSystem.update(elapsed_ms); return 0;});
-			if (flag_system.done) {
+			if (flag_system.isDone()) {
 				time_exe<int>("SPAW", [&](){spawn_system.update(elapsed_ms); return 0;});	
 			}
 			time_exe<int>("COLL", [&](){collision_system.step(elapsed_ms); return 0;});

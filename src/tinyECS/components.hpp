@@ -1,5 +1,5 @@
 #pragma once
-#include "common.hpp"
+#include "../common.hpp"
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"

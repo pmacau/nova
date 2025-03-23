@@ -194,8 +194,16 @@ void CollisionSystem::handle<Obstacle, Player>(
 		}
 		motion.position = motion.formerPosition;
 	}
-		
-	
+}
+
+template<>
+void CollisionSystem::handle<Obstacle, Motion>(
+	entt::entity obs_ent, entt::entity e2, float elapsed_ms
+) {
+	auto& obstacle = registry.get<Obstacle>(obs_ent);
+	if (!obstacle.isPassable) {
+		MusicSystem::playSoundEffect(SFX::WOOD);
+	}
 }
 
 template<>
@@ -213,4 +221,5 @@ void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms
 	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms); 
 	// TODO: when AI gets improved, make all mobs unable to walk into obstacles
 	else if (collision_type<Obstacle, Player>(e1, e2)) handle<Obstacle, Player>(e1, e2, elapsed_ms);
+	else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);
 }
