@@ -59,6 +59,10 @@ void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
 }
 
 void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(0.75f, 1.5f);
+
     auto& motion = registry.get<Motion>(entity);
     vec2 footPos = motion.position + motion.offset_to_ground;
     
@@ -129,7 +133,9 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
             // Retrieve chaseSpeed from the shared configuration.
             auto& aiComp = registry.get<AIComponent>(entity);
             const AIConfig& config = aiComp.stateMachine->getConfig();
-            motion.velocity = direction * config.chaseSpeed;
+
+            // add some randomness to the mob speed to differentiate mob groups
+            motion.velocity = dist(gen) * direction * config.chaseSpeed;
         }
     } else {
         // if no valid path is available

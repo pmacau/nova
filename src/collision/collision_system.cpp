@@ -202,20 +202,7 @@ void CollisionSystem::handle<Obstacle, Motion>(
 ) {
 	auto& obstacle = registry.get<Obstacle>(obs_ent);
 	if (!obstacle.isPassable) {
-		auto& motion = registry.get<Motion>(e2);
-		glm::vec2 invalidPosition = motion.position;
-
-		motion.position = motion.formerPosition;
-		motion.position.x = invalidPosition.x;
-		if (!collides(registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), registry.get<Hitbox>(e2), registry.get<Motion>(e2))) {
-			return; // Collision resolved by correcting x-axis
-		}
-		motion.position.x = motion.formerPosition.x;
-		motion.position.y = invalidPosition.y;
-		if (!collides(registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), registry.get<Hitbox>(e2), registry.get<Motion>(e2))) {
-			return; // Collision resolved by correcting y-axis
-		}
-		motion.position = motion.formerPosition;
+		MusicSystem::playSoundEffect(SFX::WOOD);
 	}
 }
 

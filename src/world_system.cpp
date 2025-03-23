@@ -200,6 +200,8 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	MusicSystem::updateSoundTimers(elapsed_ms_since_last_update);
+
 	click_delay += elapsed_ms_since_last_update / 1000.f;
 	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto screen_state = registry.get<ScreenState>(screen_entity);
