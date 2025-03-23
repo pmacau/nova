@@ -194,8 +194,29 @@ void CollisionSystem::handle<Obstacle, Player>(
 		}
 		motion.position = motion.formerPosition;
 	}
-		
-	
+}
+
+template<>
+void CollisionSystem::handle<Obstacle, Motion>(
+	entt::entity obs_ent, entt::entity e2, float elapsed_ms
+) {
+	auto& obstacle = registry.get<Obstacle>(obs_ent);
+	if (!obstacle.isPassable) {
+		auto& motion = registry.get<Motion>(e2);
+		glm::vec2 invalidPosition = motion.position;
+
+		motion.position = motion.formerPosition;
+		motion.position.x = invalidPosition.x;
+		if (!collides(registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), registry.get<Hitbox>(e2), registry.get<Motion>(e2))) {
+			return; // Collision resolved by correcting x-axis
+		}
+		motion.position.x = motion.formerPosition.x;
+		motion.position.y = invalidPosition.y;
+		if (!collides(registry.get<Hitbox>(obs_ent), registry.get<Motion>(obs_ent), registry.get<Hitbox>(e2), registry.get<Motion>(e2))) {
+			return; // Collision resolved by correcting y-axis
+		}
+		motion.position = motion.formerPosition;
+	}
 }
 
 template<>
@@ -213,4 +234,5 @@ void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms
 	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms); 
 	// TODO: when AI gets improved, make all mobs unable to walk into obstacles
 	else if (collision_type<Obstacle, Player>(e1, e2)) handle<Obstacle, Player>(e1, e2, elapsed_ms);
+	else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);
 }

@@ -13,11 +13,11 @@ public:
         Accessed,
         Shot,
         Biome_Read,
-        MobKilled, 
+        MobKilled,
+        Done
     };
     bool is_paused;
     float time_spent_s; 
-    bool done; 
 private:
     entt::registry& registry;
     TutorialStep tutorial_step;
@@ -26,7 +26,6 @@ public:
     FlagSystem(entt::registry& reg)
         : is_paused(false)
         , time_spent_s(0)
-        , done(false)
         , registry(reg)
         , tutorial_step(TutorialStep::None)
     {
@@ -52,10 +51,9 @@ public:
                 }
             }
         }
-        is_paused = false; 
-        if (done) {
-            return; 
-        }
+        is_paused = false;
+
+        if (tutorial_step == TutorialStep::Done) return;
 
         if (!is_paused) {
             //time_spent_s = std::min(elapsed_ms / 1000.f + time_spent_s, 10.f);
@@ -96,6 +94,11 @@ public:
                 setBiomeRead(true);
             }
         }
+        else if (tutorial_step == TutorialStep::Biome_Read) {
+            if (time_spent_s > 10.0f) {
+                setDone(true);
+            }
+        }
         /*else if (tutorial_step == TutorialStep::Shot) { Don't really know a good way about going about this, we can leave this out since it should be enough. 
         *  You can leave a message after shooting to tell the player to go explore... 
             auto mob_view = registry.view<Mob>();  
@@ -111,6 +114,7 @@ public:
 
   
     bool getIsPaused() const { return is_paused; }
+    bool isDone() const {return tutorial_step == TutorialStep::Done; };
 
     TutorialStep getTutorialStep() const { return tutorial_step; }
 
@@ -152,8 +156,15 @@ public:
         if (value && tutorial_step == TutorialStep::Shot) {
             tutorial_step = TutorialStep::Biome_Read;
             time_spent_s = 0;
-            done = true;
             debug_printf(DebugType::FLAG, "setBiomeRead: stepped from shot to biomeRead\n");
+        }
+    }
+
+    void setDone(bool value) {
+        if (value) {
+            tutorial_step = TutorialStep::Done;
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setDone: stepped from biomeRead to done\n");
         }
     }
     
