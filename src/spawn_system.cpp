@@ -2,13 +2,14 @@
 #include <cmath>
 #include <algorithm>
 #include "spawn_system.hpp"
-#include "tinyECS/components.hpp"
-#include "common.hpp"
-#include "world_init.hpp"
-#include "util/debug.hpp"
-#include "map/map_system.hpp"
-#include "ai/enemy_definition.hpp"
+#include <tinyECS/components.hpp>
+#include <common.hpp>
+#include <world_init.hpp>
+#include <util/debug.hpp>
+#include <map/map_system.hpp>
 #include <map/tile.hpp>
+#include <creature/common.hpp>
+#include <creature/creature_manager.hpp>
 
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
@@ -79,7 +80,7 @@ void SpawnSystem::processNaturalSpawning()
     int safeTileMinY = std::max<int>(0, static_cast<int>(safeAreaWorldMin.y / TILE_SIZE));
     int safeTileMaxY = std::min<int>(MapSystem::map_height - 1, static_cast<int>(safeAreaWorldMax.y / TILE_SIZE));
 
-    std::vector<vec2> validTiles;
+    std::vector<ivec2> validTiles;
 
     // Iterate over tile indices within the spawn area.
     for (int tileY = spawnTileMinY; tileY <= spawnTileMaxY; ++tileY)
@@ -98,7 +99,7 @@ void SpawnSystem::processNaturalSpawning()
             Tile tileType = MapSystem::get_tile_type_by_indices(tileX, tileY);
             if (MapSystem::walkable_tile(tileType))
             {
-                validTiles.push_back(vec2(tileX, tileY));
+                validTiles.push_back(ivec2(tileX, tileY));
             }
         }
     }
@@ -110,30 +111,45 @@ void SpawnSystem::processNaturalSpawning()
     
     // Randomly pick a valid tile
     std::uniform_int_distribution<size_t> tileDist(0, validTiles.size() - 1);
-    vec2 candidate_tile_indices = validTiles[tileDist(rng)];
+    ivec2 candidate_tile_indices = validTiles[tileDist(rng)];
 
     // Assume candidate's biome is 0 for now
     // TODO: biome system
-    Biome candidateBiome = Biome::B_FOREST;
+    Biome candidateBiome = MapSystem::get_biome_by_indices(candidate_tile_indices);
+
+    // print the biome
+    switch (candidateBiome)
+    {
+    case Biome::B_FOREST:
+        debug_printf(DebugType::SPAWN, "Biome: Forest\n");
+        break;
+    case Biome::B_BEACH:
+        debug_printf(DebugType::SPAWN, "Biome: Beach\n");
+        break;
+    case Biome::B_ICE:
+        debug_printf(DebugType::SPAWN, "Biome: Ice\n");
+        break;
+    case Biome::B_JUNGLE:
+        debug_printf(DebugType::SPAWN, "Biome: Jungle\n");
+        break;
+    case Biome::B_SAVANNA:
+        debug_printf(DebugType::SPAWN, "Biome: Savanna\n");
+        break;
+    case Biome::B_OCEAN:
+        debug_printf(DebugType::SPAWN, "Biome: Ocean\n");
+        break;
+    default:
+        debug_printf(DebugType::SPAWN, "Biome: Unknown\n");
+        break;
+    }
 
     // Get all eligible spawn definitions for the given location
-    std::vector<const EnemyDefinition *> eligibleDefs;
-    for (const auto &def : enemyDefinitions)
-    {
-        bool allowedBiome = false;
-        for (Biome biome : def.biomes)
-        {
-            if (biome == candidateBiome)
-            {
-                allowedBiome = true;
-                break;
-            }
-        }
-        if (allowedBiome)
-        {
-            eligibleDefs.push_back(&def);
-        }
-    }
+    std::vector<const CreatureDefinition *> eligibleDefs = CreatureManager::getInstance().queryDefinitions(
+        [candidateBiome](const CreatureDefinition& def) {
+            bool inBiome = std::find(def.biomes.begin(), def.biomes.end(), candidateBiome) != def.biomes.end();
+            bool isMob = (def.creatureType == CreatureType::Mob);
+            return inBiome && isMob;
+        });
 
     if (eligibleDefs.empty())
     {
@@ -151,7 +167,7 @@ void SpawnSystem::processNaturalSpawning()
     // Perform weighted random selection.
     std::uniform_real_distribution<float> weightedDist(0.0f, totalWeight);
     float weightedRoll = weightedDist(rng);
-    const EnemyDefinition *chosenDef = nullptr;
+    const CreatureDefinition *chosenDef = nullptr;
     for (const auto *def : eligibleDefs)
     {
         weightedRoll -= def->spawnProbability;
@@ -200,12 +216,12 @@ void SpawnSystem::processNaturalSpawning()
 }
 
 
-void SpawnSystem::spawnCreaturesByTileIndices(const EnemyDefinition &def, const vec2 &tileIndices, int groupSize)
+void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinition &def, const ivec2 &tileIndices, int groupSize)
 {
     std::vector<vec2> validNeighborTiles;
 
-    int baseTileX = static_cast<int>(tileIndices.x);
-    int baseTileY = static_cast<int>(tileIndices.y);
+    int baseTileX = tileIndices.x;
+    int baseTileY = tileIndices.y;
 
     // TODO: change later for customizable radius
     int spawnAreaMinX = std::max(0, baseTileX - 1);
@@ -300,6 +316,15 @@ void SpawnSystem::processDespawning()
 }
 
 void SpawnSystem::checkAndSpawnBoss() {
+    // TODO: make this more robust
+
+    // check if there is already a boss
+    auto bossView = registry.view<Boss, Motion>();
+    if (bossView.size_hint() > 0) {
+        debug_printf(DebugType::SPAWN, "Boss already exists\n");
+        return;
+    }
+
     auto playerView = registry.view<Player, Motion>();
     if (playerView.size_hint() == 0) {
         debug_printf(DebugType::SPAWN, "No player entity found (boss check)\n");
@@ -314,21 +339,21 @@ void SpawnSystem::checkAndSpawnBoss() {
     vec2 spawnAreaMin = playerPos - halfSpawnZone;
     vec2 spawnAreaMax = playerPos + halfSpawnZone;
 
+    
+    for (auto& spawnData : CreatureManager::getInstance().bossSpawnData) {
+        if (spawnData.spawned) {
+            continue;
+        }
 
-    auto& bossIndices = MapSystem::getBossSpawnIndices();
-    for (size_t i = 0; i < bossIndices.size(); ) {
-        vec2 tileIndices = bossIndices[i];
-        vec2 tileCenter = MapSystem::get_tile_center_pos(tileIndices);
-        
+        vec2 tileCenter = MapSystem::get_tile_center_pos(spawnData.spawnTile);
         if (tileCenter.x >= spawnAreaMin.x && tileCenter.x <= spawnAreaMax.x &&
             tileCenter.y >= spawnAreaMin.y && tileCenter.y <= spawnAreaMax.y) {
             createBoss(registry, tileCenter);
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
-                         tileCenter.x, tileCenter.y, tileIndices.x, tileIndices.y);
-            // Remove this boss spawn index.
-            bossIndices.erase(bossIndices.begin() + i);
-        } else {
-            ++i;
+                         tileCenter.x, tileCenter.y, spawnData.spawnTile.x, spawnData.spawnTile.y);
+
+            spawnData.spawned = true;
+            break;
         }
     }
 }

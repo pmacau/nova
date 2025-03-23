@@ -1,5 +1,6 @@
 #include "map_system.hpp"
 #include "world_init.hpp"
+#include "music_system.hpp"
 
 /*
 --------------------
@@ -15,6 +16,9 @@ void createBackground(entt::registry& reg, int width, int height, int tile_size)
 
     auto entity = reg.create();
     reg.emplace<Background>(entity);
+
+    auto& color = reg.emplace<vec3>(entity);
+    color = {1.f, 1.f, 1.f};
     
     auto& sprite = reg.emplace<Sprite>(entity);
     sprite.coord = {0, 0};
@@ -68,7 +72,23 @@ vec2 MapSystem::populate_ecs(
                     if (get_terrain(game_map[i][j]) == Terrain::SAND) {
                         createTree(reg, map_pos, {0, 1});
                     } else {
-                        createTree(reg, map_pos, {0, 0});
+                        switch (get_biome(game_map[i][j])) {
+                            case B_FOREST:
+                                createTree(reg, map_pos, {0, 0});
+                                break;
+                            case B_SAVANNA:
+                                createTree(reg, map_pos, {0, 4});
+                                break;
+                            case B_ICE:
+                                createTree(reg, map_pos, {0, 3});
+                                break;
+                            case B_JUNGLE:
+                                createTree(reg, map_pos, {0, 5});
+                                break;
+                            default:
+                                createTree(reg, map_pos, {0, 2});
+                                break;
+                        }
                     }
                     break;
                 case Decoration::SHIP:
@@ -105,6 +125,53 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
         }
     }
 };
+
+void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
+    if (!reg.all_of<Motion>(ent)) return;
+    auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
+
+    auto& motion = reg.get<Motion>(ent);
+    vec2& pos = motion.position;
+    vec2& formerPos = motion.formerPosition;
+
+    Tile currT = get_tile(pos + motion.offset_to_ground);
+    Tile prevT = get_tile(formerPos + motion.offset_to_ground);
+
+    Biome currB = get_biome(currT);
+    Biome prevB = get_biome(prevT);
+
+    if (currB == prevB || currB == B_OCEAN) return;
+    Music newTrack;
+
+    switch (currB) {
+        case B_FOREST:
+            newTrack = Music::FOREST;
+            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+            break;  
+        case B_BEACH:
+            newTrack = Music::BEACH;
+            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+            break;
+        case B_JUNGLE:
+            newTrack = Music::JUNGLE;
+            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+            break;
+        case B_SAVANNA:
+            newTrack = Music::SAVANNA;
+            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+            break;
+        case B_ICE:
+            newTrack = Music::SNOWLANDS;
+            screen.effect = EFFECT_ASSET_ID::E_SNOW;
+            break;
+        default:
+            newTrack = Music::FOREST;
+            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
+            break;
+    }
+
+    MusicSystem::playMusic(newTrack, -1, 500);
+}
 
 /*
 --------------------
@@ -163,8 +230,13 @@ vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
 
 bool MapSystem::walkable_tile(Tile tile) {
     return (
-        get_terrain(tile) != Terrain::WATER
+        get_terrain(tile) != Terrain::WATER &&
+        get_decoration(tile) != Decoration::TREE
     );
+};
+
+Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
+    return get_biome(get_tile_type_by_indices(tile_indices.x, tile_indices.y));
 };
 
 

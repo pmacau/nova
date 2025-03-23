@@ -4,6 +4,7 @@
 #include <entt.hpp>
 #include "render_system.hpp"
 #include "ai/ai_common.hpp"
+#include <creature/common.hpp>
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position);
@@ -52,3 +53,7 @@ void destroy_creature(entt::registry& registry, entt::entity creature);
 entt::entity createCreature(entt::registry& registry, vec2 position, CreatureType creatureType, int health);
 
 entt::entity createTitleScreen(entt::registry & registry);
+
+entt::entity createMinimap(entt::registry & registry);
+
+entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices);

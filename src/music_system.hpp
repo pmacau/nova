@@ -16,6 +16,7 @@
 template <typename T>
 struct SoundData {
     const std::string filename;
+    int volume = SDL_MIX_MAXVOLUME;
     T* sound = nullptr;
 };
 
@@ -35,7 +36,7 @@ const int music_count = (int) MUSIC_COUNT;
 class MusicSystem {
 public:
         static bool init() {
-            return (
+            bool valid = (
                 SDL_Init(SDL_INIT_AUDIO) == 0 &&
                 Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) == 0 &&
                 load_sounds<SFX, Mix_Chunk>(
@@ -43,6 +44,12 @@ public:
                 ) &&
                 load_sounds<Music, Mix_Music>(music_map, Mix_LoadMUS)
             );
+
+            if (valid) {
+                for (auto& [key, val] : sfx_map)
+                    Mix_VolumeChunk(val.sound, val.volume); 
+            }
+            return valid;
         }
 
         static void clear() {
@@ -65,8 +72,8 @@ public:
         }
 private:
         inline static std::unordered_map<SFX, SoundData<Mix_Chunk>> sfx_map = {
-            {SHOOT,  {"sfx/shoot.wav"}},
-            {HIT,    {"sfx/hit.wav"}},
+            {SHOOT,  {"sfx/shoot.wav", SDL_MIX_MAXVOLUME / 4}},
+            {HIT,    {"sfx/hit.wav", SDL_MIX_MAXVOLUME / 4}},
             {POTION, {"sfx/potion.wav"}},
             {EQUIP,  {"sfx/equip.wav"}},
             {PICKUP, {"sfx/pickup.wav"}},

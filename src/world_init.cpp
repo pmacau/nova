@@ -9,7 +9,9 @@
 #include "ai/state_machine/patrol_state.hpp"
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
+#include <creature/common.hpp>
 #include "ui_system.hpp"
+#include <map/map_system.hpp>
 
 entt::entity createPlayer(entt::registry& registry, vec2 position)
 {
@@ -60,7 +62,8 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	auto& motion = registry.emplace<Motion>(entity);
 	/*motion.position = { position.x + WINDOW_WIDTH_PX / 2 -  175.f,
 						position.y - WINDOW_HEIGHT_PX / 2 + 50.f};*/
-	motion.position = { WINDOW_WIDTH_PX - 175.F, 50.F };
+	//motion.position = { WINDOW_WIDTH_PX - 175.F, 50.F };
+	motion.position = { WINDOW_WIDTH_PX - 175.F, 200.F };
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
 	motion.scale = vec2({ 250.f, 15.f });
@@ -430,14 +433,11 @@ entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, s
 	registry.emplace<TextData>(entity, text, scale, textColor);
 
 	auto& motion = registry.emplace<Motion>(entity);
-	// motion.scale = GAME_SCALE * size;
-	motion.scale = GAME_SCALE * vec2(120.f / size.x, 128.f / size.y);
-	// motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.scale = size;
 	motion.position = position;
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	// sprite.coord = position;
 	sprite.coord = {0, 0};
 	sprite.dims = {128.f, 128.f};
     sprite.sheet_dims = {128.f, 128.f};
@@ -505,20 +505,24 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 	registry.emplace<Tree>(entity);
 
 	auto& motion = registry.emplace<Motion>(entity);
-	motion.scale = GAME_SCALE * vec2(50.f, 99.f);
-	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	//motion.scale = GAME_SCALE * vec2(50.f, 99.f);
+	//motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.scale = GAME_SCALE * vec2(132.f, 148.f);
+	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 74.f);
 	motion.position = pos - motion.offset_to_ground;
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.coord = spriteCoord;
-	sprite.dims = {50.f, 99.f};
-	sprite.sheet_dims = {100.f, 99.f};
+	//sprite.dims = {50.f, 99.f};
+	sprite.dims = {132.f, 148.f};
+	//sprite.sheet_dims = {250.f, 99.f};
+	sprite.sheet_dims = {792.f, 148.f};
 
 	// TODO: make this hitbox trapezoid at the root
 	float w = 18.f;
 	float h = 16.f;
-	float g = 49.5f;
+	float g = 100.f;
 
 	// hitbox is relative to object's center
 	auto& hitbox = registry.emplace<Hitbox>(entity);
@@ -691,39 +695,88 @@ entt::entity createTitleScreen(entt::registry& registry) {
 
 	// TODO refactor so that each button is a separate texture 
 	auto play = registry.create();
-	auto& play_option = registry.emplace<ButtonOption>(play);
-	play_option.type = ButtonOption::Option::PLAY;
+	auto& play_option = registry.emplace<TitleOption>(play);
+	play_option.type = TitleOption::Option::PLAY;
 	play_option.text = "Play"; 
 	play_option.position = { 23 * WINDOW_WIDTH_PX / 120.F, 57.5 * WINDOW_HEIGHT_PX / 68.f};
 	play_option.size = { 10.0 * WINDOW_WIDTH_PX / 120.f, 11.0f * WINDOW_HEIGHT_PX / 68.f};
 
 	auto exit = registry.create();
-	auto& exit_option = registry.emplace<ButtonOption>(exit);
-	exit_option.type = ButtonOption::Option::EXIT;
+	auto& exit_option = registry.emplace<TitleOption>(exit);
+	exit_option.type = TitleOption::Option::EXIT;
 	exit_option.text = "Exit";
 	exit_option.position = { 95.5 * WINDOW_WIDTH_PX / 120.F, 58 * WINDOW_HEIGHT_PX / 68.f };
 	exit_option.size = { 9.0 * WINDOW_WIDTH_PX / 120.f, 12.0f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto save = registry.create();
-	auto& save_option = registry.emplace<ButtonOption>(save);
-	save_option.type = ButtonOption::Option::SAVE;
+	auto& save_option = registry.emplace<TitleOption>(save);
+	save_option.type = TitleOption::Option::SAVE;
 	save_option.text = "Save";
 	save_option.position = { 48.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
 	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto load = registry.create();
-	auto& restart_option = registry.emplace<ButtonOption>(load);
-	restart_option.type = ButtonOption::Option::RESTART;
+	auto& restart_option = registry.emplace<TitleOption>(load);
+	restart_option.type = TitleOption::Option::RESTART;
 	restart_option.text = "Restart";
 	restart_option.position = { 109.5 * WINDOW_WIDTH_PX / 120.F, 57.f * WINDOW_HEIGHT_PX / 68.f };
 	restart_option.size = { 9.f * WINDOW_WIDTH_PX / 120.f, 10.f * WINDOW_HEIGHT_PX / 68.f };
 
 	auto restart = registry.create();
-	auto& load_option = registry.emplace<ButtonOption>(restart);
-	load_option.type = ButtonOption::Option::LOAD;
+	auto& load_option = registry.emplace<TitleOption>(restart);
+	load_option.type = TitleOption::Option::LOAD;
 	load_option.text = "Load";
 	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
 	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
+	return entity;
+}
+
+entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices) {
+	auto entity = registry.create();
+
+	registry.emplace<DebugTile>(entity);
+
+	vec2 pos = MapSystem::get_tile_center_pos(tile_indices);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.scale = vec2(TILE_SIZE, TILE_SIZE);
+	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
+	motion.position = pos;
+	motion.velocity = {0.f, 0.f};
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.coord = {6,7};
+	sprite.dims = {TILE_SIZE, TILE_SIZE};
+	sprite.sheet_dims = {128.f, 112.f};
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::TILESET;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
+entt::entity createMinimap(entt::registry & registry) {
+	auto entity = registry.create();
+	registry.emplace<FixedUI>(entity);
+	registry.emplace<UI>(entity);
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.position = { WINDOW_WIDTH_PX - 175.F, 100.F };
+	motion.angle = 0.f;
+	motion.velocity = vec2({ 0, 0 });
+	motion.scale = vec2(499.f / 3, 499.f / 3);
+	motion.offset_to_ground = vec2(0, motion.scale.y / 2.f);
+
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.dims = { 499.f, 499.f };
+	sprite.sheet_dims = { 499.f, 499.f };
+
+	auto& render_request = registry.emplace<RenderRequest>(entity);
+	render_request.used_texture = TEXTURE_ASSET_ID::MINIMAP;
+	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	return entity;
 }
 

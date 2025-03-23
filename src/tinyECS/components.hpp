@@ -8,6 +8,7 @@
 #include <entt.hpp>
 #include <animation/animation_definition.hpp>
 
+struct Glyph{};
 struct Tree{};
 struct Background{};
 
@@ -67,6 +68,10 @@ struct ShipEngine
 struct UIShip
 {
 
+};
+
+struct DebugTile
+{
 };
 
 struct UIShipWeapon
@@ -223,16 +228,25 @@ struct Title
 
 };
 
-struct ButtonOption
+struct TitleOption
 {
 	enum class Option {
-		// for the title screen
 		PLAY, 
 		LOAD, 
 		SAVE, 
 		EXIT, 
-		RESTART,
+		RESTART
+	};
+	Option type;
+	std::string text;
+	vec2 position;
+	vec2 size;
+	bool hover = false;
+};
 
+struct ButtonOption
+{
+	enum class Option {
 		// for the upgrade screen
 		SHIP,
 		PLAYER,
@@ -290,22 +304,6 @@ struct Debug {
 	bool in_freeze_mode = 0;
 };
 extern Debug debugging;
-
-// Sets the brightness of the screen
-struct ScreenState
-{
-	enum class ScreenType {
-        GAMEPLAY,
-		UPGRADE_UI,
-        SHIP_UPGRADE_UI,
-		PLAYER_UPGRADE_UI,
-		WEAPON_UPGRADE_UI,
-		TITLE
-    };
-
-    ScreenType current_screen;
-	float darken_screen_factor = 0;
-};
 
 // will be given to any map object entity, then can also be given a rectangular or circular hitbox, different collision mechanism. 
 struct Object {
@@ -394,6 +392,8 @@ enum class TEXTURE_ASSET_ID {
 	GREEN_BUTTON_PRESSED,
 	RED_BUTTON_ACTIVE,
 	RED_BUTTON_PRESSED,
+	MINIMAP,
+	TEXT,
 	TEXTURE_COUNT
 };
 
@@ -401,7 +401,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, LINE, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, LINE, E_SNOW, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -455,4 +455,22 @@ struct Camera
 
 const Sprite PLAYER_SPRITESHEET = {
     {}, {19.f, 30.f}, {152.f, 90.f}, 3, 0, 1
+};
+
+// Sets the brightness of the screen
+struct ScreenState
+{
+	enum class ScreenType {
+        GAMEPLAY,
+		UPGRADE_UI,
+        SHIP_UPGRADE_UI,
+		PLAYER_UPGRADE_UI,
+		WEAPON_UPGRADE_UI,
+		TITLE
+    };
+
+    ScreenType current_screen;
+	EFFECT_ASSET_ID effect;
+
+	float darken_screen_factor = 0;
 };

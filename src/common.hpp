@@ -39,8 +39,8 @@ inline std::string map_path(const std::string& name)  {return data_path() + "/ma
 //
 // game constants
 //
-const int WINDOW_WIDTH_PX = 840;
-const int WINDOW_HEIGHT_PX = 560;
+const int WINDOW_WIDTH_PX = 960 * 1.5;
+const int WINDOW_HEIGHT_PX = 540 * 1.5;
 
 const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
@@ -94,6 +94,7 @@ const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
 
 const int SHIP_RANGE_UPGRADE_IRON = 5;
 
+const bool ENABLE_WEATHER = false;
 
 // Camera system
 const float CAMERA_SPEED = 0.2f;
