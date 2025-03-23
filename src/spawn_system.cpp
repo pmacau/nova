@@ -8,7 +8,7 @@
 #include <util/debug.hpp>
 #include <map/map_system.hpp>
 #include <map/tile.hpp>
-#include <creature/common.hpp>
+#include <creature/creature_common.hpp>
 #include <creature/creature_manager.hpp>
 
 SpawnSystem::SpawnSystem(entt::registry &registry)

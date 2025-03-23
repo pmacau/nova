@@ -1,5 +1,5 @@
 #pragma once
-#include "common.hpp"
+#include "creature_common.hpp"
 #include "boss_def.hpp"
 
 class CreatureManager {
