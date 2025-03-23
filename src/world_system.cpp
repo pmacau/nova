@@ -1057,7 +1057,9 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 		if (item.type == Item::Type::IRON) {
 			if (item.no <= numIronLeftToUse) {
 				numIronLeftToUse -= item.no;
-				registry.destroy(entity);
+				if (registry.valid(entity)) {
+					registry.destroy(entity);
+				}
 			} else { 
 				item.no -= numIronLeftToUse;
 				numIronLeftToUse = 0;
@@ -1068,7 +1070,9 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 		if (item.type == Item::Type::COPPER) {
 			if (item.no <= numCopperLeftToUse) {
 				numCopperLeftToUse -= item.no;
-				registry.destroy(entity);
+				if (registry.valid(entity)) {
+					registry.destroy(entity);
+				}
 			} else { 
 				item.no -= numCopperLeftToUse;
 				numCopperLeftToUse = 0;
