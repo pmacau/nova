@@ -160,7 +160,7 @@ void WorldSystem::init() {
 	// init all of the text boxes for the tutorial
 	textBoxEntities.resize(6);
     vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
-	float scale = 2.f;
+	int scale = 2;
 
 	std::string tut_0 =
 		std::string("... wait...? it looks like you survived the crash... holy s#%t! ") +

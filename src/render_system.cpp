@@ -163,7 +163,7 @@ ivec2 get_char_coords(const unsigned char& glyph) {
 
 entt::entity createGlyph(
 	entt::registry& reg, const unsigned char& c,
-	float x, float y, float scale, vec3 color
+	float x, float y, int scale, vec3 color
 ) {
 	ivec2 coord = get_char_coords(c);
 	auto e = reg.create();
@@ -1024,9 +1024,9 @@ void RenderSystem::renderUpgradeUI()
 
 	renderText(
 		"UPGRADES",  
-		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 5)/2, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 4)/2, 
 		100.f,
-		5, 
+		4, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1097,7 +1097,7 @@ void RenderSystem::renderShipUI()
 		"SHIP UPGRADES", 
 		WINDOW_WIDTH_PX / 2 - 180, 
 		100.f,
-		5, 
+		4, 
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1148,7 +1148,7 @@ void RenderSystem::renderShipUI()
 			upgradePoints[i].first, 
 			labelPositions[i].x - labelPositions[i].z + 20.0f, 
 			labelPositions[i].y - height/2*0.01 + 10.0f, 
-            3, 
+            4, 
 			vec3(1.0f, 1.0f, 1.0f), 
 			ui_projection_2D
 		);
