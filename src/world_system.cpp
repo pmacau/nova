@@ -735,31 +735,34 @@ void WorldSystem::left_mouse_click() {
 		for (auto entity : registry.view<UpgradeButton>()) {
 			auto& upgrade_option = registry.get<ButtonOption>(entity);
 			auto& upgrade_render = registry.get<RenderRequest>(entity);
+
 			if (upgrade_option.hover) {
 				// UPGRADE HEALTH ---------------------------------------------------------------------------
 				// 5 iron to upgrade health
 				if (upgrade_option.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON) {
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
-					MusicSystem::playSoundEffect(SFX::SELECT);
-					
-					// update inventory
-					ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-
 					for (auto ui_ship_entity : registry.view<UIShip>()) {
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_entity);
+
+						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_FULL_HP) break;
+
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+						MusicSystem::playSoundEffect(SFX::SELECT);
+						
+						// update inventory
+						ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
+
 						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE) {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_DAMAGE;
 						} else if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_DAMAGE) {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE;
 						} else if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE) {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
-						} else {
-							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 						}
 					}
 					for (auto ship_entity : registry.view<Ship>()) {
 						auto& ship_render = registry.get<RenderRequest>(ship_entity);
 						auto& ship = registry.get<Ship>(ship_entity);
+
 						if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_DAMAGE;
 							ship.health += SHIP_HEALTH_UPGRADE;
@@ -779,16 +782,18 @@ void WorldSystem::left_mouse_click() {
 				// 3 copper, 3 iron to upgrade blasters
 				// smg --> missles --> blaster --> railgun
 				if (upgrade_option.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER) {
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
-					MusicSystem::playSoundEffect(SFX::SELECT);
-					
-					// update inventory
-					ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
-
 					for (auto ui_ship_weapon_entity : registry.view<UIShipWeapon>()) {
 						auto& ui_ship_weapon = registry.get<UIShipWeapon>(ui_ship_weapon_entity);
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_weapon_entity);
 						vec2& ship_pos = registry.get<Motion>(ship_entity).position;
+
+						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_RAILGUN_WEAPON) break;
+
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+						MusicSystem::playSoundEffect(SFX::SELECT);
+						
+						// update inventory
+						ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
 
 						if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_WEAPON) {
 							// change to missles
@@ -929,17 +934,20 @@ void WorldSystem::left_mouse_click() {
 				// UPGRADE FIRE RATE ---------------------------------------------------------------------------
 				// smg engine --> missles engine --> blaster engine --> railgun engine
 				if (upgrade_option.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER) {
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
-					MusicSystem::playSoundEffect(SFX::SELECT);
-
-					// update inventory
-					ship_upgrade_inventory(SHIP_FIRERATE_UPGRADE_IRON, SHIP_FIRERATE_UPGRADE_COPPER);
-
 					for (auto ui_ship_engine_entity : registry.view<UIShipEngine>()) {
 						auto& ui_ship_engine = registry.get<UIShipEngine>(ui_ship_engine_entity);
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_engine_entity);
 						vec2& ship_pos = registry.get<Motion>(ship_entity).position;
 						auto& ship = registry.get<Ship>(ship_entity);
+
+						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_RAILGUN_ENGINE) break;
+
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+						MusicSystem::playSoundEffect(SFX::SELECT);
+
+						// update inventory
+						ship_upgrade_inventory(SHIP_FIRERATE_UPGRADE_IRON, SHIP_FIRERATE_UPGRADE_COPPER);
+
 						if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_ENGINE) {
 							// change to missles engine
 							if (registry.valid(ui_ship_engine_entity)) {
@@ -1180,6 +1188,7 @@ void WorldSystem::update_upgrade_buttons() {
 	auto& ui_ship_engine_render = registry.get<RenderRequest>(ui_ship_engine_entity);
 
 	auto& ship = registry.get<Ship>(ship_entity);
+	auto& ship_render = registry.get<RenderRequest>(ship_entity);
 	
 	// if have enough resources, change the buttons in the UI to green (upgradeable)
 	auto upgradeButtons = registry.view<UpgradeButton, ButtonOption>();
@@ -1188,7 +1197,7 @@ void WorldSystem::update_upgrade_buttons() {
 		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
 		auto& upgradeButton = registry.get<UpgradeButton>(entity);
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON && ship.health <= SHIP_MAX_HEALTH) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON && ship_render.used_texture != TEXTURE_ASSET_ID::SHIP_FULL_HP) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_HEALTH_UPGRADE_IRON) + " iron";
@@ -1218,7 +1227,7 @@ void WorldSystem::update_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(SHIP_FIRERATE_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_FIRERATE_UPGRADE_COPPER) + " copper";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range <= SHIP_MAX_RANGE) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";

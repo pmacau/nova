@@ -43,7 +43,9 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 	if (item.type == Item::Type::POTION) {
 		auto& potion = registry.get<Potion>(entity);
 		auto& player = registry.get<Player>(*registry.view<Player>().begin());
+		std::cout << "player health before: " << player.health << "\n";
 		player.health = min(player.health + potion.heal, PLAYER_HEALTH);
+		std::cout << "player health after: " << player.health << "\n";
 		MusicSystem::playSoundEffect(SFX::POTION);
 		updatePlayerHealthBar(registry, player.health);
 		auto screens = registry.view<ScreenState>();
@@ -124,7 +126,8 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 			potion_copy.heal = potion.heal;
 		}
 		else {
-			registry.emplace<Potion>(entity);
+			auto& potion = registry.emplace<Potion>(entity);
+			potion.heal = 20;
 		}
 		motion.scale = vec2(512.f, 512.f) / 15.f;
 		sprite.dims = { 512.f, 512.f };
@@ -537,7 +540,7 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 	if (registry.any_of<Boss>(entity)) {
 		auto& drop = registry.emplace<Drop>(entity);
 		randomNo = uniform_dist(rng);
-		if (randomNo < 0.7) {
+		if (randomNo < 0.5) {
 			item.type = Item::Type::IRON;
 		}
 		else {
@@ -552,20 +555,25 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 		drop.items.push_back(item);
 	}
 	else {
-		auto& drop = registry.emplace<Drop>(entity);
 		randomNo = uniform_dist(rng);
 		if (randomNo < 0.5) {
-			item.type = Item::Type::IRON;
+			auto& drop = registry.emplace<Drop>(entity);
+			item.type = Item::Type::POTION;
+			item.no = 1;
+			drop.items.push_back(item);
+			randomNo = uniform_dist(rng);
+			if (randomNo < 0.5) {
+				randomNo = uniform_dist(rng);
+				if (randomNo < 0.5) {
+					item.type = Item::Type::IRON;
+				}
+				else {
+					item.type = Item::Type::COPPER;
+				}
+				randomNo = uniform_dist(rng);
+				item.no = 1 + (int)(randomNo * 6);
+				drop.items.push_back(item);
+			}
 		}
-		else {
-			item.type = Item::Type::COPPER;
-		}
-		randomNo = uniform_dist(rng);
-		item.no = 1 + (int)(randomNo * 6);
-		drop.items.push_back(item);
-		item.type = Item::Type::POTION;
-		randomNo = uniform_dist(rng);
-		item.no = 1 + (int)(randomNo * 2);
-		drop.items.push_back(item);
 	}
 }
