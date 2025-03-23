@@ -200,6 +200,8 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	MusicSystem::updateSoundTimers(elapsed_ms_since_last_update);
+
 	click_delay += elapsed_ms_since_last_update / 1000.f;
 	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto screen_state = registry.get<ScreenState>(screen_entity);
@@ -336,16 +338,16 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
     
 	// gets rid of the last text box after 15 seconds
-	if (currentStep == FlagSystem::TutorialStep::Biome_Read) {
-		mobKilledTextTimer += elapsed_ms_since_last_update / 1000.0f;
-		if (mobKilledTextTimer > 15.0f) {
-			for (auto entity : textBoxEntities) {
-				auto& textData = registry.get<TextData>(entity);
-				textData.active = false;
-			}
-			return;
-		}
-	}
+	// if (currentStep == FlagSystem::TutorialStep::Biome_Read) {
+	// 	mobKilledTextTimer += elapsed_ms_since_last_update / 1000.0f;
+	// 	if (mobKilledTextTimer > 15.0f) {
+	// 		for (auto entity : textBoxEntities) {
+	// 			auto& textData = registry.get<TextData>(entity);
+	// 			textData.active = false;
+	// 		}
+	// 		return;
+	// 	}
+	// }
 
     // make all text boxes inactive
     for (auto entity : textBoxEntities) {
@@ -374,6 +376,8 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
         case FlagSystem::TutorialStep::MobKilled:
             activeIndex = 5;
             break;
+		default:
+			activeIndex = -1;
     }
     
 	// activate specific text box to true
@@ -463,6 +467,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				registry.remove<Debug>(entity);
 			}
 		}
+	}
+
+	if (key == GLFW_KEY_ENTER) {
+		flag_system.setDone(true);
 	}
 
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
