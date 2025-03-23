@@ -123,8 +123,8 @@ void WorldSystem::init() {
 	// TODO: can move this next block into restart_game, but needs some debugging...
 	//       it put the player perma-stuck on the intiial tutorial screen on death
 
-	int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
+	int w = WINDOW_WIDTH_PX, h = WINDOW_HEIGHT_PX;
+    //glfwGetFramebufferSize(window, &w, &h);
 
 	// init everything for the main upgrade screen
 	createButton(registry, vec2(w/6 - w/2*0.15f, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::SHIP, "Ship"); 
