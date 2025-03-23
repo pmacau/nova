@@ -172,7 +172,7 @@ entt::entity createGlyph(
 	reg.emplace<FixedUI>(e);
 
 	auto& motion = reg.emplace<Motion>(e);
-	motion.scale = scale * vec2(5, 7);
+	motion.scale = float(scale) * vec2(5, 7);
 	motion.position = {x, y};
 
 	auto& sprite = reg.emplace<Sprite>(e);
