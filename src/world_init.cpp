@@ -583,12 +583,17 @@ void destroy_creature(entt::registry& registry, entt::entity creature) {
 	for (auto entity : view) {
 		auto& healthbar = view.get<MobHealthBar>(entity);
 		if (healthbar.entity == creature) {
-			registry.destroy(entity);
+
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
 			break;
 		}
 	}
 
-	registry.destroy(creature);
+	if (registry.valid(creature)) {
+		registry.destroy(creature);
+	}
 }
 
 

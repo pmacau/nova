@@ -344,7 +344,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (projectile.timer <= 0) {
 			debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: projectile)\n");
 
-			registry.destroy(entity);
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
 		}
 	}
 
@@ -447,7 +449,11 @@ void WorldSystem::restart_game() {
 			}
 			continue;
 		}
-		else registry.destroy(entity);
+		else {
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
+		}
 	}
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave, ShipWeapon>);
 	// registry.destroy(motions.begin(), motions.end());
@@ -778,7 +784,10 @@ void WorldSystem::left_mouse_click() {
 
 						if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_WEAPON) {
 							// change to missles
-							registry.destroy(ui_ship_weapon_entity);
+
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4 + w/2/84, h/4),
 																	vec2(w/6 - w/2/8.4, w/6 - w/2/8.4),
@@ -791,7 +800,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								vec2(ship_pos.x + 2.0f, ship_pos.y - 10.0f),
 								vec2(100, 115),
@@ -805,7 +817,10 @@ void WorldSystem::left_mouse_click() {
 
 						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_MISSLES_WEAPON) {
 							// change to blaster
-							registry.destroy(ui_ship_weapon_entity);
+
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4 - w/2/22.7, h/4),
 																	vec2(w/6 - w/2/4.7, w/6 - w/2/9.3),
@@ -818,7 +833,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								// vec2(1640, 1330), 
 								vec2(ship_pos.x + 5.0f, ship_pos.y - 25.0f),
@@ -833,7 +851,10 @@ void WorldSystem::left_mouse_click() {
 
 						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_WEAPON) {
 							// change to railgun
-							registry.destroy(ui_ship_weapon_entity);
+
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4 - w/2/42, h/4),
 																	vec2(w/6 - w/2/6, w/6 - w/2/7.6),
@@ -846,7 +867,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								vec2(ship_pos.x, ship_pos.y),
 								vec2(110, 100),
@@ -860,7 +884,9 @@ void WorldSystem::left_mouse_click() {
 
 						} else if (!ui_ship_weapon.active) {
 							// create a new weapon (start as smg)
-							registry.destroy(ui_ship_weapon_entity);
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4, h/4), 
 																	vec2(w/6 - w/2/6.7, w/6 - w/2/8.4),
@@ -873,7 +899,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								// vec2(1590, 1345), 
 								vec2(ship_pos.x, ship_pos.y),
@@ -905,7 +934,9 @@ void WorldSystem::left_mouse_click() {
 						auto& ship = registry.get<Ship>(ship_entity);
 						if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_ENGINE) {
 							// change to missles engine
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/37.3),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -915,13 +946,17 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 10);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
 						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_MISSLE_ENGINE) {
 							// change to blaster engine
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/37.3),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -931,13 +966,17 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 9);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
 						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE) {
 							// change to railgun engine
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/56),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -947,13 +986,17 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 10.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 11);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/112),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -963,7 +1006,9 @@ void WorldSystem::left_mouse_click() {
 							
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 12);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
@@ -1057,6 +1102,7 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 		if (item.type == Item::Type::IRON) {
 			if (item.no <= numIronLeftToUse) {
 				numIronLeftToUse -= item.no;
+
 				if (registry.valid(entity)) {
 					registry.destroy(entity);
 				}
@@ -1070,6 +1116,7 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 		if (item.type == Item::Type::COPPER) {
 			if (item.no <= numCopperLeftToUse) {
 				numCopperLeftToUse -= item.no;
+
 				if (registry.valid(entity)) {
 					registry.destroy(entity);
 				}

@@ -1238,7 +1238,10 @@ void RenderSystem::draw()
     }
 
 	auto glyphs = registry.view<Glyph>();
-    registry.destroy(glyphs.begin(), glyphs.end());
+
+	if (glyphs.size() > 0) {
+    	registry.destroy(glyphs.begin(), glyphs.end());
+	}
 }
 
 mat3 RenderSystem::createUIProjectionMatrix() {
