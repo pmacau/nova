@@ -56,6 +56,15 @@ private:
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
 	entt::entity screen_entity;
+
+	enum class BulletType {
+        GOLD_PROJECTILE,
+		BLASTER_PROJECTILE,
+		MISSLE_PROJECTILE,
+		RAILGUN_PROJECTILE,
+		SMG_PROJECTILE
+    };
+    BulletType bulletType;
 	
 	bool key_state[KeyboardState::NUM_STATES];
 	float click_delay; 
@@ -69,9 +78,14 @@ private:
 	void on_mouse_move(vec2 pos);
 	void on_mouse_button_pressed(int button, int action, int mods);
 	void left_mouse_click();
+	void left_mouse_release();
 	void right_mouse_click(int mods);
 
 	void handleTextBoxes(float elapsed_ms_since_last_update);
+
+	void ship_upgrade_inventory(int ironCount, int copperCount);
+
+	void update_upgrade_buttons();
 
 	// OpenGL window handle
 	GLFWwindow* window;

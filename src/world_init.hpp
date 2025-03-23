@@ -12,8 +12,12 @@ entt::entity createPlayer(entt::registry& registry, vec2 position);
 entt::entity createPlayerHealthBar(entt::registry& registry);
 
 entt::entity createShip(entt::registry& registry, vec2 position);
+entt::entity createShipWeapon(entt::registry& registry, vec2 position, vec2 size, vec2 sprite_dims, vec2 sprite_sheet_dims, FrameIndex sprite_coords, int weaponNum);
+entt::entity createShipEngine(entt::registry& registry, vec2 position, vec2 size, int engineNum);
 
 entt::entity createUIShip(entt::registry& registry, vec2 position, vec2 scale, int shipNum);
+entt::entity createUIShipWeapon(entt::registry& registry, vec2 position, vec2 size, vec2 sprite_dims, vec2 sprite_sheet_dims, FrameIndex sprite_coords, int weaponNum);
+entt::entity createUIShipEngine(entt::registry& registry, vec2 position, vec2 size, int engineNum);
 
 // invaders
 entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
@@ -22,13 +26,17 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health = MO
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
 // projectile
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity);
+entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, TEXTURE_ASSET_ID projectileType);
 
 
 entt::entity createBoss(entt::registry& registry, vec2 pos);
 entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoord);
 
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor);
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text);
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID);
+entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int iconNum, vec2 sprite_dims, vec2 sprite_sheet_dims);
+
 
 // terrain
 // entt::entity createRockType1(entt::registry& registry, vec2 position);
