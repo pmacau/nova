@@ -21,7 +21,7 @@ struct SoundData {
 };
 
 struct SoundTimer {
-    const int default = 0;
+    const int default_timer = 0;
     int curr = 0;
 };
 
@@ -70,7 +70,7 @@ public:
             ) {
                 SoundTimer& timer = sfx_timers[effect];
                 SoundData<Mix_Chunk>& data = sfx_map[effect];
-                if (timer.curr >= timer.default) {
+                if (timer.curr >= timer.default_timer) {
                     timer.curr = 0;
                     Mix_PlayChannel(channel, data.sound, loops);
                 }
