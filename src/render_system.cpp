@@ -750,7 +750,7 @@ void RenderSystem::renderGamePlay()
         drawTexturedMesh(entity, projection_2D);
     }
 
-	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+	for (auto item : registry.view<Item>(entt::exclude<UI, DeathItems>)) {
 		nearbyEntities.push_back(item);
 	}
 

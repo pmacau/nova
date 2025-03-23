@@ -113,17 +113,12 @@ struct Projectile {
 	int timer;
 };
 
+struct HomingMissile {
+	entt::entity target;
+};
+
 // Mob
 struct Mob {
-	enum class Biome {
-		FOREST
-	};
-	enum class Type {
-		TORCH, 
-		PURPLE
-	};
-	Biome biome;
-	Type type;
 	int health;
 	float hit_time; 
 };
@@ -193,7 +188,10 @@ struct Item
 		POTION,
 		GRAVE, 
 		IRON, 
-		COPPER
+		COPPER, 
+		DEFAULT_WEAPON, 
+		HOMING_MISSILE, 
+		SHOTGUN
 	};
 	Type type;
 	int no = 1;
@@ -208,19 +206,6 @@ struct Drop
 struct Potion
 {
 	int heal;
-};
-
-struct HiddenInventory
-{
-
-};
-
-struct InventorySlot
-{
-	int id = -1;
-	bool hasItem = false;
-	entt::entity item;
-	int capacity = 50;
 };
 
 struct Title
@@ -274,12 +259,31 @@ enum class Click {
 };
 
 struct Drag {
+	bool noSlot = false;
 	entt::entity slot;
 };
 
 struct Inventory
 {
 	std::vector<entt::entity> slots;
+};
+
+struct HiddenInventory
+{
+
+};
+
+struct ActiveSlot
+{
+
+};
+
+struct InventorySlot
+{
+	int id = -1;
+	bool hasItem = false;
+	entt::entity item;
+	int capacity = 50;
 };
 
 struct TextData
@@ -373,16 +377,22 @@ enum class TEXTURE_ASSET_ID {
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
 	BLASTER_PROJECTILE,
-	MISSLE_PROJECTILE,
+	MISSILE_PROJECTILE,
 	RAILGUN_PROJECTILE,
 	SMG_PROJECTILE,
-	HEALTHBAR_GREEN,
+	SHOTGUN_PROJECTILE,
+	DEFAULT_WEAPON, 
+	HOMING_MISSILE, 
+	SHOTGUN,
 	HEALTHBAR_RED,
+	PLAYER_HEALTH_INNER, 
+	PLAYER_HEALTH_OUTER,
 	POTION,
 	GRAVE,
 	IRON,
 	COPPER,
 	INVENTORY_SLOT,
+	INVENTORY_SLOT_ACTIVE,
 	TREE,
 	GOBLIN_TORCH_BLUE,
 	TITLE, 
