@@ -642,7 +642,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	v.use();
 	unsigned int program = v.ID;
 
-	v.setFloat("time", vignette ? (float)(glfwGetTime()) : 0.f);
+	v.setFloat("time", vignette ? screen.time : 0.f);
 	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 	v.setVec2("resolution", vec2(w, h));
 		

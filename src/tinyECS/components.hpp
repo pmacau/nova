@@ -470,7 +470,7 @@ struct ScreenState
     };
 
     ScreenType current_screen;
-	EFFECT_ASSET_ID effect;
 
+	float time = 0;
 	float darken_screen_factor = 0;
 };

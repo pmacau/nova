@@ -28,7 +28,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	registry.emplace<ScreenState>(screen_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	screen_state.current_screen = ScreenState::ScreenType::TITLE;
-	screen_state.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 
 	createTitleScreen(registry);
 	createPlayerHealthBar(registry);
@@ -220,7 +219,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	click_delay += elapsed_ms_since_last_update / 1000.f;
 	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
-	auto screen_state = registry.get<ScreenState>(screen_entity);
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
@@ -228,6 +227,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		click_delay = 0;
 		return true; 
 	}
+
+	screen_state.time += elapsed_ms_since_last_update / 1000.f;
 	
 
 	auto player = registry.get<Player>(player_entity);
@@ -435,6 +436,7 @@ void WorldSystem::restart_game() {
 
 	auto& screen_state = registry.get<ScreenState>(registry.view<ScreenState>().front());
 	screen_state.darken_screen_factor = 0;
+	screen_state.time = 0;
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
