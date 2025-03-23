@@ -123,7 +123,7 @@ void WorldSystem::init() {
 	// TODO: can move this next block into restart_game, but needs some debugging...
 	//       it put the player perma-stuck on the intiial tutorial screen on death
 
-	int w = WINDOW_WIDTH_PX, h = WINDOW_HEIGHT_PX;
+	int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
     //glfwGetFramebufferSize(window, &w, &h);
 
 	// init everything for the main upgrade screen

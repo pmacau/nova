@@ -1102,7 +1102,7 @@ void RenderSystem::renderShipUI()
 		ui_projection_2D
 	);
 
-	int width = WINDOW_WIDTH_PX, height = WINDOW_HEIGHT_PX;
+	int width = 2 * WINDOW_WIDTH_PX, height = 2 * WINDOW_HEIGHT_PX;
 
 	// Draw upgrade lines
     // positions of upgradeable parts (start)
