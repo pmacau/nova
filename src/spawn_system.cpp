@@ -274,6 +274,9 @@ void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinition &def, con
         {
         case CreatureType::Mob:
         case CreatureType::Mutual:
+            // createDebugTile(registry, MapSystem::get_tile_indices(spawnFootPos));
+            // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
+
             createMob2(registry, spawnPos, 50); 
             break;
         case CreatureType::Boss:
@@ -323,7 +326,7 @@ void SpawnSystem::checkAndSpawnBoss() {
     // check if there is already a boss
     auto bossView = registry.view<Boss, Motion>();
     if (bossView.size_hint() > 0) {
-        debug_printf(DebugType::SPAWN, "Boss already exists\n");
+        // debug_printf(DebugType::SPAWN, "Boss already exists\n");
         return;
     }
 
@@ -351,7 +354,13 @@ void SpawnSystem::checkAndSpawnBoss() {
         if (tileCenter.x >= spawnAreaMin.x && tileCenter.x <= spawnAreaMax.x &&
             tileCenter.y >= spawnAreaMin.y && tileCenter.y <= spawnAreaMax.y) {
 
-            vec2 spawnPos = tileCenter - CreatureManager::getInstance().getDefinition(spawnData.id)->offset_to_ground;
+            const CreatureDefinition* def = CreatureManager::getInstance().getDefinition(spawnData.id);
+
+            // std::cout << "offset to ground: " << def->offset_to_ground.x << ", " << def->offset_to_ground.y << std::endl;
+            vec2 spawnPos = tileCenter - def->offset_to_ground;
+
+            // createDebugTile(registry, spawnData.spawnTile);
+            // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
 
             createBoss(registry, spawnPos);
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 

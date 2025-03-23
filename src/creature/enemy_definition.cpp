@@ -24,7 +24,7 @@ std::vector<CreatureDefinition> createEnemyDefinitions() {
         def.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
         def.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
 
-        def.offset_to_ground = {0, def.scale.y / 4.f * 0.9f};;
+        def.offset_to_ground = {0, def.scale.y / 4.f * 0.8f};
 
 
         // Animations: Suppose each frame is 64x64, row 0 = idle, row 1 = attack, etc.
