@@ -903,9 +903,6 @@ void RenderSystem::renderGamePlay()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
-
-	auto glyphs = registry.view<Glyph>();
-    registry.destroy(glyphs.begin(), glyphs.end());
 }
 
 
@@ -1117,6 +1114,7 @@ void RenderSystem::renderShipUI()
 	}
 
 	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	drawToScreen(false);
 	renderText(
 		"SHIP UPGRADES", 
 		WINDOW_WIDTH_PX / 2 - 180, 
@@ -1125,8 +1123,6 @@ void RenderSystem::renderShipUI()
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
-
-	drawToScreen(false);
 
 	// Draw upgrade lines
     // positions of upgradeable parts (start)
@@ -1226,6 +1222,8 @@ void RenderSystem::renderShipUI()
 		ui_projection_2D
 	);
 
+
+
 	glfwSwapBuffers(window);
     gl_has_errors();
 }
@@ -1257,6 +1255,9 @@ void RenderSystem::draw()
             renderGamePlay();
             break;
     }
+
+	auto glyphs = registry.view<Glyph>();
+    registry.destroy(glyphs.begin(), glyphs.end());
 }
 
 mat3 RenderSystem::createUIProjectionMatrix() {
