@@ -32,9 +32,10 @@ _All of the below actions from previous milestones and..._
   - If you have explored long enough, notice the screen darkens to simulate a day-night cycle
 
 - **Fight the enemies**:
-
-  - @STEVE todo add something about noticing how enemies dont go in water, how they still (intentionally) pass through trees for gameplay sake (and how that makes a noise now)
-  - @STEVE todo also talk about the a\* path finding of course
+  - Walk close to enemies and lure enemies through complex terrain (e.g., water). Observe how they avoid walking into unwalkable tiles, correctly navigating around it using the A* pathfinding system.
+  - Notice that enemies walk through trees and land obstacles intentionally: this is a design choice to make enemy movement feel more fluid and intense. Listen for a new sound effect triggered when enemies pass through trees (a quick wooden click sound).
+  - Lure enemies to chase you and control the player to constantly moving around, and observe how enemies recalculate their paths dynamically when the player moves out of range.
+  - Move around the island and stay away from enemies. Note how enemy patrol routes and spawn locations vary based on map layout avoiding unwalkable map structures.
   - @PRANAV/FRANK todo talk about the new items dropped by the enemies, at different rates, and how boss drops many items
 
 - **Performance testing**:
