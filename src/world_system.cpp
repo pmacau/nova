@@ -123,7 +123,6 @@ void WorldSystem::init() {
 	//       it put the player perma-stuck on the intiial tutorial screen on death
 
 	int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
-    //glfwGetFramebufferSize(window, &w, &h);
 
 	// init everything for the main upgrade screen
 	createButton(registry, vec2(w/6 - w/2*0.15f, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::SHIP, "Ship"); 
@@ -500,8 +499,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
+		int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
+		// glfwGetWindowSize(window, &w, &h);
 
         restart_game();
 	}
@@ -661,8 +660,7 @@ void WorldSystem::left_mouse_click() {
 	auto& player_comp = registry.get<Player>(player_entity);
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
-	int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
+	int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
 
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 		for (auto entity : registry.view<TitleOption>(entt::exclude<Button>)) {
