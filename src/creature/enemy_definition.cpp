@@ -21,8 +21,11 @@ std::vector<CreatureDefinition> createEnemyDefinitions() {
         def.damage = 10;
         def.speed = 1.0f;
 
-        def.scale = glm::vec2(100, 120);
+        def.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
         def.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+
+        def.offset_to_ground = {0, def.scale.y / 4.f * 0.8f};
+
 
         // Animations: Suppose each frame is 64x64, row 0 = idle, row 1 = attack, etc.
         int frameWidth  = 64;
@@ -63,6 +66,30 @@ std::vector<CreatureDefinition> createEnemyDefinitions() {
         def.dropItems = {"potion"};
 
         // Finally, push this definition into the global list
+        enemyDefinitions.push_back(def);
+    }
+
+    // for boss
+    {
+        CreatureDefinition def;
+        def.id = "boss";
+        def.creatureType = CreatureType::Boss;
+        def.spawnProbability = 1;
+        def.group.minSize = 1;
+        def.group.maxSize = 1;
+
+        def.biomes = {Biome::B_FOREST, Biome::B_BEACH, Biome::B_ICE, Biome::B_JUNGLE, Biome::B_SAVANNA};
+
+        def.minHealth = 100;
+        def.maxHealth = 100;
+        def.damage = 10;
+        def.speed = 1.0f;
+
+        def.scale = vec2(100, 120);
+        def.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+
+        def.offset_to_ground = {0, def.scale.y / 2.f};
+
         enemyDefinitions.push_back(def);
     }
 

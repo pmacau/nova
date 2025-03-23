@@ -41,6 +41,8 @@ struct CreatureDefinition {
     TEXTURE_ASSET_ID textureAssetID;    // Path to the spritesheet asset.
     std::vector<SpriteAnimation> animations; // List of animations (idle, run, attack, etc.)
 
+    vec2 offset_to_ground = {0 ,0};
+
     // Drop information.
     std::vector<std::string> dropItems; // Item IDs that can drop when defeated.
 
