@@ -744,7 +744,7 @@ void RenderSystem::renderGamePlay()
         drawTexturedMesh(entity, projection_2D);
     }
 
-	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+	for (auto item : registry.view<Item>(entt::exclude<UI, DeathItems>)) {
 		nearbyEntities.push_back(item);
 	}
 
@@ -1234,7 +1234,10 @@ void RenderSystem::draw()
     }
 
 	auto glyphs = registry.view<Glyph>();
-    registry.destroy(glyphs.begin(), glyphs.end());
+
+	if (glyphs.size() > 0) {
+    	registry.destroy(glyphs.begin(), glyphs.end());
+	}
 }
 
 mat3 RenderSystem::createUIProjectionMatrix() {

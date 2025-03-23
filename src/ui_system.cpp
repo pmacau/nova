@@ -13,7 +13,7 @@ void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
 		float left = playerhealth_motion.position.x - playerhealth_motion.scale.x / 2.f;
 		playerhealth_motion.scale = vec2({ health * (250.f / PLAYER_HEALTH), 15.f });
 		playerhealth_motion.position.x = left + playerhealth_motion.scale.x / 2.f;
-		break; 
+		break;
 	}
 }
 
@@ -36,7 +36,9 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 	}
 }
 
-bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
+void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_entity, float mouse_pos_x, float mouse_pos_y) {
+	auto& inventory_slot = registry.get<InventorySlot>(inventory_slot_entity);
+	auto& entity = inventory_slot.item;
 	auto& item = registry.get<Item>(entity);
 	if (item.type == Item::Type::POTION) {
 		auto& potion = registry.get<Potion>(entity);
@@ -51,15 +53,25 @@ bool UISystem::useItem(entt::registry& registry, entt::entity& entity) {
 		}
 		if (item.no == 1) {
 			item.no = 0;
+			inventory_slot.hasItem = false;
 			registry.destroy(entity);
-			return false;
 		}
 		else {
 			item.no -= 1;
-			return true;
 		}
 	}
-	return true;
+	else if (item.type == Item::Type::DEFAULT_WEAPON ||
+		item.type == Item::Type::HOMING_MISSILE ||
+		item.type == Item::Type::SHOTGUN) {
+		for (auto entity : registry.view<ActiveSlot>()) {
+			removeActiveSlot(registry, entity);
+			break;
+		}
+		registry.emplace<ActiveSlot>(inventory_slot_entity);
+		auto& render_request = registry.get<RenderRequest>(inventory_slot_entity);
+		render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT_ACTIVE;
+		auto& player = registry.get<Player>(*registry.view<Player>().begin());
+	}
 }
 
 void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
@@ -67,7 +79,6 @@ void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
 	auto& motion = registry.get<Motion>(mob_entity);
 	int i = 0;
 	auto& items = drop.items;
-	std::cout << "total items dropped: " << items.size() << "\n";
 	while (!items.empty()) {
 		if (i == 0) {
 			renderItemAtPos(registry, mob_entity, motion.position.x, motion.position.y, false, true);
@@ -91,7 +102,6 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 	if (ui) {
 		registry.emplace<UI>(entity);
 		registry.emplace<FixedUI>(entity);
-		std::cout << "y: " << y << "\n";
 		if (y > 50.f + 45.f / 2.f && !registry.view<HiddenInventory>().empty()) {
 			registry.emplace<HiddenInventory>(entity);
 		}
@@ -108,17 +118,23 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	if (item_to_copy.type == Item::Type::POTION) {
-		auto& potion = registry.emplace<Potion>(entity);
-		potion.heal = 20;
-		motion.scale = vec2(512.f, 508.f) / 15.f;
-		sprite.dims = { 512.f, 508.f };
-		sprite.sheet_dims = { 512.f, 508.f };
+		if (registry.any_of<Potion>(item_to_copy_entity)) {
+			auto& potion = registry.get<Potion>(item_to_copy_entity);
+			auto& potion_copy = registry.emplace<Potion>(entity);
+			potion_copy.heal = potion.heal;
+		}
+		else {
+			registry.emplace<Potion>(entity);
+		}
+		motion.scale = vec2(512.f, 512.f) / 15.f;
+		sprite.dims = { 512.f, 512.f };
+		sprite.sheet_dims = { 512.f, 512.f };
 		render_request.used_texture = TEXTURE_ASSET_ID::POTION;
 	}
 	else if (item_to_copy.type == Item::Type::IRON) {
 		motion.scale = vec2(512.f, 512.f) / 15.f;
-		sprite.dims = { 512.f, 512.f};
-		sprite.sheet_dims = { 512.f, 512.f};
+		sprite.dims = { 512.f, 512.f };
+		sprite.sheet_dims = { 512.f, 512.f };
 		render_request.used_texture = TEXTURE_ASSET_ID::IRON;
 	}
 	else if (item_to_copy.type == Item::Type::COPPER) {
@@ -127,36 +143,73 @@ entt::entity UISystem::renderItemAtPos(entt::registry& registry, entt::entity it
 		sprite.sheet_dims = { 512.f, 512.f };
 		render_request.used_texture = TEXTURE_ASSET_ID::COPPER;
 	}
+	else if (item_to_copy.type == Item::Type::DEFAULT_WEAPON) {
+		motion.scale = vec2(121.f, 54.f) / 4.0f;
+		sprite.dims = { 121.f, 54.f };
+		sprite.sheet_dims = { 121.f, 54.f };
+		render_request.used_texture = TEXTURE_ASSET_ID::DEFAULT_WEAPON;
+	}
+	else if (item_to_copy.type == Item::Type::HOMING_MISSILE) {
+		motion.scale = vec2(700.0f, 400.0f) / 21.0f;
+		sprite.dims = { 700.0f, 400.0f };
+		sprite.sheet_dims = { 700.0f, 400.0f };
+		render_request.used_texture = TEXTURE_ASSET_ID::HOMING_MISSILE;
+	}
+	else if (item_to_copy.type == Item::Type::SHOTGUN) {
+		motion.scale = vec2(512.f, 512.f) / 15.f;
+		sprite.dims = { 512.f, 512.f };
+		sprite.sheet_dims = { 512.f, 512.f };
+		render_request.used_texture = TEXTURE_ASSET_ID::SHOTGUN;
+	}
 	return entity;
 }
 
-void UISystem::dropItem(entt::registry& registry, Click click) {
+void UISystem::dropItem(entt::registry& registry) {
 	if (!registry.view<Drag>().empty()) {
 		auto& drag_entity = *registry.view<Drag>().begin();
 		auto& player_entity = *registry.view<Player>().begin();
 		auto& motion = registry.get<Motion>(player_entity);
 		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false, false);
 		registry.destroy(drag_entity);
-		MusicSystem::playSoundEffect(SFX::DROP); 
+		MusicSystem::playSoundEffect(SFX::DROP);
 	}
 }
 
 void UISystem::resetDragItem(entt::registry& registry) {
 	auto& drag_entity = *registry.view<Drag>().begin();
-	auto& inventory_slot = registry.get<InventorySlot>(registry.get<Drag>(drag_entity).slot);
-	if (inventory_slot.hasItem) {
-		auto& inventory_item = registry.get<Item>(inventory_slot.item);
-		inventory_item.no += registry.get<Item>(drag_entity).no;
+	auto& drag = registry.get<Drag>(drag_entity);
+	if (drag.noSlot) {
+		for (auto entity : registry.get<Inventory>(*registry.view<Inventory>().begin()).slots) {
+			auto& inventory_slot = registry.get<InventorySlot>(entity);
+			if (!inventory_slot.hasItem) {
+				auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * (inventory_slot.id % 5), 50.f + 45.f * (inventory_slot.id / 5), true, false);
+				if (!registry.view<HiddenInventory>().empty() && inventory_slot.id > 4) {
+					registry.emplace<HiddenInventory>(item);
+				}
+				inventory_slot.hasItem = true;
+				inventory_slot.item = item;
+				auto& inventory_item = registry.get<Item>(inventory_slot.item);
+				inventory_item.no = registry.get<Item>(drag_entity).no;
+				break;
+			}
+		}
 	}
 	else {
-		auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * (inventory_slot.id % 5), 50.f + 45.f * (inventory_slot.id / 5), true, false);
-		if (!registry.view<HiddenInventory>().empty() && inventory_slot.id > 4) {
-			registry.emplace<HiddenInventory>(item);
+		auto& inventory_slot = registry.get<InventorySlot>(drag.slot);
+		if (inventory_slot.hasItem) {
+			auto& inventory_item = registry.get<Item>(inventory_slot.item);
+			inventory_item.no += registry.get<Item>(drag_entity).no;
 		}
-		inventory_slot.hasItem = true;
-		inventory_slot.item = item;
-		auto& inventory_item = registry.get<Item>(inventory_slot.item);
-		inventory_item.no = registry.get<Item>(drag_entity).no;
+		else {
+			auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * (inventory_slot.id % 5), 50.f + 45.f * (inventory_slot.id / 5), true, false);
+			if (!registry.view<HiddenInventory>().empty() && inventory_slot.id > 4) {
+				registry.emplace<HiddenInventory>(item);
+			}
+			inventory_slot.hasItem = true;
+			inventory_slot.item = item;
+			auto& inventory_item = registry.get<Item>(inventory_slot.item);
+			inventory_item.no = registry.get<Item>(drag_entity).no;
+		}
 	}
 	registry.destroy(drag_entity);
 }
@@ -182,7 +235,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 					// use item if no item is being dragged
 					if (registry.view<Drag>().empty()) {
 						if (j == 0) {
-							inventory_slot.hasItem = useItem(registry, inventory_slot.item);
+							useItem(registry, inventory_entity, mouse_pos_x, mouse_pos_y);
 						}
 					}
 					else {
@@ -199,9 +252,31 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 								registry.destroy(drag_entity);
 							}
 						}
-						// put the dragged item to original inventory slot if the item is of different type
+						// replace the drag item
 						else {
-							resetDragItem(registry);
+							auto previous_item_entity = inventory_slot.item;
+							inventory_slot.hasItem = false;
+							removeActiveSlot(registry, inventory_entity);
+							auto& previous_item = registry.get<Item>(previous_item_entity);
+							;							auto item = renderItemAtPos(registry, drag_entity, 50.f + 45.f * i, 50.f + 45.f * j, true, false);
+							inventory_slot.hasItem = true;
+							inventory_slot.item = item;
+							auto& inventory_item = registry.get<Item>(inventory_slot.item);
+							if (drag_item.no > inventory_slot.capacity) {
+								inventory_item.no = inventory_slot.capacity;
+								drag_item.no -= inventory_slot.capacity;
+								resetDragItem(registry);
+							}
+							else {
+								inventory_item.no = drag_item.no;
+								registry.destroy(drag_entity);
+							}
+							auto item_entity_on_mouse = renderItemAtPos(registry, previous_item_entity, mouse_pos_x, mouse_pos_y, true, false);
+							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
+							drag.noSlot = true;
+							auto& item_on_mouse = registry.get<Item>(item_entity_on_mouse);
+							item_on_mouse.no = previous_item.no;
+							registry.destroy(previous_item_entity);
 						}
 					}
 				}
@@ -261,6 +336,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 					if (click == Click::CTRLRIGHT) {
 						inventory_item.no = 0;
 						inventory_slot.hasItem = false;
+						removeActiveSlot(registry, inventory_entity);
 						debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
 						registry.destroy(inventory_slot.item);
 					}
@@ -268,6 +344,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						if (inventory_item.no == 1) {
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
+							removeActiveSlot(registry, inventory_entity);
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
 							registry.destroy(inventory_slot.item);
 						}
@@ -279,6 +356,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						if (inventory_item.no <= 5) {
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
+							removeActiveSlot(registry, inventory_entity);
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
 							registry.destroy(inventory_slot.item);
 						}
@@ -290,6 +368,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						if (inventory_item.no == 1) {
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
+							removeActiveSlot(registry, inventory_entity);
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
 							registry.destroy(inventory_slot.item);
 						}
@@ -322,6 +401,14 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 		}
 	}
 	return false;
+}
+
+void UISystem::removeActiveSlot(entt::registry& registry, entt::entity& inventory_slot_entity) {
+	if (registry.any_of<ActiveSlot>(inventory_slot_entity)) {
+		registry.remove<ActiveSlot>(inventory_slot_entity);
+		auto& render_request = registry.get<RenderRequest>(inventory_slot_entity);
+		render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT;
+	}
 }
 
 void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
@@ -398,6 +485,12 @@ void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y)
 	for (int i = 0; i < inventory.slots.size(); i++) {
 		auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 		if (inventory_slot.hasItem) {
+			auto& inventory_slot_item = registry.get<Item>(inventory_slot.item);
+			if (inventory_slot_item.type == Item::Type::DEFAULT_WEAPON ||
+				inventory_slot_item.type == Item::Type::HOMING_MISSILE ||
+				inventory_slot_item.type == Item::Type::SHOTGUN) {
+				continue;
+			}
 			registry.remove<UI>(inventory_slot.item);
 			registry.remove<FixedUI>(inventory_slot.item);
 			if (inventory_slot.id > 4 && registry.any_of<HiddenInventory>(inventory_slot.item)) {
@@ -407,6 +500,7 @@ void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y)
 			motion.position = { x, y };
 			registry.emplace<DeathItems>(inventory_slot.item);
 			inventory_slot.hasItem = false;
+			removeActiveSlot(registry, inventory.slots[i]);
 		}
 	}
 	auto& motion = registry.emplace<Motion>(entity);
@@ -438,50 +532,40 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 		registry.remove<Drop>(entity);
 	}
 	float randomNo = uniform_dist(rng);
-	auto& mob = registry.get<Mob>(entity);	
+	auto& mob = registry.get<Mob>(entity);
 	Item item;
-	if (mob.biome == Mob::Biome::FOREST) {
-		if (registry.any_of<Boss>(entity)) {
-			std::cout << "entity is a boss\n";
-			auto& drop = registry.emplace<Drop>(entity);
-			randomNo = uniform_dist(rng);
-			if (randomNo < 0.7) {
-				item.type = Item::Type::IRON;
-			}
-			else {
-				item.type = Item::Type::COPPER;
-			}
-			randomNo = uniform_dist(rng);
-			item.no = 10 + (int)(randomNo * 11);
-			drop.items.push_back(item);
-			item.type = Item::Type::POTION;
-			randomNo = uniform_dist(rng);
-			item.no = 3 + (int)(randomNo * 3);
-			drop.items.push_back(item);
+	if (registry.any_of<Boss>(entity)) {
+		auto& drop = registry.emplace<Drop>(entity);
+		randomNo = uniform_dist(rng);
+		if (randomNo < 0.7) {
+			item.type = Item::Type::IRON;
 		}
 		else {
-			if (mob.type == Mob::Type::TORCH) {
-				randomNo = uniform_dist(rng);
-				if (randomNo < 0.25) {
-					auto& drop = registry.emplace<Drop>(entity);
-					randomNo = uniform_dist(rng);
-					if (randomNo < 0.7) {
-						item.type = Item::Type::POTION;
-						item.no = 1;
-					}
-					else if (randomNo < 0.85) {
-						item.type = Item::Type::IRON;
-						randomNo = uniform_dist(rng);
-						item.no = 1 + (int)(randomNo * 3);
-					}
-					else {
-						item.type = Item::Type::COPPER;
-						randomNo = uniform_dist(rng);
-						item.no = 1 + (int)(randomNo * 3);
-					}
-					drop.items.push_back(item);
-				}
-			} 
+			item.type = Item::Type::COPPER;
 		}
+		randomNo = uniform_dist(rng);
+		item.no = 20 + (int)(randomNo * 11);
+		drop.items.push_back(item);
+		item.type = Item::Type::POTION;
+		randomNo = uniform_dist(rng);
+		item.no = 5 + (int)(randomNo * 6);
+		drop.items.push_back(item);
+	}
+	else {
+		auto& drop = registry.emplace<Drop>(entity);
+		randomNo = uniform_dist(rng);
+		if (randomNo < 0.5) {
+			item.type = Item::Type::IRON;
+		}
+		else {
+			item.type = Item::Type::COPPER;
+		}
+		randomNo = uniform_dist(rng);
+		item.no = 1 + (int)(randomNo * 6);
+		drop.items.push_back(item);
+		item.type = Item::Type::POTION;
+		randomNo = uniform_dist(rng);
+		item.no = 1 + (int)(randomNo * 2);
+		drop.items.push_back(item);
 	}
 }

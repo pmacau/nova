@@ -26,7 +26,7 @@ entt::entity createMob2(entt::registry& registry, vec2 position, int health = MO
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
 // projectile
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, TEXTURE_ASSET_ID projectileType);
+entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, int timer, TEXTURE_ASSET_ID projectileType);
 
 
 entt::entity createBoss(entt::registry& registry, vec2 pos);
@@ -50,10 +50,14 @@ void createInventory(entt::registry& registry);
 
 void destroy_creature(entt::registry& registry, entt::entity creature);
 
-entt::entity createCreature(entt::registry& registry, vec2 position, CreatureType creatureType, int health);
+entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDefinition def, int health);
 
 entt::entity createTitleScreen(entt::registry & registry);
 
 entt::entity createMinimap(entt::registry & registry);
 
 entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices);
+
+void createDefaultWeapon(entt::registry& registry);
+
+void findNearestTarget(entt::registry& registry, entt::entity& entity, float x, float y);

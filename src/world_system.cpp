@@ -33,6 +33,7 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createPlayerHealthBar(registry);
 	createInventory(registry);
 	createMinimap(registry);
+	createDefaultWeapon(registry);
 
 
 	// seeding rng with random device
@@ -311,22 +312,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				vec2 railgun_velocity = direction * RAILGUN_PROJ_SPEED;
 				switch (bulletType) {
 					case BulletType::GOLD_PROJECTILE:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 						break;
 					case BulletType::BLASTER_PROJECTILE:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE*1.5, PROJECTILE_SIZE*1.5), blaster_velocity, BLASTER_PROJ_DAMAGE, TEXTURE_ASSET_ID::BLASTER_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE*1.5, PROJECTILE_SIZE*1.5), blaster_velocity, BLASTER_PROJ_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::BLASTER_PROJECTILE);
 						break;
 					case BulletType::MISSLE_PROJECTILE:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), missle_velocity, MISSLE_PROJ_DAMAGE, TEXTURE_ASSET_ID::MISSLE_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), missle_velocity, MISSLE_PROJ_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::MISSILE_PROJECTILE);
 						break;
 					case BulletType::RAILGUN_PROJECTILE:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), railgun_velocity, RAILGUN_PROJ_DAMAGE, TEXTURE_ASSET_ID::RAILGUN_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), railgun_velocity, RAILGUN_PROJ_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::RAILGUN_PROJECTILE);
 						break;
 					case BulletType::SMG_PROJECTILE:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), smg_velocity, SMG_PROJ_DAMAGE, TEXTURE_ASSET_ID::SMG_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE/1.5, PROJECTILE_SIZE*2), smg_velocity, SMG_PROJ_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::SMG_PROJECTILE);
 						break;
 					default:
-						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
+						createProjectile(registry, shipMotion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 						break;
 				}
 			}
@@ -344,7 +345,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (projectile.timer <= 0) {
 			debug_printf(DebugType::PHYSICS, "Destroying entity (world sys: projectile)\n");
 
-			registry.destroy(entity);
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
 		}
 	}
 
@@ -444,11 +447,22 @@ void WorldSystem::restart_game() {
 	for (auto entity : motions) {
 		if (registry.any_of<FixedUI>(entity)) {
 			if (registry.any_of<Item>(entity)) {
-				registry.destroy(entity);
+				auto& item = registry.get<Item>(entity);
+				if (item.type != Item::Type::DEFAULT_WEAPON &&
+					item.type != Item::Type::HOMING_MISSILE &&
+					item.type != Item::Type::SHOTGUN) {
+					if (registry.valid(entity)) {
+						registry.destroy(entity);
+					}
+				}
 			}
 			continue;
 		}
-		else registry.destroy(entity);
+		else {
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
+		}
 	}
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave, ShipWeapon>);
 	// registry.destroy(motions.begin(), motions.end());
@@ -778,7 +792,10 @@ void WorldSystem::left_mouse_click() {
 
 						if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_WEAPON) {
 							// change to missles
-							registry.destroy(ui_ship_weapon_entity);
+
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4 + w/2/84, h/4),
 																	vec2(w/6 - w/2/8.4, w/6 - w/2/8.4),
@@ -791,7 +808,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								vec2(ship_pos.x + 2.0f, ship_pos.y - 10.0f),
 								vec2(100, 115),
@@ -805,7 +825,10 @@ void WorldSystem::left_mouse_click() {
 
 						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_MISSLES_WEAPON) {
 							// change to blaster
-							registry.destroy(ui_ship_weapon_entity);
+
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4 - w/2/22.7, h/4),
 																	vec2(w/6 - w/2/4.7, w/6 - w/2/9.3),
@@ -818,7 +841,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								// vec2(1640, 1330), 
 								vec2(ship_pos.x + 5.0f, ship_pos.y - 25.0f),
@@ -833,7 +859,10 @@ void WorldSystem::left_mouse_click() {
 
 						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_WEAPON) {
 							// change to railgun
-							registry.destroy(ui_ship_weapon_entity);
+
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4 - w/2/42, h/4),
 																	vec2(w/6 - w/2/6, w/6 - w/2/7.6),
@@ -846,7 +875,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								vec2(ship_pos.x, ship_pos.y),
 								vec2(110, 100),
@@ -860,7 +892,9 @@ void WorldSystem::left_mouse_click() {
 
 						} else if (!ui_ship_weapon.active) {
 							// create a new weapon (start as smg)
-							registry.destroy(ui_ship_weapon_entity);
+							if (registry.valid(ui_ship_weapon_entity)) {
+								registry.destroy(ui_ship_weapon_entity);
+							}
 							entt::entity curr = createUIShipWeapon( registry, 
 																	vec2(w/4, h/4), 
 																	vec2(w/6 - w/2/6.7, w/6 - w/2/8.4),
@@ -873,7 +907,10 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipWeapon = registry.view<ShipWeapon>();
-							registry.destroy(shipWeapon.begin(), shipWeapon.end());
+
+							if (!shipWeapon.empty()) {
+								registry.destroy(shipWeapon.begin(), shipWeapon.end());
+							}
 							createShipWeapon( registry, 
 								// vec2(1590, 1345), 
 								vec2(ship_pos.x, ship_pos.y),
@@ -905,7 +942,9 @@ void WorldSystem::left_mouse_click() {
 						auto& ship = registry.get<Ship>(ship_entity);
 						if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_ENGINE) {
 							// change to missles engine
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/37.3),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -915,13 +954,17 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 10);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
 						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_MISSLE_ENGINE) {
 							// change to blaster engine
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/37.3),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -931,13 +974,17 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 9);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
 						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE) {
 							// change to railgun engine
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/56),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -947,13 +994,17 @@ void WorldSystem::left_mouse_click() {
 
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 10.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 11);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
-							registry.destroy(ui_ship_engine_entity);
+							if (registry.valid(ui_ship_engine_entity)) {
+								registry.destroy(ui_ship_engine_entity);
+							}
 							entt::entity chosenEngine = createUIShipEngine(registry, 
 								vec2(w/4, h/4 + h/2/112),
 								vec2(w/6 - w/2/6.7, w/6 - w/2/6.7),
@@ -963,7 +1014,9 @@ void WorldSystem::left_mouse_click() {
 							
 							// update gameplay ship
 							auto shipEngine = registry.view<ShipEngine>();
-							registry.destroy(shipEngine.begin(), shipEngine.end());
+							if (!shipEngine.empty()) {
+								registry.destroy(shipEngine.begin(), shipEngine.end());
+							}
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 12);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
@@ -998,7 +1051,7 @@ void WorldSystem::left_mouse_click() {
 	}
 
 	if (!registry.view<Drag>().empty() && click_delay > 0.3f && !itemUsed) {
-		UISystem::dropItem(registry, Click::LEFT);
+		UISystem::dropItem(registry);
 		UISystem::equip_delay = 0.0f;
 		click_delay = 0.0f;
 	}
@@ -1006,9 +1059,30 @@ void WorldSystem::left_mouse_click() {
 	if (player_comp.weapon_cooldown <= 0 && 
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
 		click_delay > 0.3f) {
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
-			MusicSystem::playSoundEffect(SFX::SHOOT);
+		auto& weapon = registry.get<Item>(registry.get<InventorySlot>(*registry.view<ActiveSlot>().begin()).item);
+		if (weapon.type == Item::Type::DEFAULT_WEAPON) {
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
+			MusicSystem::playSoundEffect(SFX::SHOOT);
+		}
+		else if (weapon.type == Item::Type::HOMING_MISSILE) {
+			auto missile_entity = createProjectile(registry, player_motion.position, 2.5f * vec2(PROJECTILE_SIZE / 2.8, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE * 2, PROJECTILE_TIMER, TEXTURE_ASSET_ID::MISSILE_PROJECTILE);
+			auto& player_pos = registry.get<Motion>(*registry.view<Player>().begin()).position;
+			float x = mouse_pos_x - WINDOW_WIDTH_PX / 2 + player_pos.x;
+			float y = mouse_pos_y - WINDOW_HEIGHT_PX / 2 + player_pos.y;
+			findNearestTarget(registry, missile_entity, x, y);
+			player_comp.weapon_cooldown = WEAPON_COOLDOWN * 4;
+			MusicSystem::playSoundEffect(SFX::MISSILE);
+		}
+		else if (weapon.type == Item::Type::SHOTGUN) {
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 - velocity.y * 0.259, velocity.y * 0.966 + velocity.x * 0.259), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 + velocity.y * 0.259, velocity.y * 0.966 - velocity.x * 0.259), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 - velocity.y * 0.5, velocity.y * 0.866 + velocity.x * 0.5), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 + velocity.y * 0.5, velocity.y * 0.866 - velocity.x * 0.5), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			player_comp.weapon_cooldown = WEAPON_COOLDOWN * 2;
+			MusicSystem::playSoundEffect(SFX::SHOTGUN);
+		}
 	}
 }
 
@@ -1046,38 +1120,42 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 
 // update inventory for ship upgrades
 void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
-	auto itemsInInv = registry.view<Item, FixedUI>();
-
 	int numIronLeftToUse = ironCount;
 	int numCopperLeftToUse = copperCount;
 
-	for (auto& entity : itemsInInv) {
-		auto& item = registry.get<Item>(entity);
+	for (auto inventory_slot_entity : registry.get<Inventory>(*registry.view<Inventory>().begin()).slots) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory_slot_entity);
+		if (!inventory_slot.hasItem) continue;
+		auto& item = registry.get<Item>(inventory_slot.item);
 
 		if (item.type == Item::Type::IRON) {
 			if (item.no <= numIronLeftToUse) {
 				numIronLeftToUse -= item.no;
-				if (registry.valid(entity)) {
-					registry.destroy(entity);
+				inventory_slot.hasItem = false;
+				if (registry.valid(inventory_slot.item)) {
+					registry.destroy(inventory_slot.item);
 				}
 			} else { 
 				item.no -= numIronLeftToUse;
 				numIronLeftToUse = 0;
-				break;
 			}
 		}
 
 		if (item.type == Item::Type::COPPER) {
 			if (item.no <= numCopperLeftToUse) {
 				numCopperLeftToUse -= item.no;
-				if (registry.valid(entity)) {
-					registry.destroy(entity);
+				inventory_slot.hasItem = false;
+				if (registry.valid(inventory_slot.item)) {
+					registry.destroy(inventory_slot.item);
 				}
 			} else { 
 				item.no -= numCopperLeftToUse;
 				numCopperLeftToUse = 0;
-				break;
 			}
+		}
+
+		if (numCopperLeftToUse == 0 && numIronLeftToUse == 0) {
+			break;
 		}
 	}
 }
