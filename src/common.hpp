@@ -46,14 +46,20 @@ const int GRID_CELL_WIDTH_PX = 60;
 const int GRID_CELL_HEIGHT_PX = 60;
 const int GRID_LINE_WIDTH_PX = 2;
 
+// Ship stats
 const float SHIP_TIMER_S = 1.f;
 const int SHIP_HEALTH = 500;
 const int SHIP_RANGE = 250;
 
+// Ship stats upgrades
 const int SHIP_HEALTH_UPGRADE = 200;
 const int SHIP_RANGE_UPGRADE = 100;
 const int SHIP_DAMAGE_UPGRADE = 10;
 const float SHIP_TIMER_UPGRADE = 0.15f;
+
+// Max ship stats
+const int SHIP_MAX_HEALTH = 1500;
+const int SHIP_MAX_RANGE = 1000;
 
 const int PROJECTILE_DAMAGE = 20;
 const int SMG_PROJ_DAMAGE = 25;
@@ -94,6 +100,7 @@ const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
 
 const int SHIP_RANGE_UPGRADE_IRON = 5;
 
+// Weather
 const bool ENABLE_WEATHER = false;
 
 // Camera system

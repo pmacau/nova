@@ -1076,11 +1076,6 @@ void RenderSystem::renderShipUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	// render ship
-	for (auto entity : registry.view<UIShip, Motion, RenderRequest>()) {
-		drawTexturedMesh(entity, ui_projection_2D);
-	}
-
 	// render ship weapons
 	for (auto entity : registry.view<UIShipWeapon, Motion, RenderRequest>()) {
 		auto& shipWeapon = registry.get<UIShipWeapon>(entity);
@@ -1095,6 +1090,11 @@ void RenderSystem::renderShipUI()
 		if (shipEngine.active) {
 			drawTexturedMesh(entity, ui_projection_2D);
 		}
+	}
+
+	// render ship
+	for (auto entity : registry.view<UIShip, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
 	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1165,7 +1165,6 @@ void RenderSystem::renderShipUI()
 	for (auto& entity : buttonEntities) {
 		auto& button = registry.get<UpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
-		// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		renderText(
 			button.text, 
 			motion.position.x - 35.0f, 
@@ -1175,7 +1174,6 @@ void RenderSystem::renderShipUI()
 			ui_projection_2D)
 		;
 
-		// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		if (button.missingResources) {
 			renderText(
 				button.missingResourcesText, 
@@ -1196,7 +1194,6 @@ void RenderSystem::renderShipUI()
 		}
 	}
 	
-	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	renderText(
 		"SHIP UPGRADES", 
 		-w/2*0.15f,
