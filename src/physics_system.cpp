@@ -73,6 +73,7 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
         }
         if (registry.any_of<HomingMissile>(entity)) {
             auto& missile_postion = registry.get<Motion>(entity).position;
+            if (!registry.valid(registry.get<HomingMissile>(entity).target)) continue;
             auto& target_entity = registry.get<HomingMissile>(entity).target;
             auto& target_position = registry.get<Motion>(target_entity).position;
             vec2 current_direction = normalize(motion.velocity);
