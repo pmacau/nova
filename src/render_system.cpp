@@ -958,20 +958,6 @@ void RenderSystem::renderTitle()
 
 	drawToScreen(false);
 
-	// comment this out -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	// mat3 flippedProjection = ui_projection_2D;
-	// flippedProjection[1][1] *= -1.0f;
-	// auto& screen_state = registry.get<ScreenState>(screen_entity);
-
-	// for (auto entity : registry.view<ButtonOption>()) {
-	// 	auto& title_option = registry.get<ButtonOption>(entity);
-	// 	if (title_option.hover && screen_state.current_screen == ScreenState::ScreenType::TITLE) {
-	// 		renderText(title_option.text, title_option.position.x - title_option.size.x / 2.f, -title_option.position.y - title_option.size.y / 2.f - 25.f, 0.5f, glm::vec3(1.0f, 1.0f, 1.0f), flippedProjection);
-	// 	}
-	// }
-
-	// drawToScreen(false);
-
 	glfwSwapBuffers(window);
 	gl_has_errors();
 }
@@ -1029,7 +1015,6 @@ void RenderSystem::renderUpgradeUI()
 			float centeredX = ui_option.position.x - textWidth / 2.0f;
 			float centeredY = ui_option.position.y + ui_option.size.y / 2.0f + 10.0f;
 			
-			// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 			renderText(
 				ui_option.text, 
 				centeredX, 
@@ -1046,7 +1031,6 @@ void RenderSystem::renderUpgradeUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	renderText(
 		"UPGRADES",  
 		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 0.8f)/2, 
@@ -1116,7 +1100,6 @@ void RenderSystem::renderShipUI()
 		}
 	}
 
-	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	renderText(
 		"SHIP UPGRADES", 
 		WINDOW_WIDTH_PX / 2 - 180, 
