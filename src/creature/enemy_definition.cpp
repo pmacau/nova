@@ -1,69 +1,53 @@
 #include "enemy_definition.hpp"
 #include <glm/glm.hpp>
 #include <tinyECS/components.hpp>
+#include <ai/ai_initializer.hpp>
 
 std::vector<CreatureDefinition> createEnemyDefinitions() {
     std::vector<CreatureDefinition> enemyDefinitions;
     {
-        // testing
         CreatureDefinition def;
-        def.id = "demo_mob";
-        def.creatureType = CreatureType::Mob;
-        def.spawnProbability = 0.5f;
-        def.group.minSize = 1;
-        def.group.maxSize = 2;
 
-        def.biomes = {Biome::B_FOREST, Biome::B_BEACH, Biome::B_ICE, Biome::B_JUNGLE, Biome::B_SAVANNA};
+        def.id = "goblin";
+        def.creatureType = CreatureType::Mob;
+
+        def.spawnInfo.spawnProbability = 0.5f;
+        def.spawnInfo.group.minSize = 1;
+        def.spawnInfo.group.maxSize = 2;
+        def.spawnInfo.biomes = {Biome::B_FOREST, Biome::B_BEACH, Biome::B_ICE, Biome::B_JUNGLE, Biome::B_SAVANNA};
 
         // Basic stats
-        def.minHealth = 50;
-        def.maxHealth = 70;
-        def.damage = 10;
-        def.speed = 1.0f;
+        def.stats.minHealth = 50;
+        def.stats.maxHealth = 70;
+        def.stats.damage = 10;
+        def.stats.speed = 1.0f;
 
-        def.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
-        def.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+        def.renderingInfo.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
+        def.renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+        def.renderingInfo.spriteSheet.sheetDimensions = {1344.f, 960.f};
+        def.renderingInfo.animationMapping = {
+            {"idle", "mob2_idle"},
+            {"walk", "mob2_walk"},
+        };
 
-        def.offset_to_ground = {0, def.scale.y / 4.f * 0.8f};
+        // physics
+        def.physicsInfo.offset_to_ground = {0, def.renderingInfo.scale.y / 4.f * 0.8f};
 
+        float w = def.renderingInfo.scale.x * 0.4;
+        float h = def.renderingInfo.scale.y * 0.5;
+        def.physicsInfo.hitbox.pts = {
+            {w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+            {w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+        };
 
-        // Animations: Suppose each frame is 64x64, row 0 = idle, row 1 = attack, etc.
-        int frameWidth  = 64;
-        int frameHeight = 64;
+        def.physicsInfo.hitbox.depth = 60;
 
-        // Idle animation (row 0 with 6 frames)
-        {
-            SpriteAnimation idle;
-            idle.name = "idle";
-            idle.frameDuration = 100.0f; // 100ms per frame
-            int row = 0;
-            int idleFrames = 6;
-            for (int i = 0; i < idleFrames; i++) {
-                // (x, y) of top-left corner of each frame
-                glm::vec2 framePos = glm::vec2(i * frameWidth, row * frameHeight);
-                idle.frames.push_back(framePos);
-            }
-            def.animations.push_back(idle);
-        }
+        // drops
+        def.dropInfo.dropItems = {"potion"};
 
-        // Attack animation (row 1 with 5 frames)
-        {
-            SpriteAnimation attack;
-            attack.name = "attack";
-            attack.frameDuration = 80.0f;
-            int row = 1;
-            int attackFrames = 5;
-            for (int i = 0; i < attackFrames; i++) {
-                glm::vec2 framePos = glm::vec2(i * frameWidth, row * frameHeight);
-                attack.frames.push_back(framePos);
-            }
-            def.animations.push_back(attack);
-        }
-
-        // You can define more animations (run, death, etc.) similarly.
-
-        // Items dropped on defeat
-        def.dropItems = {"potion"};
+        // AI
+        def.aiInfo.aiConfig = getGoblinAIConfig();
+        def.aiInfo.transitionTable = getGoblinTransitionTable();
 
         // Finally, push this definition into the global list
         enemyDefinitions.push_back(def);

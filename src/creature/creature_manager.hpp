@@ -11,7 +11,9 @@ public:
     void loadDefinitions();
 
     // Get a creature definition by ID.
-    const CreatureDefinition* getDefinition(const std::string& id) const;
+    const CreatureDefinition* getDefinition(const CreatureID id) const;
+
+    void addDefinition(const CreatureDefinition& def);
 
     std::vector<const CreatureDefinition*> queryDefinitions(
         const std::function<bool(const CreatureDefinition&)>& predicate) const;
@@ -26,5 +28,5 @@ private:
 
     void loadBossSpawnData();
 
-    std::unordered_map<std::string, CreatureDefinition> definitions;
+    std::unordered_map<CreatureID, CreatureDefinition> definitions;
 };

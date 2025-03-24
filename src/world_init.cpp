@@ -10,6 +10,7 @@
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
 #include <creature/creature_common.hpp>
+#include <animation/animation_manager.hpp>
 #include "ui_system.hpp"
 #include <map/map_system.hpp>
 
@@ -710,13 +711,15 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 
 	// Setup AnimationComponent (runtime state for animations).
     auto& animComp = registry.emplace<AnimationComponent>(entity);
-    animComp.currentAnimationId = def.renderingInfo.startAnimationId;
+    animComp.currentAnimationId = def.renderingInfo.initialAnimationId;
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
+	const AnimationDefinition* animation_def = AnimationManager::getInstance().getAnimation(animComp.currentAnimationId);
+
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = vec2(1344.f / 7, 960.f / 5);
-	sprite.sheet_dims = {1344.f, 960.f};
+	sprite.dims = vec2(animation_def->frameWidth, animation_def->frameHeight);
+	sprite.sheet_dims = def.renderingInfo.spriteSheet.sheetDimensions;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -725,39 +728,30 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 	motion.position.x = position.x;
 	motion.position.y = position.y;
 
-	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
-	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.8f};
+	motion.scale = def.renderingInfo.scale;
+	motion.offset_to_ground = def.physicsInfo.offset_to_ground;
 
-	float w = motion.scale.x * 0.4;
-	float h = motion.scale.y * 0.5;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
-	hitbox.pts = {
-		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
-	};
-	hitbox.depth = 60;
+	hitbox.pts = def.physicsInfo.hitbox.pts;
+	hitbox.depth = def.physicsInfo.hitbox.depth;
 	
 	UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+	renderRequest.used_texture = def.renderingInfo.spriteSheet.textureAssetID;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-
-	
 
 	// TODO: create a generic enemy creation
 	// set up ai for goblin
 	auto& aiComp = registry.emplace<AIComponent>(entity);
-	AIConfig goblinConfig = getGoblinAIConfig();
-	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
-	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, goblinConfig, goblinTransitions);
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, def.aiInfo.aiConfig, def.aiInfo.transitionTable);
    
-	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
+	aiComp.stateMachine->changeState(g_stateFactory.createState(def.aiInfo.initialState).release());
 
 	//initial state
-	static PatrolState patrolState;
-	aiComp.stateMachine->changeState(&patrolState);
+	// static PatrolState patrolState;
+	// aiComp.stateMachine->changeState(&patrolState);
 
 	createMobHealthBar(registry, entity, -40.0f);
 	return entity; 

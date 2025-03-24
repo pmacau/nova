@@ -3,6 +3,15 @@
 #include <tinyECS/components.hpp>
 #include <map/tile.hpp>
 #include <animation/animation_definition.hpp>
+#include <collision/hitbox.hpp>
+#include <ai/ai_common.hpp>
+#include <ai/state_machine/transition.hpp>
+
+enum class CreatureID {
+    GOBLIN,
+    SKELETON,
+    BOSS,
+};
 
 
 enum class CreatureType {
@@ -35,23 +44,32 @@ struct RenderingInfo {
     SpriteSheet spriteSheet;
     // Mapping of action names (e.g., "idle", "walk", "attack") to animation IDs.
     std::unordered_map<std::string, std::string> animationMapping;
-    std::string startAnimationId;  // Initial animation ID.
+    std::string initialAnimationId;  // Initial animation ID.
 };
 
 struct DropInfo {
     std::vector<std::string> dropItems;
 };
 
+struct PhysicsInfo {
+    Hitbox hitbox;
+    vec2 offset_to_ground = {0 ,0};
+};
+
+struct AIInfo {
+    AIConfig aiConfig;
+    const TransitionTable* transitionTable = nullptr;
+    std::string initialState;
+};
+
 struct CreatureDefinition {
-    CreatureType creatureType;  // Type: Mob, Boss, or Mutual
-    std::string id;             // Unique identifier (e.g., "goblin", "skeleton")
+    CreatureType creatureType;
+    CreatureID id;             
 
     SpawnInfo spawnInfo;
     Stats stats;                
     RenderingInfo renderingInfo;
+    PhysicsInfo physicsInfo;
     DropInfo dropInfo;
-
-    vec2 offset_to_ground = {0 ,0};
-
-    // AI-specific settings, agro range
+    AIInfo aiInfo;
 };

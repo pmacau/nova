@@ -15,6 +15,9 @@ CreatureManager::CreatureManager() {
     loadBossSpawnData();
 }
 
+void CreatureManager::addDefinition(const CreatureDefinition& def) {
+    definitions[def.id] = def;
+}
 
 void CreatureManager::loadDefinitions() {
     // TDOD: Load from file
@@ -33,12 +36,12 @@ void CreatureManager::loadBossSpawnData() {
 }
 
 
-const CreatureDefinition* CreatureManager::getDefinition(const std::string& id) const {
+const CreatureDefinition* CreatureManager::getDefinition(const CreatureID id) const {
     auto it = definitions.find(id);
     if (it != definitions.end()) {
         return &it->second;
     }
-    std::cerr << "CreatureManager: Unknown creature id: " << id << "\n";
+    std::cerr << "CreatureManager: Unknown creature id: " << id. << "\n";
     return nullptr;
 }
 
