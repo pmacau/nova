@@ -45,13 +45,19 @@ class RenderSystem {
 		textures_path("projectiles/ship/missle-projectile.png"),
 		textures_path("projectiles/ship/railgun-projectile.png"),
 		textures_path("projectiles/ship/smg-projectile.png"),
-		textures_path("healthbar/green.png"), 
+		textures_path("projectiles/shotgun_projectile.png"),
+		textures_path("weapons/default.png"),
+		textures_path("weapons/homing-missile.png"),
+		textures_path("weapons/shotgun.png"),
 		textures_path("healthbar/red.png"), 
+		textures_path("healthbar/player-health-inner.png"), 
+		textures_path("healthbar/player-health-outer.png"),
 		textures_path("items/potion.png"), 
 		textures_path("items/grave.png"),
 		textures_path("items/iron.png"),
 		textures_path("items/copper.png"),
 		textures_path("inventory/inventory-slot.png"),
+		textures_path("inventory/inventory-slot-active.png"),
 		textures_path("terrain/tree.png"),
 		textures_path("mob/goblin_torch_blue.png"), 
 		textures_path("title/screen.png"), 
@@ -168,8 +174,8 @@ private:
 	mat3 shipUITransform = mat3(1.0f);
 	
 	// void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
-	float getTextWidth(const std::string& text, float scale);
-	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection, bool wrap=false);
+	int getTextWidth(const std::string& text, int scale);
+	void renderText(const std::string& text, float x, float y, int scale, glm::vec3 color, const mat3& projection, bool wrap=false);
 };
 
 bool loadEffectFromFile(

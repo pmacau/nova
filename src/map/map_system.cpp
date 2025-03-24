@@ -130,7 +130,7 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
 
 void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
-    auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
+    //auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
 
     auto& motion = reg.get<Motion>(ent);
     vec2& pos = motion.position;
@@ -148,27 +148,21 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     switch (currB) {
         case B_FOREST:
             newTrack = Music::FOREST;
-            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
             break;  
         case B_BEACH:
             newTrack = Music::BEACH;
-            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
             break;
         case B_JUNGLE:
             newTrack = Music::JUNGLE;
-            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
             break;
         case B_SAVANNA:
             newTrack = Music::SAVANNA;
-            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
             break;
         case B_ICE:
             newTrack = Music::SNOWLANDS;
-            screen.effect = EFFECT_ASSET_ID::E_SNOW;
             break;
         default:
             newTrack = Music::FOREST;
-            screen.effect = EFFECT_ASSET_ID::EFFECT_COUNT;
             break;
     }
 

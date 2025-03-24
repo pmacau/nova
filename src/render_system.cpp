@@ -163,7 +163,7 @@ ivec2 get_char_coords(const unsigned char& glyph) {
 
 entt::entity createGlyph(
 	entt::registry& reg, const unsigned char& c,
-	float x, float y, float scale, vec3 color
+	float x, float y, int scale, vec3 color
 ) {
 	ivec2 coord = get_char_coords(c);
 	auto e = reg.create();
@@ -172,7 +172,7 @@ entt::entity createGlyph(
 	reg.emplace<FixedUI>(e);
 
 	auto& motion = reg.emplace<Motion>(e);
-	motion.scale = scale * vec2(5, 7);
+	motion.scale = float(scale) * vec2(5, 7);
 	motion.position = {x, y};
 
 	auto& sprite = reg.emplace<Sprite>(e);
@@ -207,9 +207,11 @@ const std::unordered_map<char, vec3> color_codes = {
 	{'2', {1, 0, 0}},
 };
 
+const int x_char_space = (5 + 1);
+
 void RenderSystem::renderText(
 	const std::string& text,
-	float x, float y, float scale,
+	float x, float y, int scale,
 	glm::vec3 color, const mat3& projection,
 	bool wrap
 ) {
@@ -221,7 +223,6 @@ void RenderSystem::renderText(
     }
 
 	int x_offset = 0, y_offset = 0;
-	int char_space = (5 + 1);
 
 	vec3 tColor = color;
 	bool changeColor = false;
@@ -231,7 +232,7 @@ void RenderSystem::renderText(
 
 	for (const auto& word: words) {
 		if (wrap &&
-			(x + x_offset + (word.length() * scale * char_space) > max_width)
+			(x + x_offset + getTextWidth(word, scale) > max_width)
 		) {
 			y_offset += scale * (7 + 3);
 			x_offset = 0;
@@ -252,22 +253,15 @@ void RenderSystem::renderText(
 	
 			auto entity = createGlyph(registry, c, x + x_offset, y + y_offset, scale, tColor);
 			drawTexturedMesh(entity, projection);
-			x_offset += scale * char_space;
+			x_offset += scale * x_char_space;
 		}
 		// Add space for a ' ' character
-		x_offset += scale * char_space;
+		x_offset += scale * x_char_space;
 	}
 }
 
-float RenderSystem::getTextWidth(const std::string& text, float scale) {
-    float width = 0.0f;
-    for (char c : text) {
-        if (Characters.find(c) != Characters.end()) {
-            Character ch = Characters[c];
-            width += (ch.Advance >> 6) * scale;
-        }
-    }
-    return width;
+int RenderSystem::getTextWidth(const std::string& text, int scale) {
+	return (text.length() * scale * x_char_space);
 }
 
 void RenderSystem::drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection) {
@@ -648,7 +642,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	v.use();
 	unsigned int program = v.ID;
 
-	v.setFloat("time", vignette ? (float)(glfwGetTime()) : 0.f);
+	v.setFloat("time", vignette ? screen.time : 0.f);
 	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 	v.setVec2("resolution", vec2(w, h));
 		
@@ -750,7 +744,7 @@ void RenderSystem::renderGamePlay()
         drawTexturedMesh(entity, projection_2D);
     }
 
-	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+	for (auto item : registry.view<Item>(entt::exclude<UI, DeathItems>)) {
 		nearbyEntities.push_back(item);
 	}
 
@@ -840,7 +834,7 @@ void RenderSystem::renderGamePlay()
 							motion.position.x + motion.scale.x / 2.f - 13.f, 
 							motion.position.y + motion.scale.y / 2.f - 10.f
 						),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						ui_projection_2D,
 						false
@@ -854,7 +848,7 @@ void RenderSystem::renderGamePlay()
 						vec2(
 							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f,
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						projection_2D,
 						false
@@ -870,7 +864,7 @@ void RenderSystem::renderGamePlay()
 						vec2(
 							motion.position.x + motion.scale.x / 2.f - 8.f,
 							motion.position.y + motion.scale.y / 2.f - 10.f),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						ui_projection_2D,
 						false
@@ -885,7 +879,7 @@ void RenderSystem::renderGamePlay()
 							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f,
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f
 						),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						projection_2D,
 						false
@@ -946,7 +940,7 @@ void RenderSystem::renderTitle()
 				title_option.text,
 				title_option.position.x - title_option.size.x / 2,
 				WINDOW_HEIGHT_PX - 35,
-				2.f,
+				2,
 				glm::vec3(1.0f, 1.0f, 1.0f),
 				ui_projection_2D
 			);
@@ -1008,7 +1002,7 @@ void RenderSystem::renderUpgradeUI()
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			float textWidth = getTextWidth(ui_option.text, 0.75f);
+			int textWidth = getTextWidth(ui_option.text, 4);
 			float centeredX = ui_option.position.x - textWidth / 2.0f;
 			float centeredY = ui_option.position.y + ui_option.size.y / 2.0f + 10.0f;
 			
@@ -1016,7 +1010,7 @@ void RenderSystem::renderUpgradeUI()
 				ui_option.text, 
 				centeredX, 
 				centeredY, 
-				4.0f, 
+				4, 
 				glm::vec3(1.0f, 1.0f, 1.0f), 
 				ui_projection_2D
 			);
@@ -1030,9 +1024,9 @@ void RenderSystem::renderUpgradeUI()
 
 	renderText(
 		"UPGRADES",  
-		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 0.8f)/2, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 4)/2, 
 		100.f,
-		5.0f, 
+		4, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1103,42 +1097,44 @@ void RenderSystem::renderShipUI()
 		"SHIP UPGRADES", 
 		WINDOW_WIDTH_PX / 2 - 180, 
 		100.f,
-		5.0f, 
+		4, 
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
+
+	int width = 2 * WINDOW_WIDTH_PX, height = 2 * WINDOW_HEIGHT_PX;
 
 	// Draw upgrade lines
     // positions of upgradeable parts (start)
     std::vector<std::pair<std::string, vec2>> upgradePoints = {
 		// health line
-        {"", vec2(w/4, h/4 - h/2*0.045f)},
-        {"Health", vec2(w/8 + w/2*0.12f, h/8 + h/2*0.09f)},
+        {"", vec2(width/4, height/4 - height/2*0.045f)},
+        {"Health", vec2(width/8 + width/2*0.12f, height/8 + height/2*0.09f)},
         // weapon line
-        {"", vec2(w/4 + w/2*0.09f, h/4)},
-        {"Blaster", vec2(3*w/8 - w/2*0.09f, h/8 + h/2*0.13f)},
+        {"", vec2(width/4 + width/2*0.09f, height/4)},
+        {"Blaster", vec2(3*width/8 - width/2*0.09f, height/8 + height/2*0.13f)},
         // shield line
-        {"", vec2(w/4 - w/2*0.035f, h/4 + h/2*0.13f)},
-        {"Range", vec2(w/8 + w/2*0.12f, 3*h/8)},
+        {"", vec2(width/4 - width/2*0.035f, height/4 + height/2*0.13f)},
+        {"Range", vec2(width/8 + width/2*0.12f, 3*height/8)},
         // fire rate line
-        {"", vec2(w/4 + w/2*0.09f, h/4 + h/2*0.07f)},
-        {"Fire Rate", vec2(3*w/8 - w/2*0.09f, 3*h/8 - h/2*0.045f)},
+        {"", vec2(width/4 + width/2*0.09f, height/4 + height/2*0.07f)},
+        {"Fire Rate", vec2(3*width/8 - width/2*0.09f, 3*height/8 - height/2*0.045f)},
     };
     
     // where labels should be positioned (end)
     std::vector<vec3> labelPositions = {
 		// health line
-        vec3(w/8 + w/2*0.12f, h/8 + h/2*0.09f, 0.0f),
-        vec3(w/8 + w/2*0.03f, h/8 + h/2*0.09f, w/2*0.09f),
+        vec3(width/8 + width/2*0.12f, height/8 + height/2*0.09f, 0.0f),
+        vec3(width/8 + width/2*0.03f, height/8 + height/2*0.09f, width/2*0.09f),
         // weapon line
-        vec3(3*w/8 - w/2*0.09f, h/8 + h/2*0.13f, 0.0f),
-        vec3(3*w/8, h/8 + h/2*0.13f, 0.0f),
+        vec3(3*width/8 - width/2*0.09f, height/8 + height/2*0.13f, 0.0f),
+        vec3(3*width/8, height/8 + height/2*0.13f, 0.0f),
         // shield line
-        vec3(w/8 + w/2*0.12f, 3*h/8, 0.0f),
-        vec3(w/8 + w/2*0.03f, 3*h/8, w/2*0.08f),
+        vec3(width/8 + width/2*0.12f, 3*height/8, 0.0f),
+        vec3(width/8 + width/2*0.03f, 3*height/8, width/2*0.08f),
         // fire rate line
-        vec3(3*w/8 - w/2*0.09f, 3*h/8 - h/2*0.045f, 0.0f),
-        vec3(3*w/8 + w/2*0.025f, 3*h/8 - h/2*0.045f, 0.0f),
+        vec3(3*width/8 - width/2*0.09f, 3*height/8 - height/2*0.045f, 0.0f),
+        vec3(3*width/8 + width/2*0.025f, 3*height/8 - height/2*0.045f, 0.0f),
     };
     
     // draw lines pointing to upgradeable parts
@@ -1151,8 +1147,8 @@ void RenderSystem::renderShipUI()
         renderText(
 			upgradePoints[i].first, 
 			labelPositions[i].x - labelPositions[i].z + 20.0f, 
-			labelPositions[i].y - h/2*0.01 + 10.0f, 
-            3.0f, 
+			labelPositions[i].y - height/2*0.01 + 10.0f, 
+            4, 
 			vec3(1.0f, 1.0f, 1.0f), 
 			ui_projection_2D
 		);
@@ -1169,7 +1165,7 @@ void RenderSystem::renderShipUI()
 			button.text, 
 			motion.position.x - 35.0f, 
 			motion.position.y, 
-			2.0f, 
+			2, 
 			glm::vec3(1.0f, 1.0f, 1.0f),
 			ui_projection_2D)
 		;
@@ -1179,7 +1175,7 @@ void RenderSystem::renderShipUI()
 				button.missingResourcesText, 
 				motion.position.x - 65.0f,
 				motion.position.y + 35.0f,
-				1.5f, 
+				2, 
 				glm::vec3(1.0f, 0.0f, 0.0f), 
 				ui_projection_2D
 			);
@@ -1188,7 +1184,7 @@ void RenderSystem::renderShipUI()
 				button.missingResourcesText, 
 				motion.position.x - 65.0f, 
 				motion.position.y + 35.0f, 
-				1.5f, 
+				2, 
 				glm::vec3(0.0f, 1.0f, 0.0f), 
 				ui_projection_2D);
 		}
@@ -1196,9 +1192,9 @@ void RenderSystem::renderShipUI()
 	
 	renderText(
 		"SHIP UPGRADES", 
-		-w/2*0.15f,
-		h/2*0.4f, 
-		0.7f, 
+		-width/2*0.15f,
+		height/2*0.4f, 
+		1, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
