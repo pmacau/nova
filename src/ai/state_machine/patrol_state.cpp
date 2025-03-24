@@ -10,6 +10,7 @@
 
 // Helper: Attempt to find a valid patrol target given current position and patrol radius.
 // Returns a candidate world position that is in a walkable tile.
+// Note: currentPos need to be the foot position of the entity.
 static glm::vec2 findValidPatrolTarget(const glm::vec2& currentPos, float patrolRadius, std::default_random_engine& rng) {
     const int maxAttempts = 5;
     for (int i = 0; i < maxAttempts; ++i) {
@@ -59,7 +60,8 @@ void PatrolState::onEnter(entt::registry& registry, entt::entity entity) {
     const AIConfig& config = aiComp.stateMachine->getConfig();
     
     // find a valid patrol target
-    patrolTarget = findValidPatrolTarget(motion.position, config.patrolRadius, rng);
+    vec2 footPos = motion.position + motion.offset_to_ground;
+    patrolTarget = findValidPatrolTarget(footPos, config.patrolRadius, rng);
 }
 
 void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
@@ -67,13 +69,15 @@ void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float 
     auto& aiComp = registry.get<AIComponent>(entity);
     const AIConfig& config = aiComp.stateMachine->getConfig();
 
+    vec2 footPos = motion.position + motion.offset_to_ground;
+
     // Compute the vector toward the current patrol target.
-    vec2 toTarget = patrolTarget - motion.position;
+    vec2 toTarget = patrolTarget - footPos;
     float distance = std::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y);
 
     if (distance < config.patrolThreshold) {
         // Target reached
-        patrolTarget = findValidPatrolTarget(motion.position, config.patrolRadius, rng);
+        patrolTarget = findValidPatrolTarget(footPos, config.patrolRadius, rng);
 
         motion.velocity = {0, 0};
     } else {

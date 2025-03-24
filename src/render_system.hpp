@@ -24,28 +24,49 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
-		textures_path("ship/Ship1.png"),
-		textures_path("ship/Ship2.png"),
-		textures_path("ship/Ship3.png"),
-		textures_path("ship/Ship4.png"),
-		textures_path("ship/Ship5.png"),
-		textures_path("ship/Ship6.png"),		
+		textures_path("ship/Ship-Full-HP.png"),
+		textures_path("ship/Ship-Slightly-Damaged.png"),
+		textures_path("ship/Ship-Damaged.png"),
+		textures_path("ship/Ship-Very-Damaged.png"),		
 		//textures_path("player/astronaut.png"), // might have to look at for conflict
+		textures_path("ship/weapon/ship-blaster-spritesheet.png"),
+		textures_path("ship/weapon/ship-missles-spritesheet.png"),
+		textures_path("ship/weapon/ship-railgun-spritesheet.png"),
+		textures_path("ship/weapon/ship-smg-spritesheet.png"),
+		textures_path("ship/engine/ship-blaster-engine.png"),
+		textures_path("ship/engine/ship-missle-engine.png"),
+		textures_path("ship/engine/ship-railgun-engine.png"),
+		textures_path("ship/engine/ship-smg-engine.png"),
         textures_path("mob/demoMob.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png"),
-		textures_path("healthbar/green.png"), 
+		textures_path("projectiles/ship/blaster-projectile.png"),
+		textures_path("projectiles/ship/missle-projectile.png"),
+		textures_path("projectiles/ship/railgun-projectile.png"),
+		textures_path("projectiles/ship/smg-projectile.png"),
+		textures_path("projectiles/shotgun_projectile.png"),
+		textures_path("weapons/default.png"),
+		textures_path("weapons/homing-missile.png"),
+		textures_path("weapons/shotgun.png"),
 		textures_path("healthbar/red.png"), 
+		textures_path("healthbar/player-health-inner.png"), 
+		textures_path("healthbar/player-health-outer.png"),
 		textures_path("items/potion.png"), 
 		textures_path("items/grave.png"),
 		textures_path("items/iron.png"),
 		textures_path("items/copper.png"),
 		textures_path("inventory/inventory-slot.png"),
+		textures_path("inventory/inventory-slot-active.png"),
 		textures_path("terrain/tree.png"),
 		textures_path("mob/goblin_torch_blue.png"), 
 		textures_path("title/screen.png"), 
 		textures_path("textBackground/textbox.png"),
+		textures_path("ui/selection_button.png"),
+		textures_path("ui/green-btn-active.png"),
+		textures_path("ui/green-btn-pressed.png"),
+		textures_path("ui/red-btn-active.png"),
+		textures_path("ui/red-btn-pressed.png"),
 		map_path("biome_map.png"),
 		textures_path("text/text.png")
 	};
@@ -61,6 +82,7 @@ class RenderSystem {
 		shader_path("coloured"),
 		shader_path("debug"),
 		shader_path("text"),
+		shader_path("line"),
 		shader_path("snow"),
 	};
 
@@ -118,8 +140,18 @@ private:
 	void drawTexturedMesh(entt::entity entity, const mat3& projection);
 	void drawToScreen(bool vignette);
 	void renderGamePlay();
+	void renderUpgradeUI();
 	void renderShipUI();
 	void drawDebugHitBoxes(const glm::mat3& projection);
+	void drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection);
+
+	// helpers
+	float getScaledWidth(float percentage);
+	float getScaledHeight(float percentage);
+	vec2 getScaledPosition(float xPercentage, float yPercentage);
+	vec2 getScaledSize(float widthPercentage, float heightPercentage);
+
+
 	// void drawDebugHitBoxes(const glm::mat3& projection, const glm::mat3& transform);
 
 	void drawDebugPoint(mat3 projection, mat3 transform, vec3 color);
@@ -140,7 +172,10 @@ private:
 	GLuint textVBO = 0;
 
 	mat3 shipUITransform = mat3(1.0f);
-	void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection, bool wrap=false);
+	
+	// void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
+	int getTextWidth(const std::string& text, int scale);
+	void renderText(const std::string& text, float x, float y, int scale, glm::vec3 color, const mat3& projection, bool wrap=false);
 };
 
 bool loadEffectFromFile(

@@ -1,5 +1,5 @@
 #pragma once
-#include "common.hpp"
+#include "../common.hpp"
 #include <vector>
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
@@ -43,9 +43,26 @@ struct Player
 // Ship component
 struct Ship
 {
+	enum class BulletType {
+		GOLD_PROJ,
+		BLASTER_PROJ,
+		MISSLES_PROJ,
+		RAILGUN_PROJ,
+		SMG_PROJ
+	};
+
+	BulletType bulletType;
 	int range;
 	int health;
 	float timer;
+};
+
+struct ShipWeapon
+{
+};
+
+struct ShipEngine
+{
 };
 
 struct UIShip
@@ -55,6 +72,16 @@ struct UIShip
 
 struct DebugTile
 {
+};
+
+struct UIShipWeapon
+{
+	bool active;
+};
+
+struct UIShipEngine
+{
+	bool active;
 };
 
 // All data relevant to the shape and motion of entities
@@ -86,17 +113,12 @@ struct Projectile {
 	int timer;
 };
 
+struct HomingMissile {
+	entt::entity target;
+};
+
 // Mob
 struct Mob {
-	enum class Biome {
-		FOREST
-	};
-	enum class Type {
-		TORCH, 
-		PURPLE
-	};
-	Biome biome;
-	Type type;
 	int health;
 	float hit_time; 
 };
@@ -123,8 +145,25 @@ struct UI
 
 };
 
+struct UIIcon
+{
+
+};
+
 struct PlayerHealthBar
 {
+};
+
+struct Button
+{
+
+};
+
+struct UpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
 };
 
 struct MobHealthBar
@@ -149,7 +188,10 @@ struct Item
 		POTION,
 		GRAVE, 
 		IRON, 
-		COPPER
+		COPPER, 
+		DEFAULT_WEAPON, 
+		HOMING_MISSILE, 
+		SHOTGUN
 	};
 	Type type;
 	int no = 1;
@@ -164,19 +206,6 @@ struct Drop
 struct Potion
 {
 	int heal;
-};
-
-struct HiddenInventory
-{
-
-};
-
-struct InventorySlot
-{
-	int id = -1;
-	bool hasItem = false;
-	entt::entity item;
-	int capacity = 50;
 };
 
 struct Title
@@ -200,6 +229,27 @@ struct TitleOption
 	bool hover = false;
 };
 
+struct ButtonOption
+{
+	enum class Option {
+		// for the upgrade screen
+		SHIP,
+		PLAYER,
+		WEAPON,
+
+		// for ship upgrade screen
+		SHIP_HEALTH_UPGRADE,
+		SHIP_BLASTER_UPGRADE,
+		SHIP_RANGE_UPGRADE,
+		SHIP_FIRERATE_UPGRADE,
+	};
+	Option type;
+	std::string text;
+	vec2 position;
+	vec2 size;
+	bool hover = false;
+};
+
 enum class Click {
 	LEFT, 
 	RIGHT, 
@@ -209,12 +259,31 @@ enum class Click {
 };
 
 struct Drag {
+	bool noSlot = false;
 	entt::entity slot;
 };
 
 struct Inventory
 {
 	std::vector<entt::entity> slots;
+};
+
+struct HiddenInventory
+{
+
+};
+
+struct ActiveSlot
+{
+
+};
+
+struct InventorySlot
+{
+	int id = -1;
+	bool hasItem = false;
+	entt::entity item;
+	int capacity = 50;
 };
 
 struct TextData
@@ -291,27 +360,48 @@ struct TexturedVertex
 
 enum class TEXTURE_ASSET_ID {
 	PLAYER,
-	SHIP1,
-	SHIP2,
-	SHIP3,
-	SHIP4,
-	SHIP5,
-	SHIP6,
+	SHIP_FULL_HP,
+	SHIP_SLIGHT_DAMAGE,
+	SHIP_DAMAGE,
+	SHIP_VERY_DAMAGE,
+	SHIP_BLASTER_WEAPON,
+	SHIP_MISSLES_WEAPON,
+	SHIP_RAILGUN_WEAPON,
+	SHIP_SMG_WEAPON,
+	SHIP_BLASTER_ENGINE,
+	SHIP_MISSLE_ENGINE,
+	SHIP_RAILGUN_ENGINE,
+	SHIP_SMG_ENGINE,
     MOB,
 	TILESET,
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
-	HEALTHBAR_GREEN,
+	BLASTER_PROJECTILE,
+	MISSILE_PROJECTILE,
+	RAILGUN_PROJECTILE,
+	SMG_PROJECTILE,
+	SHOTGUN_PROJECTILE,
+	DEFAULT_WEAPON, 
+	HOMING_MISSILE, 
+	SHOTGUN,
 	HEALTHBAR_RED,
+	PLAYER_HEALTH_INNER, 
+	PLAYER_HEALTH_OUTER,
 	POTION,
 	GRAVE,
 	IRON,
 	COPPER,
 	INVENTORY_SLOT,
+	INVENTORY_SLOT_ACTIVE,
 	TREE,
 	GOBLIN_TORCH_BLUE,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
+	SELECTION_BUTTON,
+	GREEN_BUTTON_ACTIVE,
+	GREEN_BUTTON_PRESSED,
+	RED_BUTTON_ACTIVE,
+	RED_BUTTON_PRESSED,
 	MINIMAP,
 	TEXT,
 	TEXTURE_COUNT
@@ -321,7 +411,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, E_SNOW, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, LINE, E_SNOW, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -373,20 +463,24 @@ struct Camera
 	vec3 position = {0.f, 0.f, 0.f}; // inferenced 3D position for the camera
 };
 
+const Sprite PLAYER_SPRITESHEET = {
+    {}, {19.f, 30.f}, {152.f, 90.f}, 3, 0, 1
+};
+
 // Sets the brightness of the screen
 struct ScreenState
 {
 	enum class ScreenType {
         GAMEPLAY,
+		UPGRADE_UI,
         SHIP_UPGRADE_UI,
+		PLAYER_UPGRADE_UI,
+		WEAPON_UPGRADE_UI,
 		TITLE
     };
+
     ScreenType current_screen;
-	EFFECT_ASSET_ID effect;
 
+	float time = 0;
 	float darken_screen_factor = 0;
-};
-
-const Sprite PLAYER_SPRITESHEET = {
-    {}, {19.f, 30.f}, {152.f, 90.f}, 3, 0, 1
 };

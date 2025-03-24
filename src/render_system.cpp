@@ -163,7 +163,7 @@ ivec2 get_char_coords(const unsigned char& glyph) {
 
 entt::entity createGlyph(
 	entt::registry& reg, const unsigned char& c,
-	float x, float y, float scale, vec3 color
+	float x, float y, int scale, vec3 color
 ) {
 	ivec2 coord = get_char_coords(c);
 	auto e = reg.create();
@@ -172,7 +172,7 @@ entt::entity createGlyph(
 	reg.emplace<FixedUI>(e);
 
 	auto& motion = reg.emplace<Motion>(e);
-	motion.scale = scale * vec2(5, 7);
+	motion.scale = float(scale) * vec2(5, 7);
 	motion.position = {x, y};
 
 	auto& sprite = reg.emplace<Sprite>(e);
@@ -207,9 +207,11 @@ const std::unordered_map<char, vec3> color_codes = {
 	{'2', {1, 0, 0}},
 };
 
+const int x_char_space = (5 + 1);
+
 void RenderSystem::renderText(
 	const std::string& text,
-	float x, float y, float scale,
+	float x, float y, int scale,
 	glm::vec3 color, const mat3& projection,
 	bool wrap
 ) {
@@ -221,7 +223,6 @@ void RenderSystem::renderText(
     }
 
 	int x_offset = 0, y_offset = 0;
-	int char_space = (5 + 1);
 
 	vec3 tColor = color;
 	bool changeColor = false;
@@ -231,7 +232,7 @@ void RenderSystem::renderText(
 
 	for (const auto& word: words) {
 		if (wrap &&
-			(x + x_offset + (word.length() * scale * char_space) > max_width)
+			(x + x_offset + getTextWidth(word, scale) > max_width)
 		) {
 			y_offset += scale * (7 + 3);
 			x_offset = 0;
@@ -252,11 +253,100 @@ void RenderSystem::renderText(
 	
 			auto entity = createGlyph(registry, c, x + x_offset, y + y_offset, scale, tColor);
 			drawTexturedMesh(entity, projection);
-			x_offset += scale * char_space;
+			x_offset += scale * x_char_space;
 		}
 		// Add space for a ' ' character
-		x_offset += scale * char_space;
+		x_offset += scale * x_char_space;
 	}
+}
+
+int RenderSystem::getTextWidth(const std::string& text, int scale) {
+	return (text.length() * scale * x_char_space);
+}
+
+void RenderSystem::drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection) {
+    // Use the existing shader program or create a new one for simple colored lines
+    GLuint program = effects[5];
+	if (program == 0) {
+		std::cerr << "Error: Shader program at index 5 (line) is invalid!" << std::endl;
+		return;
+	}
+	glUseProgram(program);
+
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR) {
+		std::cerr << "OpenGL error after glUseProgram: " << error << std::endl;
+	}
+    
+    // Create vertices for the line (two triangles forming a rectangle along the line)
+    vec2 direction = normalize(end - start);
+    vec2 perpendicular = vec2(-direction.y, direction.x) * (thickness / 2.0f);
+    
+    std::vector<vec2> vertices = {
+        start + perpendicular, start - perpendicular,
+        end + perpendicular, end - perpendicular
+    };
+    
+    std::vector<uint16_t> indices = {0, 1, 2, 1, 2, 3};
+    // Create and bind VAO
+    GLuint VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    
+    // Create and bind VBO for vertices
+    GLuint VBO;
+    glGenBuffers(1, &VBO);
+	if (VBO == 0) {
+		std::cerr << "Error generating VBO!" << std::endl;
+		return;
+	}
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vec2), vertices.data(), GL_STATIC_DRAW);
+    
+    // Create and bind EBO for indices
+    GLuint EBO;
+    glGenBuffers(1, &EBO);
+	if (EBO == 0) {
+		std::cerr << "Error generating EBO!" << std::endl;
+		return;
+	}
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint16_t), indices.data(), GL_STATIC_DRAW);
+    
+    // Set vertex attributes
+    GLint posAttrib = glGetAttribLocation(program, "position");
+	if (posAttrib == -1) {
+		std::cerr << "Error: 'position' attribute not found in shader program!" << std::endl;
+		return;
+	}
+    glEnableVertexAttribArray(posAttrib);
+    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), 0);
+    
+    // Set color uniform
+    GLint colorUniform = glGetUniformLocation(program, "color");
+	if (colorUniform == -1) {
+		std::cerr << "Error: 'color' uniform not found in shader program!" << std::endl;
+		return;
+	}
+    glUniform3fv(colorUniform, 1, &color[0]);
+    
+    // Set projection matrix
+    GLint projectionUniform = glGetUniformLocation(program, "projection");
+	if (projectionUniform == -1) {
+		std::cerr << "Error: 'projection' uniform not found in shader program!" << std::endl;
+		return;
+	}
+    glUniformMatrix3fv(projectionUniform, 1, GL_FALSE, (float*)&projection);
+    
+    // Draw the line
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_SHORT, 0);
+
+	// Clean up
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+    
+    gl_has_errors();
 }
 
 // TODO: fix debug rendering later
@@ -407,8 +497,8 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 	vec2 centre_position = motion.position;
 	Transform model_transform;
 	model_transform.translate(centre_position);
-	model_transform.scale(motion.scale);
 	model_transform.rotate(radians(motion.angle));
+	model_transform.scale(motion.scale);
 
 	Transform camera_transform;
 	// camera_transform.translate(vec2(WINDOW_WIDTH_PX / 2, WINDOW_HEIGHT_PX / 2) - camera.offset);
@@ -552,7 +642,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	v.use();
 	unsigned int program = v.ID;
 
-	v.setFloat("time", vignette ? (float)(glfwGetTime()) : 0.f);
+	v.setFloat("time", vignette ? screen.time : 0.f);
 	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 	v.setVec2("resolution", vec2(w, h));
 		
@@ -616,7 +706,7 @@ void RenderSystem::renderGamePlay()
 	// Render huge background texture 
 	auto background = registry.view<Background>().front();
 	drawTexturedMesh(background, projection_2D); 
-	
+
 	auto playerView = registry.view<Player, Motion>();
 	if (playerView.begin() == playerView.end()) {
 		return; 
@@ -642,7 +732,19 @@ void RenderSystem::renderGamePlay()
 		nearbyEntities.push_back(projectile);
 	}
 
-	for (auto item : registry.view<Item>(entt::exclude<UI>)) {
+	// render all the ship weapons/engine
+	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+    shipEngineRenders.use<Motion>();
+    for (auto entity : shipEngineRenders) {
+        drawTexturedMesh(entity, projection_2D);
+    }
+	auto shipWeaponRenders = registry.view<ShipWeapon, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+    shipWeaponRenders.use<Motion>();
+    for (auto entity : shipWeaponRenders) {
+        drawTexturedMesh(entity, projection_2D);
+    }
+
+	for (auto item : registry.view<Item>(entt::exclude<UI, DeathItems>)) {
 		nearbyEntities.push_back(item);
 	}
 
@@ -656,6 +758,7 @@ void RenderSystem::renderGamePlay()
 	for (auto entity : nearbyEntities) {
 		drawTexturedMesh(entity, projection_2D);
 	}
+
 	//auto uiMotions = registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>); 
 
 	//std::sort(uiMotions.begin(), uiMotions.end(),
@@ -672,7 +775,7 @@ void RenderSystem::renderGamePlay()
 	}
 
 
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
@@ -682,7 +785,7 @@ void RenderSystem::renderGamePlay()
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3, bool>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -710,10 +813,11 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory, Button, UIIcon>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
+	
 	// multiple quantity item on ground and on the inventory system should have a text next to it
 	for (auto entity : registry.view<Item>(entt::exclude<DeathItems, HiddenInventory>)) {
 		auto& motion = registry.get<Motion>(entity);
@@ -730,7 +834,7 @@ void RenderSystem::renderGamePlay()
 							motion.position.x + motion.scale.x / 2.f - 13.f, 
 							motion.position.y + motion.scale.y / 2.f - 10.f
 						),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						ui_projection_2D,
 						false
@@ -744,7 +848,7 @@ void RenderSystem::renderGamePlay()
 						vec2(
 							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 13.f,
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						projection_2D,
 						false
@@ -760,7 +864,7 @@ void RenderSystem::renderGamePlay()
 						vec2(
 							motion.position.x + motion.scale.x / 2.f - 8.f,
 							motion.position.y + motion.scale.y / 2.f - 10.f),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						ui_projection_2D,
 						false
@@ -775,7 +879,7 @@ void RenderSystem::renderGamePlay()
 							motion.position.x - camera.offset.x + motion.scale.x / 2.f - 8.f,
 							motion.position.y - camera.offset.y - motion.scale.y / 2.f + 10.f
 						),
-						2.f,
+						2,
 						vec3({ 1.f, 1.f, 1.f }),
 						projection_2D,
 						false
@@ -793,9 +897,6 @@ void RenderSystem::renderGamePlay()
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
-
-	auto glyphs = registry.view<Glyph>();
-    registry.destroy(glyphs.begin(), glyphs.end());
 }
 
 
@@ -839,7 +940,7 @@ void RenderSystem::renderTitle()
 				title_option.text,
 				title_option.position.x - title_option.size.x / 2,
 				WINDOW_HEIGHT_PX - 35,
-				2.f,
+				2,
 				glm::vec3(1.0f, 1.0f, 1.0f),
 				ui_projection_2D
 			);
@@ -850,6 +951,88 @@ void RenderSystem::renderTitle()
 
 	glfwSwapBuffers(window);
 	gl_has_errors();
+}
+
+
+void RenderSystem::renderUpgradeUI()
+{	
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// dark purple background
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// mat3 projection_2D = createProjectionMatrix();
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	// RENDER THE UI SCREEN
+	auto buttons = registry.view<Button, Motion, RenderRequest>();
+
+	// render the buttons
+	for (auto entity : buttons) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	drawToScreen(false);
+	
+	// mat3 flippedProjection = ui_projection_2D;
+	// flippedProjection[1][1] *= -1.0f;
+
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+
+	// render all the texts for the buttons
+	for (auto entity : registry.view<Button>()) {
+		auto& ui_option = registry.get<ButtonOption>(entity);
+		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
+			int textWidth = getTextWidth(ui_option.text, 4);
+			float centeredX = ui_option.position.x - textWidth / 2.0f;
+			float centeredY = ui_option.position.y + ui_option.size.y / 2.0f + 10.0f;
+			
+			renderText(
+				ui_option.text, 
+				centeredX, 
+				centeredY, 
+				4, 
+				glm::vec3(1.0f, 1.0f, 1.0f), 
+				ui_projection_2D
+			);
+		}
+	}
+
+	// render the icons for each button
+	for (auto entity : registry.view<UIIcon, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	renderText(
+		"UPGRADES",  
+		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 4)/2, 
+		100.f,
+		4, 
+		glm::vec3(1.0f, 1.0f, 1.0f), 
+		ui_projection_2D
+	);
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
 }
 
 void RenderSystem::renderShipUI() 
@@ -871,8 +1054,8 @@ void RenderSystem::renderShipUI()
 	glViewport(0, 0, w, h);
 	glDepthRange(0.0, 10);
 
-	// black background
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	// dark purple background
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_BLEND);
@@ -880,24 +1063,143 @@ void RenderSystem::renderShipUI()
 
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
-	// render ship
-	std::vector<entt::entity> PlayerMobsRenderEntities;
-	auto UIShips = registry.view<UIShip, Motion, RenderRequest>();
-
-	for (auto entity : UIShips) {
-		PlayerMobsRenderEntities.push_back(entity);
-	}
-
-	for (auto entity : PlayerMobsRenderEntities) {
+	// render upgrade buttons
+	std::vector<entt::entity> buttonEntities;
+	for (auto entity : registry.view<UpgradeButton, Motion, RenderRequest>()) {
+		buttonEntities.push_back(entity);
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
+	// render ship weapons
+	for (auto entity : registry.view<UIShipWeapon, Motion, RenderRequest>()) {
+		auto& shipWeapon = registry.get<UIShipWeapon>(entity);
+		if (shipWeapon.active) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+	}
+
+	// render ship engine
+	for (auto entity : registry.view<UIShipEngine, Motion, RenderRequest>()) {
+		auto& shipEngine = registry.get<UIShipEngine>(entity);
+		if (shipEngine.active) {
+			drawTexturedMesh(entity, ui_projection_2D);
+		}
+	}
+
+	// render ship
+	for (auto entity : registry.view<UIShip, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	drawToScreen(false);
 	renderText(
-		"SHIP UPGRADES", WINDOW_WIDTH_PX / 2 - 100, 100.f,
-		3.f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D
+		"SHIP UPGRADES", 
+		WINDOW_WIDTH_PX / 2 - 180, 
+		100.f,
+		4, 
+		vec3(1.0f, 1.0f, 1.0f), 
+		ui_projection_2D
 	);
 
-	drawToScreen(false);
+	int width = 2 * WINDOW_WIDTH_PX, height = 2 * WINDOW_HEIGHT_PX;
+
+	// Draw upgrade lines
+    // positions of upgradeable parts (start)
+    std::vector<std::pair<std::string, vec2>> upgradePoints = {
+		// health line
+        {"", vec2(width/4, height/4 - height/2*0.045f)},
+        {"Health", vec2(width/8 + width/2*0.12f, height/8 + height/2*0.09f)},
+        // weapon line
+        {"", vec2(width/4 + width/2*0.09f, height/4)},
+        {"Blaster", vec2(3*width/8 - width/2*0.09f, height/8 + height/2*0.13f)},
+        // shield line
+        {"", vec2(width/4 - width/2*0.035f, height/4 + height/2*0.13f)},
+        {"Range", vec2(width/8 + width/2*0.12f, 3*height/8)},
+        // fire rate line
+        {"", vec2(width/4 + width/2*0.09f, height/4 + height/2*0.07f)},
+        {"Fire Rate", vec2(3*width/8 - width/2*0.09f, 3*height/8 - height/2*0.045f)},
+    };
+    
+    // where labels should be positioned (end)
+    std::vector<vec3> labelPositions = {
+		// health line
+        vec3(width/8 + width/2*0.12f, height/8 + height/2*0.09f, 0.0f),
+        vec3(width/8 + width/2*0.03f, height/8 + height/2*0.09f, width/2*0.09f),
+        // weapon line
+        vec3(3*width/8 - width/2*0.09f, height/8 + height/2*0.13f, 0.0f),
+        vec3(3*width/8, height/8 + height/2*0.13f, 0.0f),
+        // shield line
+        vec3(width/8 + width/2*0.12f, 3*height/8, 0.0f),
+        vec3(width/8 + width/2*0.03f, 3*height/8, width/2*0.08f),
+        // fire rate line
+        vec3(3*width/8 - width/2*0.09f, 3*height/8 - height/2*0.045f, 0.0f),
+        vec3(3*width/8 + width/2*0.025f, 3*height/8 - height/2*0.045f, 0.0f),
+    };
+    
+    // draw lines pointing to upgradeable parts
+    for (int i = 0; i < upgradePoints.size(); i++) {
+        drawLine(upgradePoints[i].second, labelPositions[i], vec3(0.49f, 0.43f, 0.63f), 2.0f, ui_projection_2D);
+		
+		// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        // mat3 flippedProjection = ui_projection_2D;
+        // flippedProjection[1][1] *= -1.0f;
+        renderText(
+			upgradePoints[i].first, 
+			labelPositions[i].x - labelPositions[i].z + 20.0f, 
+			labelPositions[i].y - height/2*0.01 + 10.0f, 
+            4, 
+			vec3(1.0f, 1.0f, 1.0f), 
+			ui_projection_2D
+		);
+    }
+
+	// mat3 flippedProjection = projection_2D;
+	// flippedProjection[1][1] *= -1.0f; 
+
+	// display all the text for the buttons
+	for (auto& entity : buttonEntities) {
+		auto& button = registry.get<UpgradeButton>(entity);
+		auto& motion = registry.get<Motion>(entity);
+		renderText(
+			button.text, 
+			motion.position.x - 35.0f, 
+			motion.position.y, 
+			2, 
+			glm::vec3(1.0f, 1.0f, 1.0f),
+			ui_projection_2D)
+		;
+
+		if (button.missingResources) {
+			renderText(
+				button.missingResourcesText, 
+				motion.position.x - 65.0f,
+				motion.position.y + 35.0f,
+				2, 
+				glm::vec3(1.0f, 0.0f, 0.0f), 
+				ui_projection_2D
+			);
+		} else {
+			renderText(
+				button.missingResourcesText, 
+				motion.position.x - 65.0f, 
+				motion.position.y + 35.0f, 
+				2, 
+				glm::vec3(0.0f, 1.0f, 0.0f), 
+				ui_projection_2D);
+		}
+	}
+	
+	renderText(
+		"SHIP UPGRADES", 
+		-width/2*0.15f,
+		height/2*0.4f, 
+		1, 
+		glm::vec3(1.0f, 1.0f, 1.0f), 
+		ui_projection_2D
+	);
+
+
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -914,13 +1216,28 @@ void RenderSystem::draw()
 		case ScreenState::ScreenType::TITLE:
 			renderTitle();
 			break;
+		case ScreenState::ScreenType::UPGRADE_UI:
+            renderUpgradeUI();
+            break;
 		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
             renderShipUI();
+            break;
+		case ScreenState::ScreenType::PLAYER_UPGRADE_UI:
+            // renderPlayerUI
+            break;
+		case ScreenState::ScreenType::WEAPON_UPGRADE_UI:
+            // renderWeaponUI
             break;
         case ScreenState::ScreenType::GAMEPLAY:
             renderGamePlay();
             break;
     }
+
+	auto glyphs = registry.view<Glyph>();
+
+	if (glyphs.size() > 0) {
+    	registry.destroy(glyphs.begin(), glyphs.end());
+	}
 }
 
 mat3 RenderSystem::createUIProjectionMatrix() {
@@ -1039,3 +1356,24 @@ void RenderSystem::drawDebugPoint(mat3 projection, mat3 transform, vec3 color)
 	// Re-enable depth test
     glEnable(GL_DEPTH_TEST);
 } 
+
+// helpers
+float RenderSystem::getScaledWidth(float percentage) {
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    return w * percentage;
+}
+
+float RenderSystem::getScaledHeight(float percentage) {
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    return h * percentage;
+}
+
+vec2 RenderSystem::getScaledPosition(float xPercentage, float yPercentage) {
+    return vec2(getScaledWidth(xPercentage), getScaledHeight(yPercentage));
+}
+
+vec2 RenderSystem::getScaledSize(float widthPercentage, float heightPercentage) {
+    return vec2(getScaledWidth(widthPercentage), getScaledHeight(heightPercentage));
+}

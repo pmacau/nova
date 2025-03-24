@@ -20,8 +20,13 @@ struct SoundData {
     T* sound = nullptr;
 };
 
+struct SoundTimer {
+    const int default_timer = 0;
+    int curr = 0;
+};
+
 enum SFX {
-    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP,
+    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP, MISSILE, SHOTGUN,
     SFX_COUNT
 };
 const int sfx_count = (int) SFX_COUNT;
@@ -59,9 +64,16 @@ public:
         }
 
 		static void playSoundEffect(SFX effect, int loops = 0, int channel = -1) {
-            if (sfx_map.find(effect) != sfx_map.end()) {
+            if (
+                sfx_map.find(effect) != sfx_map.end() &&
+                sfx_timers.find(effect) != sfx_timers.end()
+            ) {
+                SoundTimer& timer = sfx_timers[effect];
                 SoundData<Mix_Chunk>& data = sfx_map[effect];
-                Mix_PlayChannel(channel, data.sound, loops);
+                if (timer.curr >= timer.default_timer) {
+                    timer.curr = 0;
+                    Mix_PlayChannel(channel, data.sound, loops);
+                }
             };
         }
 
@@ -70,6 +82,12 @@ public:
                 std::thread(fade_to_track, music, loops, fade_time).detach();
             };
         }
+
+        static void updateSoundTimers(int elapsed_ms) {
+            for (auto& [key, val] : sfx_timers) {
+                val.curr += elapsed_ms;
+            }
+        };
 private:
         inline static std::unordered_map<SFX, SoundData<Mix_Chunk>> sfx_map = {
             {SHOOT,  {"sfx/shoot.wav", SDL_MIX_MAXVOLUME / 4}},
@@ -77,9 +95,11 @@ private:
             {POTION, {"sfx/potion.wav"}},
             {EQUIP,  {"sfx/equip.wav"}},
             {PICKUP, {"sfx/pickup.wav"}},
-            {WOOD,   {"sfx/wood.wav"}},
+            {WOOD,   {"sfx/wood.wav", SDL_MIX_MAXVOLUME / 4}},
             {DROP,   {"sfx/drop.wav"}},
-            {SELECT, {"sfx/select.wav"}}
+            {SELECT, {"sfx/select.wav"}},
+            {MISSILE,{"sfx/missile.wav", SDL_MIX_MAXVOLUME / 2}},
+            {SHOTGUN,{"sfx/shotgun.wav", SDL_MIX_MAXVOLUME / 3}}
         };
         inline static std::unordered_map<Music, SoundData<Mix_Music>> music_map = {
             {FOREST,    {"music/forest.wav"}},
@@ -88,6 +108,18 @@ private:
             {OCEAN,     {"music/ocean.wav"}},
             {SAVANNA,   {"music/savanna.wav"}},
             {SNOWLANDS, {"music/snowlands.wav"}}
+        };
+        inline static std::unordered_map<SFX, SoundTimer> sfx_timers = {
+            {SHOOT,  {}},
+            {HIT,    {}},
+            {POTION, {}},
+            {EQUIP,  {}},
+            {PICKUP, {}},
+            {WOOD,   {1000}},
+            {DROP,   {}},
+            {SELECT, {}},
+            {MISSILE, {}},
+            {SHOTGUN, {}}
         };
 
         template <typename EnumT, typename SoundT>

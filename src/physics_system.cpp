@@ -71,6 +71,16 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
         if (registry.all_of<Mob>(entity)) {
             UISystem::updateMobHealthBar(registry, entity, false);
         }
+        if (registry.any_of<HomingMissile>(entity)) {
+            auto& missile_postion = registry.get<Motion>(entity).position;
+            if (!registry.valid(registry.get<HomingMissile>(entity).target)) continue;
+            auto& target_entity = registry.get<HomingMissile>(entity).target;
+            auto& target_position = registry.get<Motion>(target_entity).position;
+            vec2 current_direction = normalize(motion.velocity);
+            vec2 mob_direction = normalize(target_position - missile_postion);
+            motion.velocity = (current_direction + (mob_direction - current_direction) * elapsed_s * 5.f) * PROJECTILE_SPEED;
+            motion.angle = atan2(motion.velocity.y, motion.velocity.x) * (180.0f / M_PI) + 90.0f;
+        }
     }
 }
 
