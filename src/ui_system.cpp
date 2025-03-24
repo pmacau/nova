@@ -291,7 +291,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 						drag.slot = inventory_entity;
 						auto& item = registry.get<Item>(item_entity_on_mouse);
-						if (click == Click::CTRLRIGHT) {
+						if (click == Click::RIGHT) {
 							item.no = inventory_item.no;
 						}
 						else if (click == Click::SHIFTRIGHT) {
@@ -300,12 +300,15 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						else if (click == Click::ALTRIGHT) {
 							item.no = std::min(inventory_item.no, 5);
 						}
+						else if (click == Click::CTRLRIGHT) {
+							item.no = 1;
+						}
 					}
 					else {
 						auto& item_on_mouse = registry.get<Item>(*registry.view<Drag>().begin());
 						// increase the number of items currently being dragged if same type item is picked
 						if (item_on_mouse.type == registry.get<Item>(inventory_slot.item).type) {
-							if (click == Click::CTRLRIGHT) {
+							if (click == Click::RIGHT) {
 								item_on_mouse.no += inventory_item.no;
 							}
 							else if (click == Click::SHIFTRIGHT) {
@@ -314,7 +317,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							else if (click == Click::ALTRIGHT) {
 								item_on_mouse.no += std::min(inventory_item.no, 5);
 							}
-							else {
+							else if (click == Click::CTRLRIGHT) {
 								item_on_mouse.no += 1;
 							}
 						}
@@ -325,7 +328,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.slot = inventory_entity;
 							auto& item = registry.get<Item>(item_entity_on_mouse);
-							if (click == Click::CTRLRIGHT) {
+							if (click == Click::RIGHT) {
 								item.no = inventory_item.no;
 							}
 							else if (click == Click::SHIFTRIGHT) {
@@ -333,10 +336,13 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							}
 							else if (click == Click::ALTRIGHT) {
 								item.no = std::min(inventory_item.no, 5);
+							} 
+							else if (click == Click::CTRLRIGHT) {
+								item.no = 1;
 							}
 						}
 					}
-					if (click == Click::CTRLRIGHT) {
+					if (click == Click::RIGHT) {
 						inventory_item.no = 0;
 						inventory_slot.hasItem = false;
 						removeActiveSlot(registry, inventory_entity);
@@ -367,7 +373,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_item.no -= std::min(inventory_item.no, 5);
 						}
 					}
-					else {
+					else if (click == Click::CTRLRIGHT) {
 						if (inventory_item.no == 1) {
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
