@@ -86,10 +86,10 @@ void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
 			renderItemAtPos(registry, mob_entity, motion.position.x, motion.position.y, false, true);
 		}
 		else if (i % 2 == 0) {
-			renderItemAtPos(registry, mob_entity, motion.position.x - 30.f, motion.position.y, false, true);
+			renderItemAtPos(registry, mob_entity, motion.position.x - 30.f * i, motion.position.y, false, true);
 		}
 		else {
-			renderItemAtPos(registry, mob_entity, motion.position.x + 30.f, motion.position.y, false, true);
+			renderItemAtPos(registry, mob_entity, motion.position.x + 30.f * i, motion.position.y, false, true);
 		}
 		items.erase(items.begin());
 		i++;
@@ -427,7 +427,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 			if (inventory_slot.hasItem) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
-				if (inventory_item.no > inventory_slot.capacity) continue;
+				if (inventory_item.no >= inventory_slot.capacity) continue;
 				if (inventory_item.type == item.type) {
 					int before = inventory_item.no;
 					inventory_item.no = std::min(inventory_slot.capacity, inventory_item.no + item.no);
@@ -476,6 +476,25 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 	}
 	else {
 		registry.destroy(item_entity);
+	}
+}
+
+void UISystem::clearInventory(entt::registry& registry) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	for (auto entity : inventory.slots) {
+		auto& inventory_slot = registry.get<InventorySlot>(entity);
+		if (inventory_slot.hasItem) {
+			auto& inventory_item = registry.get<Item>(inventory_slot.item);
+			if (inventory_item.type == Item::Type::DEFAULT_WEAPON ||
+				inventory_item.type == Item::Type::HOMING_MISSILE ||
+				inventory_item.type == Item::Type::SHOTGUN) {
+				continue;
+			}
+			else {
+				inventory_slot.hasItem = false;
+				registry.destroy(inventory_slot.item);
+			}
+		}
 	}
 }
 

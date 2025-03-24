@@ -443,27 +443,13 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, UIShip, Background, Title, TextData>);	
-	auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, DeathItems, Grave, ShipWeapon, ShipEngine>);
+	auto motions = registry.view<Motion>(entt::exclude<Player, FixedUI, Ship, Background, DeathItems, Grave, ShipWeapon, ShipEngine>);
 	for (auto entity : motions) {
-		if (registry.any_of<FixedUI>(entity)) {
-			if (registry.any_of<Item>(entity)) {
-				auto& item = registry.get<Item>(entity);
-				if (item.type != Item::Type::DEFAULT_WEAPON &&
-					item.type != Item::Type::HOMING_MISSILE &&
-					item.type != Item::Type::SHOTGUN) {
-					if (registry.valid(entity)) {
-						registry.destroy(entity);
-					}
-				}
-			}
-			continue;
-		}
-		else {
-			if (registry.valid(entity)) {
-				registry.destroy(entity);
-			}
+		if (registry.valid(entity)) {
+			registry.destroy(entity);
 		}
 	}
+	UISystem::clearInventory(registry);
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave, ShipWeapon>);
 	// registry.destroy(motions.begin(), motions.end());
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
