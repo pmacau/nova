@@ -13,7 +13,10 @@ With each milestone, we will add additional controls as necessary
 - Gameplay:
   - When near the ship, press "f" to toggle the ship UI
   - Left click items in the inventory to consume them
-  - @PRANAV todo include controls on how to use the inventory
+  - Press "tab" to see your full inventory
+  - Arrange your items with right-mouse click (RMC)
+  - Holding CRTL+RMC picks up a whole stack, LSHIFT+RMC picks up half of the stack, and ALT+RMC picks up at most 5 items from a stack.
+  - While moving an item in your inventory, left click it outside of the inventory to drop it on the ground.
 - Utility:
   - Press "r" to restart the game
   - Press "esc" to pause the game and view the title screeen
@@ -30,23 +33,26 @@ _All of the below actions from previous milestones and..._
   - Explore the 5 unique biomes. See their differences in tileset, and the different types of tress that grow in these biomes.
   - Notice the differences in music track for each of the biomes.
   - If you have explored long enough, notice the screen darkens to simulate a day-night cycle
+  - Find bosses in the far corners of each biome
 
 - **Fight the enemies**:
-  - Walk close to enemies and lure enemies through complex terrain (e.g., water). Observe how they avoid walking into unwalkable tiles, correctly navigating around it using the A* pathfinding system.
+
+  - Walk close to enemies and lure enemies through complex terrain (e.g., water). Observe how they avoid walking into unwalkable tiles, correctly navigating around it using the A\* pathfinding system.
   - Notice that enemies walk through trees and land obstacles intentionally: this is a design choice to make enemy movement feel more fluid and intense. Listen for a new sound effect triggered when enemies pass through trees (a quick wooden click sound).
   - Lure enemies to chase you and control the player to constantly moving around, and observe how enemies recalculate their paths dynamically when the player moves out of range.
   - Move around the island and stay away from enemies. Note how enemy patrol routes and spawn locations vary based on map layout avoiding unwalkable map structures.
-  - @PRANAV/FRANK todo talk about the new items dropped by the enemies, at different rates, and how boss drops many items
+  - Kill enemies to see two new drops: iron and copper. Notice that not every enemy drops an item, and the amount and identity of an item dropped is randomly generated. Notice that boss enemies (found deep in each biome) drop a larger quantity of items.
 
 - **Performance testing**:
 
   - View the FPS in the window title caption
-  - @PHILLIP todo talk about how the FPS is good because of quadtree. talk about how no matter the entities on the screen, we only render whats on screen/process stuff nearby in the quadtree, so we have good FPS
+  - Traverse the now 16x larger map, thanks to the improved quad-tree performance acceleration. Notice that, to the user, collisions and rendering appears unchanged, but the performance is much better, allowing for much smoother gameplay.
 
 - **UI**
   - Follow the instructions in the tutorial to learn how to play the game, the main objective, and some backstory about the setting
-  - @FRANK todo talk about ship upgrades and how it costs materials to do them
-  - @PRANAV todo talk about the inventory system, how to stack items and whatnot, and how to open the inventory
+  - Collect items around the map by defeating enemies (boss enemies drop a large amount of items) to upgrade the ship through the ship upgrade UI (press "f" near the ship to access it). Notice how the ship visually changes appearance when upgrading the fire rate, blasters, or health.
+  - Press "tab" to see your full inventory, and arrange your items with right-mouse click (RMC). Holding CRTL+RMC picks up a whole stack, LSHIFT+RMC picks up half of the stack, and ALT+RMC picks up at most 5 items from a stack. While moving an item in your inventory, left click it outside of the inventory to drop it on the ground.
+  - Use keys 1-5 to interact with items in your hotbar items (consumes a health potion, or swaps to a different weapon; resource items cannot be interacted with this way).
 
 # Milestone 2
 
