@@ -8,17 +8,21 @@
 
 
 class AnimationManager {
-public:
-    AnimationManager();
-    ~AnimationManager() = default;
 
+public:
+    static AnimationManager& getInstance();
+
+    // Returns the animation definition associated with the given ID.
     const AnimationDefinition* getAnimation(const std::string& id) const;
 
 private:
-    std::unordered_map<std::string, AnimationDefinition> animations;
+    AnimationManager();
+    ~AnimationManager() = default;
+    AnimationManager(const AnimationManager&) = delete;
+    AnimationManager& operator=(const AnimationManager&) = delete;
 
     // Initialize the animations with hardcoded data.
     void initializeAnimations();
-};
 
-extern AnimationManager g_animationManager;
+    std::unordered_map<std::string, AnimationDefinition> animations;
+};

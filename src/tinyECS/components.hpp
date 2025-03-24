@@ -7,6 +7,7 @@
 #include <limits>
 #include <entt.hpp>
 #include <animation/animation_definition.hpp>
+#include <map/tile.hpp>
 
 struct Glyph{};
 struct Tree{};

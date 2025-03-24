@@ -708,6 +708,12 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 	mob.health = health;
 	mob.hit_time = 1.f;
 
+	// Setup AnimationComponent (runtime state for animations).
+    auto& animComp = registry.emplace<AnimationComponent>(entity);
+    animComp.currentAnimationId = def.renderingInfo.startAnimationId;
+    animComp.timer = 0.0f;
+    animComp.currentFrameIndex = 0;
+
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = vec2(1344.f / 7, 960.f / 5);
 	sprite.sheet_dims = {1344.f, 960.f};
@@ -715,10 +721,12 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	motion.position.x = position.x + sprite.dims[0] / 2;
-	motion.position.y = position.y + sprite.dims[1] / 2;
+
+	motion.position.x = position.x;
+	motion.position.y = position.y;
+
 	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
-	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.9f};
+	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.8f};
 
 	float w = motion.scale.x * 0.4;
 	float h = motion.scale.y * 0.5;
@@ -736,11 +744,7 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
-	// Setup AnimationComponent (runtime state for animations).
-    auto& animComp = registry.emplace<AnimationComponent>(entity);
-    animComp.currentAnimationId = "mob2_idle";
-    animComp.timer = 0.0f;
-    animComp.currentFrameIndex = 0;
+	
 
 	// TODO: create a generic enemy creation
 	// set up ai for goblin
@@ -757,8 +761,6 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 
 	createMobHealthBar(registry, entity, -40.0f);
 	return entity; 
-
-    return entity;
 }
 
 entt::entity createTitleScreen(entt::registry& registry) {
