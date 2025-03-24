@@ -425,7 +425,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 		// check for existing slots having same item type
 		for (int i = 0; i < inventory.slots.size(); i++) {
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
-			if (inventory_slot.hasItem) {
+			if ((inventory_slot.hasItem && registry.valid(inventory_slot.item)) && registry.any_of<Item>(inventory_slot.item)) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
 				if (inventory_item.no > inventory_slot.capacity) continue;
 				if (inventory_item.type == item.type) {
