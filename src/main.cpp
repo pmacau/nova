@@ -6,6 +6,7 @@
 // stdlib
 #include <chrono>
 #include <iostream>
+#include <stdexcept>
 
 // internal
 #include "render_system.hpp"
@@ -91,51 +92,56 @@ int main()
 	float num_s = 0.f;
 
 	while (!world_system.is_over()) {
-		
-		// processes system messages, if this wasn't present the window would become unresponsive
-		glfwPollEvents();
+		try {
+			// processes system messages, if this wasn't present the window would become unresponsive
+			glfwPollEvents();
 
-		// calculate elapsed times in milliseconds from the previous iteration
-		auto now = Clock::now();
-		float elapsed_ms =
-			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
-		t = now;
-		// frame count for collision checks
+			// calculate elapsed times in milliseconds from the previous iteration
+			auto now = Clock::now();
+			float elapsed_ms =
+				(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+			t = now;
+			// frame count for collision checks
 
-		num_s += elapsed_ms / 1000;
-		num_frames++;
+			num_s += elapsed_ms / 1000;
+			num_frames++;
 
-		// Display new frame rate every half-second
-		if (num_s > 0.5) {
-			std::stringstream title_ss;
-			title_ss << "Nova (FPS: ";
-			title_ss << std::fixed << std::setprecision(3) << (num_frames / num_s);
-			title_ss << ")";
-			glfwSetWindowTitle(window, title_ss.str().c_str());
+			// Display new frame rate every half-second
+			if (num_s > 0.5) {
+				std::stringstream title_ss;
+				title_ss << "Nova (FPS: ";
+				title_ss << std::fixed << std::setprecision(3) << (num_frames / num_s);
+				title_ss << ")";
+				glfwSetWindowTitle(window, title_ss.str().c_str());
 
-			num_frames = 0;
-			num_s = 0.f;
-		}
-		
-
-		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
-		if (!flag_system.is_paused) {
-			time_exe<int>("PHYS", [&](){physics_system.step(elapsed_ms); return 0;});
-			time_exe<int>("WORL", [&](){world_system.step(elapsed_ms); return 0;});
-			time_exe<int>("PLAY", [&](){playerSystem.update(elapsed_ms); return 0;});
-			time_exe<int>("ANIM", [&](){animationSystem.update(elapsed_ms); return 0;});
-			if (flag_system.isDone()) {
-				time_exe<int>("SPAW", [&](){spawn_system.update(elapsed_ms); return 0;});	
+				num_frames = 0;
+				num_s = 0.f;
 			}
-			time_exe<int>("COLL", [&](){collision_system.step(elapsed_ms); return 0;});
-			time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
-			time_exe<int>("AI  ", [&](){ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
-		}
+			
 
-		time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});
-		time_exe<int>("REND", [&](){renderer_system.draw(); return 0;});
-		debug_printf(DebugType::TIME, "-----------------------\n");
-		set_debug(DebugType::TIME, false);
+			// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
+			if (!flag_system.is_paused) {
+				time_exe<int>("PHYS", [&](){physics_system.step(elapsed_ms); return 0;});
+				time_exe<int>("WORL", [&](){world_system.step(elapsed_ms); return 0;});
+				time_exe<int>("PLAY", [&](){playerSystem.update(elapsed_ms); return 0;});
+				time_exe<int>("ANIM", [&](){animationSystem.update(elapsed_ms); return 0;});
+				if (flag_system.isDone()) {
+					time_exe<int>("SPAW", [&](){spawn_system.update(elapsed_ms); return 0;});	
+				}
+				time_exe<int>("COLL", [&](){collision_system.step(elapsed_ms); return 0;});
+				time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
+				time_exe<int>("AI  ", [&](){ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
+			}
+
+			time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});
+			time_exe<int>("REND", [&](){renderer_system.draw(); return 0;});
+			debug_printf(DebugType::TIME, "-----------------------\n");
+			set_debug(DebugType::TIME, false);
+		} catch (const std::exception& e) {
+			printf("Interesting thing just happened...\n %s\n", e.what());
+		} catch (...) {
+			printf("Interesting thing just happened... but I can't tell you what!\n");
+		}
 	}
 
 	return EXIT_SUCCESS;
