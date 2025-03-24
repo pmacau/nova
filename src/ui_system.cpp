@@ -86,10 +86,10 @@ void UISystem::mobDrop(entt::registry& registry, entt::entity& mob_entity) {
 			renderItemAtPos(registry, mob_entity, motion.position.x, motion.position.y, false, true);
 		}
 		else if (i % 2 == 0) {
-			renderItemAtPos(registry, mob_entity, motion.position.x - 30.f * i, motion.position.y, false, true);
+			renderItemAtPos(registry, mob_entity, motion.position.x - 30.f, motion.position.y, false, true);
 		}
 		else {
-			renderItemAtPos(registry, mob_entity, motion.position.x + 30.f * i, motion.position.y, false, true);
+			renderItemAtPos(registry, mob_entity, motion.position.x + 30.f, motion.position.y, false, true);
 		}
 		items.erase(items.begin());
 		i++;
