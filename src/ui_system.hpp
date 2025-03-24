@@ -22,7 +22,10 @@ public:
 	static void dropForMob(entt::registry& registry, entt::entity& entity);
 	static void mobDrop(entt::registry& registry, entt::entity& mob_entity);
 private:
+	static bool log_inventory;
 	static std::mt19937 rng;
 	static std::uniform_real_distribution<float> uniform_dist;
 	static void removeActiveSlot(entt::registry& registry, entt::entity& inventory_slot_entity);
+	static void logItem(entt::registry& registry, Item item);
+	static void logInventory(entt::registry& registry);
 };

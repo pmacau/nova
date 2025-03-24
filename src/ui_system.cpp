@@ -4,6 +4,7 @@
 #include "util/debug.hpp"
 
 float UISystem::equip_delay = 0.0f;
+bool UISystem::log_inventory = true;
 std::mt19937 UISystem::rng(std::random_device{}());
 std::uniform_real_distribution<float> UISystem::uniform_dist(0.f, 1.f);
 
@@ -421,6 +422,12 @@ void UISystem::removeActiveSlot(entt::registry& registry, entt::entity& inventor
 }
 
 void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
+	if (log_inventory) {
+		std::cout << "Adding to inventory ";
+		logItem(registry, registry.get<Item>(item_entity));
+		std::cout << "Previous ";
+		logInventory(registry);
+	}
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	auto& item = registry.get<Item>(item_entity);
 	if (registry.all_of<DeathItems>(item_entity)) {
@@ -442,6 +449,10 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 					if (item.no == 0) {
 						MusicSystem::playSoundEffect(SFX::PICKUP);
 						registry.destroy(item_entity);
+						if (log_inventory) {
+							std::cout << "New ";
+							logInventory(registry);
+						}
 						return;
 					}
 				}
@@ -482,6 +493,10 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 	}
 	else {
 		registry.destroy(item_entity);
+	}
+	if (log_inventory) {
+		std::cout << "New ";
+		logInventory(registry);
 	}
 }
 
@@ -554,6 +569,43 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 	}
 }
 
+void UISystem::logItem(entt::registry& registry, Item item) {
+	std::cout << item.no << " ";
+	if (item.type == Item::Type::POTION) {
+		std::cout << "potions\n";
+	}
+	else if (item.type == Item::Type::COPPER) {
+		std::cout << "coppers\n";
+	}
+	else if (item.type == Item::Type::IRON) {
+		std::cout << "irons\n";
+	}
+	else if (item.type == Item::Type::DEFAULT_WEAPON) {
+		std::cout << "default weapon\n";
+	}
+	else if (item.type == Item::Type::HOMING_MISSILE) {
+		std::cout << "homing missile\n";
+	}
+	else if (item.type == Item::Type::SHOTGUN) {
+		std::cout << "shotgun\n";
+	}
+}
+
+void UISystem::logInventory(entt::registry& registry) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	std::cout << "Inventory: \n";
+	for (auto inventory_slot_entity : inventory.slots) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory_slot_entity);
+		if (inventory_slot.hasItem && !registry.valid(inventory_slot.item)) {
+			std::cout << "ERROR: Inventory Slot " << inventory_slot.id << " has item which is invalid\n";
+		}
+		else if (inventory_slot.hasItem && registry.valid(inventory_slot.item)) {
+			std::cout << "Inventory Slot " << inventory_slot.id << " has ";
+			logItem(registry, registry.get<Item>(inventory_slot.item));
+		}
+	}
+}
+
 // TODO use external file with set probabilities instead
 void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 	if (registry.any_of<Drop>(entity)) {
@@ -596,7 +648,7 @@ void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 					item.type = Item::Type::COPPER;
 				}
 				randomNo = uniform_dist(rng);
-				item.no = 1 + (int)(randomNo * 6);
+				item.no = 1 + (int)(randomNo * 5);
 				drop.items.push_back(item);
 			}
 		}

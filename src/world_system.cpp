@@ -451,7 +451,7 @@ void WorldSystem::restart_game() {
 	}
 	UISystem::clearInventory(registry);
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave, ShipWeapon>);
-	// registry.destroy(motions.begin(), motions.end());
+	// registry.destroy(motions.begin(), motions.end());d
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
@@ -779,7 +779,7 @@ void WorldSystem::left_mouse_click() {
 						MusicSystem::playSoundEffect(SFX::SELECT);
 						
 						// update inventory
-						ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
+						ship_upgrade_inventory(SHIP_WEAPON_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
 
 						if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_WEAPON) {
 							// change to missles
@@ -1114,15 +1114,19 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 
 // update inventory for ship upgrades
 void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
+	std::cout << "iron count: " << ironCount << " " << "copper count: " << copperCount;
 	int numIronLeftToUse = ironCount;
 	int numCopperLeftToUse = copperCount;
 
 	for (auto inventory_slot_entity : registry.get<Inventory>(*registry.view<Inventory>().begin()).slots) {
 		auto& inventory_slot = registry.get<InventorySlot>(inventory_slot_entity);
+		if (numCopperLeftToUse == 0 && numIronLeftToUse == 0) {
+			break;
+		}
 		if (!inventory_slot.hasItem) continue;
 		auto& item = registry.get<Item>(inventory_slot.item);
 
-		if (item.type == Item::Type::IRON) {
+		if (numIronLeftToUse > 0 && item.type == Item::Type::IRON) {
 			if (item.no <= numIronLeftToUse) {
 				numIronLeftToUse -= item.no;
 				inventory_slot.hasItem = false;
@@ -1131,11 +1135,11 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 				}
 			} else { 
 				item.no -= numIronLeftToUse;
-				numIronLeftToUse = 0;
+				numIronLeftToUse = 0;	
 			}
 		}
 
-		if (item.type == Item::Type::COPPER) {
+		if (numCopperLeftToUse > 0 && item.type == Item::Type::COPPER) {
 			if (item.no <= numCopperLeftToUse) {
 				numCopperLeftToUse -= item.no;
 				inventory_slot.hasItem = false;
@@ -1146,10 +1150,6 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 				item.no -= numCopperLeftToUse;
 				numCopperLeftToUse = 0;
 			}
-		}
-
-		if (numCopperLeftToUse == 0 && numIronLeftToUse == 0) {
-			break;
 		}
 	}
 }
