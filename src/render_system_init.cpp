@@ -210,7 +210,10 @@ RenderSystem::~RenderSystem()
 	// remove all entities created by the render system
 	auto view = registry.view<RenderRequest>();
 	debug_printf(DebugType::PHYSICS, "Destroying entity (render sys sys)\n");
-	registry.destroy(view.begin(), view.end());
+	
+	if (view.size() > 0) {
+		registry.destroy(view.begin(), view.end());
+	}
 }
 
 // Initialize the screen texture from a standard sprite

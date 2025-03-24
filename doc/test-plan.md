@@ -13,14 +13,74 @@ With each milestone, we will add additional controls as necessary
 - Gameplay:
   - When near the ship, press "f" to toggle the ship UI
   - Left click items in the inventory to consume them
+  - @PRANAV todo include controls on how to use the inventory
 - Utility:
   - Press "r" to restart the game
-  - Press buttons 1-6 to change the background music track
-  - Press "esc" to pause the game and view the title screeen 
+  - Press "esc" to pause the game and view the title screeen
+  - Press "enter" to skip the tutorial
+
+# Milestone 3
+
+## Actions
+
+_All of the below actions from previous milestones and..._
+
+- **Traverse the island**:
+
+  - Explore the 5 unique biomes. See their differences in tileset, and the different types of tress that grow in these biomes.
+  - Notice the differences in music track for each of the biomes.
+  - If you have explored long enough, notice the screen darkens to simulate a day-night cycle
+
+- **Fight the enemies**:
+
+  - @STEVE todo add something about noticing how enemies dont go in water, how they still (intentionally) pass through trees for gameplay sake (and how that makes a noise now)
+  - @STEVE todo also talk about the a\* path finding of course
+  - @PRANAV/FRANK todo talk about the new items dropped by the enemies, at different rates, and how boss drops many items
+
+- **Performance testing**:
+
+  - View the FPS in the window title caption
+  - @PHILLIP todo talk about how the FPS is good because of quadtree. talk about how no matter the entities on the screen, we only render whats on screen/process stuff nearby in the quadtree, so we have good FPS
+
+- **UI**
+  - Follow the instructions in the tutorial to learn how to play the game, the main objective, and some backstory about the setting
+  - @FRANK todo talk about ship upgrades and how it costs materials to do them
+  - @PRANAV todo talk about the inventory system, how to stack items and whatnot, and how to open the inventory
+
+# Milestone 2
+
+## Actions
+
+_All of the below actions from previous milestones and..._
+
+- **Traverse the island**:
+
+  - Notice the new trees and shrubbery. Trees spawn on grass tiles, and cacti spawn on sand tiles
+  - Run around to see different enemy types including blue goblins (periodically spawn), and boss enemies (found at the far corners of the map)
+  - Walk into different obstacles including water, trees/cacti, and the ship to see the collision detection
+
+- **Fight the enemy**:
+
+  - Experiment with running to and away the blue goblins to see their AI state transitions
+  - Observe that enemies spawn at set intervals randomly around the player, up to a certain mob cap
+  - Notice that enemies can spawn in groups/hoardes instead of individually
+  - Travel to all corners of the map to find and defeat the 4 boss enemies
+
+- **Performance testing**:
+
+  - View the FPS in the window title caption
+  - Shoot many projectiles, and observe as the FPS will stay relatively constant
+  - Leave the game on for an extended period of time (i.e. 5 minutes). Observe that the performance does not degrade
+
+- **UI**:
+  - Follow the prompts on screen during the tutorial to learn how to play the game
+  - Notice that the tutorial changes state after succesfully completing a stage
+  - Press "f" near the ship to view the ship upgrade UI (ship upgrades coming in a future milestone)
+  - Press "esc" to pause the game and view the title screen UI. Load and save functionality coming in a future milestone.
 
 # Milestone 1
 
-# Actions
+## Actions
 
 - **Traverse the island**:
 
@@ -48,31 +108,3 @@ With each milestone, we will add additional controls as necessary
   - View the FPS in the window title caption
   - Shoot many projectiles, and observe as the FPS will stay relatively constant
   - Leave the game on for an extended period of time (i.e. 5 minutes). Observe that the performance does not degrade
- 
-# Milestone 2
-
-# Actions
-
-_All of the above actions from previous milestones and..._
-
-- **Traverse the island**:
-  - Notice the new trees and shrubbery. Trees spawn on grass tiles, and cacti spawn on sand tiles
-  - Run around to see different enemy types including blue goblins (periodically spawn), and boss enemies (found at the far corners of the map)
-  - Walk into different obstacles including water, trees/cacti, and the ship to see the collision detection
-
-- **Fight the enemy**:
-  - Experiment with running to and away the blue goblins to see their AI state transitions
-  - Observe that enemies spawn at set intervals randomly around the player, up to a certain mob cap
-  - Notice that enemies can spawn in groups/hoardes instead of individually
-  - Travel to all corners of the map to find and defeat the 4 boss enemies
-
-- **Performance testing**:
-  - View the FPS in the window title caption
-  - Shoot many projectiles, and observe as the FPS will stay relatively constant
-  - Leave the game on for an extended period of time (i.e. 5 minutes). Observe that the performance does not degrade
- 
-- **UI**:
-  - Follow the prompts on screen during the tutorial to learn how to play the game
-  - Notice that the tutorial changes state after succesfully completing a stage
-  - Press "f" near the ship to view the ship upgrade UI (ship upgrades coming in a future milestone)
-  - Press "esc" to pause the game and view the title screen UI. Load and save functionality coming in a future milestone.
