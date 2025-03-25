@@ -1,7 +1,7 @@
 #pragma once
 #include "creature_common.hpp"
 #include "boss_def.hpp"
-#include "creature_definition_data.hpp"
+#include <creature/creature_defs/creature_definition_data.hpp>
 
 class CreatureManager {
 public:
