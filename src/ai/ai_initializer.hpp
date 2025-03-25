@@ -4,8 +4,8 @@
 
 void initializeAIStates(StateFactory& stateFactory);
 
-const TransitionTable& getGoblinTransitionTable();
+// const TransitionTable& getGoblinTransitionTable();
 
-AIConfig getGoblinAIConfig();
+// AIConfig getGoblinAIConfig();
 
 AIConfig getBossAIConfig();

@@ -11,24 +11,24 @@ CreatureManager& CreatureManager::getInstance() {
 }
 
 CreatureManager::CreatureManager() {
-    loadDefinitions();
+    // loadDefinitions();
     loadBossSpawnData();
 }
 
-void CreatureManager::addDefinition(const CreatureDefinition& def) {
-    definitions[def.id] = def;
+void CreatureManager::registerDefinition(const CreatureDefinitionData* def) {
+    CreatureID id = def->getDefinition().id;
+    definitions[id] = def;
 }
 
-void CreatureManager::loadDefinitions() {
-    // TDOD: Load from file
-    definitions.clear();
-
-    std::vector<CreatureDefinition> enemyDefinitions= createEnemyDefinitions();
-
-    for (const auto& def : enemyDefinitions) {
-        definitions[def.id] = def;
+const CreatureDefinitionData* CreatureManager::getDefinition(const CreatureID& id) const {
+    auto it = definitions.find(id);
+    if (it != definitions.end()) {
+        return it->second;
     }
+    std::cerr << "CreatureManager: Unknown creature id: " << static_cast<int>(id) << "\n";
+    return nullptr;
 }
+
 
 void CreatureManager::loadBossSpawnData() {
     bossSpawnData.clear();
@@ -36,22 +36,13 @@ void CreatureManager::loadBossSpawnData() {
 }
 
 
-const CreatureDefinition* CreatureManager::getDefinition(const CreatureID id) const {
-    auto it = definitions.find(id);
-    if (it != definitions.end()) {
-        return &it->second;
-    }
-    std::cerr << "CreatureManager: Unknown creature id: " << id. << "\n";
-    return nullptr;
-}
-
-std::vector<const CreatureDefinition*> CreatureManager::queryDefinitions(
-    const std::function<bool(const CreatureDefinition&)>& predicate) const 
+std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
+    const std::function<bool(const CreatureDefinitionData&)>& predicate) const
 {
-    std::vector<const CreatureDefinition*> results;
+    std::vector<const CreatureDefinitionData*> results;
     for (const auto& kv : definitions) {
-        if (predicate(kv.second)) {
-            results.push_back(&kv.second);
+        if (predicate(*kv.second)) {
+            results.push_back(kv.second);
         }
     }
     return results;

@@ -8,7 +8,8 @@
 #include <ai/state_machine/transition.hpp>
 
 enum class CreatureID {
-    GOBLIN,
+    BASE_CREATURE,
+    BLUE_TORCH_GOBLIN,
     SKELETON,
     BOSS,
 };

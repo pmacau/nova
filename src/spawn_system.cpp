@@ -277,7 +277,9 @@ void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinition &def, con
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnFootPos));
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
 
-            createMob2(registry, spawnPos, 50); 
+            createCreature(registry, spawnPos, def, def.stats.minHealth);
+
+            // createMob2(registry, spawnPos, 50);
             break;
         case CreatureType::Boss:
             createBoss(registry, spawnPos);

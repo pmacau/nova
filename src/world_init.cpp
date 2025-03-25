@@ -715,7 +715,7 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
     animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
-	const AnimationDefinition* animation_def = AnimationManager::getInstance().getAnimation(animComp.currentAnimationId);
+	const AnimationDefinition* animation_def = AnimationManager::getInstance().getAnimation(def.id, def.renderingInfo.initialAnimationId);
 
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = vec2(animation_def->frameWidth, animation_def->frameHeight);

@@ -10,7 +10,7 @@ struct BossSpawn {
     ivec2 spawnTile;
     bool spawned;
 
-    std::string id; // link to creature def
+    CreatureID creatureID;
 };
 
 inline void initBossSpawnData(std::vector<BossSpawn>& bossSpawns) {
@@ -18,6 +18,6 @@ inline void initBossSpawnData(std::vector<BossSpawn>& bossSpawns) {
     auto& bossIndices = MapSystem::getBossSpawnIndices();
 
     for (auto& bossIndex : bossIndices) {
-        bossSpawns.push_back({bossIndex, false, "boss"}); // TODO: link to creature def
+        bossSpawns.push_back({bossIndex, false, CreatureID::BOSS}); // TODO: link to creature def
     }
 }
