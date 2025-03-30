@@ -636,19 +636,22 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	auto& screen = registry.get<ScreenState>(screen_entity);
-	
 
-	Shader& v = shaders.at("vignette");
+	Shader v = shaders.at("vignette");
+
+	if (vignette) {
+		if      (screen.curr_effect == EFFECT_ASSET_ID::E_FOG)  v = shaders.at("fog");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_SNOW) v = shaders.at("snow");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_HEAT) v = shaders.at("heat");
+	}
 	v.use();
-	unsigned int program = v.ID;
-
 	v.setFloat("time", vignette ? screen.time : 0.f);
-	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 	v.setVec2("resolution", vec2(w, h));
+	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 		
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(v.ID, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();
