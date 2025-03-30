@@ -71,27 +71,10 @@ vec2 MapSystem::populate_ecs(
                     p_pos = map_pos;
                     break;
                 case Decoration::TREE:
-                    if (get_terrain(game_map[i][j]) == Terrain::SAND) {
-                        createTree(reg, map_pos, {0, 1});
-                    } else {
-                        switch (get_biome(game_map[i][j])) {
-                            case B_FOREST:
-                                createTree(reg, map_pos, {0, 0});
-                                break;
-                            case B_SAVANNA:
-                                createTree(reg, map_pos, {0, 4});
-                                break;
-                            case B_ICE:
-                                createTree(reg, map_pos, {0, 3});
-                                break;
-                            case B_JUNGLE:
-                                createTree(reg, map_pos, {0, 5});
-                                break;
-                            default:
-                                createTree(reg, map_pos, {0, 2});
-                                break;
-                        }
-                    }
+                    createTree(
+                        reg, map_pos,
+                        get_biome(game_map[i][j]), get_terrain(game_map[i][j])
+                    );
                     break;
                 case Decoration::SHIP:
                     s_pos = map_pos;
