@@ -135,7 +135,7 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
             break;  
         case B_BEACH:
             newTrack = Music::BEACH;
-            screen.curr_effect = EFFECT_ASSET_ID::VIGNETTE;
+            screen.curr_effect = EFFECT_ASSET_ID::E_RAIN;
             break;
         case B_JUNGLE:
             newTrack = Music::JUNGLE;

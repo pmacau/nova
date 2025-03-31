@@ -116,6 +116,7 @@ void RenderSystem::initializeGlEffects()
 	shaders.try_emplace("snow", "snow");
 	shaders.try_emplace("fog", "fog");
 	shaders.try_emplace("heat", "heat");
+	shaders.try_emplace("rain", "rain");
 }
 
 // One could merge the following two functions as a template function...
