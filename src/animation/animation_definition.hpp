@@ -1,12 +1,10 @@
 #pragma once
 #include "common.hpp"
+#include <tinyECS/components.hpp>
 #include <vector>
 #include <string>
 
-struct FrameIndex {
-    int row;
-    int col;
-};
+#include "animation_common.hpp"
 
 struct SpriteSheet {
     TEXTURE_ASSET_ID textureAssetID;
@@ -22,4 +20,6 @@ struct AnimationDefinition {
     float frameHeight;
     
     SpriteSheet spriteSheet;
+
+    bool flipForLeft = false;
 };

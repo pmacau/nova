@@ -3,6 +3,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <map/map_system.hpp>
+#include "creature_common.hpp"
 
 using namespace glm;
 

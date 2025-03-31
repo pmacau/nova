@@ -136,8 +136,8 @@ void CreatureDefinitionData::initializeAnimations() {
     defaultAnim.frames.push_back({0, 0});
     defaultAnim.frameDurations.push_back(1000.f);
     
-    animations.clear();
-    animations["idle"] = defaultAnim;
+    // animations.clear();
+    // animations["idle"] = defaultAnim;
 
     // Update the rendering info.
     // renderingInfo.

@@ -2,10 +2,11 @@
 #include <glm/glm.hpp>
 #include <tinyECS/components.hpp>
 #include <map/tile.hpp>
-#include <animation/animation_definition.hpp>
 #include <collision/hitbox.hpp>
 #include <ai/ai_common.hpp>
 #include <ai/state_machine/transition.hpp>
+
+#include <animation/animation_definition.hpp>
 
 enum class CreatureID {
     BASE_CREATURE,
@@ -46,6 +47,9 @@ struct RenderingInfo {
     // Mapping of action names (e.g., "idle", "walk", "attack") to animation IDs.
     std::unordered_map<std::string, std::string> animationMapping;
     std::string initialAnimationId;  // Initial animation ID.
+
+    MotionAction initAction;
+    MotionDirection initDirection;
 };
 
 struct DropInfo {

@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <entt.hpp>
-#include <animation/animation_definition.hpp>
+#include <animation/animation_common.hpp>
 #include <map/tile.hpp>
 
 struct Glyph{};

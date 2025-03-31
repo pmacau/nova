@@ -13,13 +13,14 @@ public:
     virtual ~CreatureDefinitionData() = default;
 
     const CreatureID& getCreatureID() const { return creatureID; }
+    const CreatureType& getCreatureType() const { return creatureType; }
     const SpawnInfo& getSpawnInfo() const { return spawnInfo; }
     const Stats& getStats() const { return stats; }
     const RenderingInfo& getRenderingInfo() const { return renderingInfo; }
     const PhysicsInfo& getPhysicsInfo() const { return physicsInfo; }
     const DropInfo& getDropInfo() const { return dropInfo; }
     const AIInfo& getAIInfo() const { return aiInfo; }
-    const std::unordered_map<std::string, AnimationDefinition>& getAnimations() const { return animations; }
+    // const std::unordered_map<std::string, AnimationDefinition>& getAnimations() const { return animations; }
 
     virtual void initialize() {}
 
@@ -54,7 +55,6 @@ protected:
     PhysicsInfo physicsInfo;
     DropInfo dropInfo;
     AIInfo aiInfo;
-    std::unordered_map<std::string, AnimationDefinition> animations;
 
 
 private:

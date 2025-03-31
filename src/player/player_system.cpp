@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <animation/animation_component.hpp>
+#include <animation/animation_manager.hpp>
 
 PlayerSystem::PlayerSystem(entt::registry& registry)
     : registry(registry)
@@ -27,35 +28,47 @@ void PlayerSystem::updatePlayerAnimationState() {
     vec2 velocity = motion.velocity;
     constexpr float epsilon = 1.f;
 
+    std::string animation_id = AnimationManager::getInstance().buildAnimationKey(
+        animComp.animation_header, animComp.action, animComp.direction);
+
+    std::string player_walk_right = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::WALK, MotionDirection::RIGHT);
+    std::string player_walk_up = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::WALK, MotionDirection::UP);
+    std::string player_walk_down = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::WALK, MotionDirection::DOWN);
+
+    std::string player_idle_right = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::RIGHT);
+    std::string player_idle_up = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::UP);
+    std::string player_idle_down = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::DOWN);
+
     if (length(velocity) < epsilon) {
         // If velocity is very low, switch to idle animation.
-        if (animComp.currentAnimationId == "player_walk_right") {
-            animComp.currentAnimationId = "player_idle_right";
-            animComp.timer = 0.0f;
-            animComp.currentFrameIndex = 0;
-        }
-        else if (animComp.currentAnimationId == "player_walk_up") {
-            animComp.currentAnimationId = "player_idle_up";
-            animComp.timer = 0.0f;
-            animComp.currentFrameIndex = 0;
-        }
-        else if (animComp.currentAnimationId == "player_walk_down") {
-            animComp.currentAnimationId = "player_idle_down";
-            animComp.timer = 0.0f;
-            animComp.currentFrameIndex = 0;
-        }
 
-        // if (animComp.currentAnimationId != "player_idle") {
-        //     animComp.currentAnimationId = "player_idle";
-        //     animComp.timer = 0.0f;
-        //     animComp.currentFrameIndex = 0;
-        // }
-        // Ensure no horizontal flip.
-        // motion.scale.x = std::abs(motion.scale.x);
+        if (animation_id == player_walk_right) {
+            animComp.action = MotionAction::IDLE;
+            animComp.direction = MotionDirection::RIGHT;
+            // animation_id = player_idle_right;
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex = 0;
+        }
+        else if (animation_id == player_walk_up) {
+            // animation_id = player_idle_up;
+            animComp.action = MotionAction::IDLE;
+            animComp.direction = MotionDirection::UP;
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex = 0;
+        }
+        else if (animation_id == player_walk_down) {
+            // animation_id = player_idle_down;
+            animComp.action = MotionAction::IDLE;
+            animComp.direction = MotionDirection::DOWN;
+            animComp.timer = 0.0f;
+            animComp.currentFrameIndex = 0;
+        }
     }
     else {
         if (std::abs(velocity.x) > std::abs(velocity.y)) {
-            animComp.currentAnimationId = "player_walk_right";
+            // animation_id = player_walk_right;
+            animComp.action = MotionAction::WALK;
+            animComp.direction = MotionDirection::RIGHT;
             // Flip sprite if moving left.
             if (velocity.x < 0)
                 motion.scale.x = -std::abs(motion.scale.x);
@@ -63,10 +76,17 @@ void PlayerSystem::updatePlayerAnimationState() {
                 motion.scale.x = std::abs(motion.scale.x);
         }
         else {
-            if (velocity.y > 0)
-                animComp.currentAnimationId = "player_walk_down";
-            else
-                animComp.currentAnimationId = "player_walk_up";
+            if (velocity.y > 0) {
+                // animation_id = player_walk_down;
+                animComp.action = MotionAction::WALK;
+                animComp.direction = MotionDirection::DOWN;
+            }
+                
+            else {
+                // animation_id = player_walk_up;
+                animComp.action = MotionAction::WALK;
+                animComp.direction = MotionDirection::UP;
+            }
             // Ensure no horizontal flip.
             motion.scale.x = std::abs(motion.scale.x);
         }

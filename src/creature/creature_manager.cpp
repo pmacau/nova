@@ -5,6 +5,8 @@
 #include "enemy_definition.hpp"
 #include "boss_def.hpp"
 
+#include "creature/creature_defs/blue_torch_goblin.hpp"
+
 CreatureManager& CreatureManager::getInstance() {
     static CreatureManager instance;
     return instance;
@@ -13,10 +15,11 @@ CreatureManager& CreatureManager::getInstance() {
 CreatureManager::CreatureManager() {
     // loadDefinitions();
     loadBossSpawnData();
+    loadDefinitions();
 }
 
 void CreatureManager::registerDefinition(const CreatureDefinitionData* def) {
-    CreatureID id = def->getDefinition().id;
+    CreatureID id = def->getCreatureID();
     definitions[id] = def;
 }
 
@@ -46,4 +49,8 @@ std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
         }
     }
     return results;
+}
+
+void CreatureManager::loadDefinitions() {
+    registerDefinition(&BlueTorchGoblinDefData::getInstance());
 }

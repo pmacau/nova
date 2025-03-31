@@ -13,6 +13,7 @@
 #include <iostream>
 #include <creature/creature_defs/ai_defs/basic_fighter.hpp>
 #include <creature/creature_defs/ai_defs/ai_globin_def.hpp>
+#include <animation/animation_manager.hpp>
 
 class BlueTorchGoblinDefData : public CreatureDefinitionData {
 public:
@@ -111,10 +112,19 @@ protected:
             walk.frames.push_back({1, col});
             walk.frameDurations.push_back(100.f);
         }
+
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::RIGHT, idle);
+        AnimationDefinition idleLeft = idle;
+        idleLeft.flipForLeft = true;
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::LEFT, idleLeft);
         
-        animations.clear();
-        animations["idle"] = idle;
-        animations["walk"] = walk;
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::RIGHT, walk);
+        AnimationDefinition walkLeft = walk;
+        walkLeft.flipForLeft = true;
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::LEFT, walkLeft);
+        
+        renderingInfo.initAction = MotionAction::IDLE;
+        renderingInfo.initDirection = MotionDirection::RIGHT;
         
         // Set up the animation mapping and default animation in rendering info.
         renderingInfo.animationMapping.clear();

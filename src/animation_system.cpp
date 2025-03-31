@@ -14,9 +14,13 @@ void AnimationSystem::update(float deltaTime) {
         auto& sprite = view.get<Sprite>(entity);
         auto& animComp = view.get<AnimationComponent>(entity);
 
-        const AnimationDefinition* animDef = AnimationManager::getInstance().getAnimation(animComp.currentAnimationId);
+        std::string animationId = AnimationManager::getInstance().buildAnimationKey(
+            animComp.animation_header, animComp.action, animComp.direction);
+
+        // const AnimationDefinition* animDef = AnimationManager::getInstance().getAnimation(animComp.currentAnimationId);
+        const AnimationDefinition* animDef = AnimationManager::getInstance().getAnimation(animationId);
         if (!animDef) {
-            std::cerr << "Animation definition not found for ID: " << animComp.currentAnimationId << "\n";
+            std::cerr << "Animation definition not found for ID: " << animationId << "\n";
             continue;
         }
 
