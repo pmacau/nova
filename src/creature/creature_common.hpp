@@ -57,6 +57,7 @@ struct DropInfo {
 };
 
 struct PhysicsInfo {
+    vec2 scale; // used for motion
     Hitbox hitbox;
     vec2 offset_to_ground = {0 ,0};
 };
@@ -77,4 +78,9 @@ struct CreatureDefinition {
     PhysicsInfo physicsInfo;
     DropInfo dropInfo;
     AIInfo aiInfo;
+};
+
+struct UIInfo
+{
+    float healthBar_y_adjust = 0.f;
 };

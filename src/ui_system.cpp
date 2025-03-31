@@ -29,8 +29,7 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 				mobhealth_motion.scale = vec2({ mob.health * 40.f / healthbar.initial_health, 8.f });
 				healthbar.left_adjust += left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
 			}
-			mobhealth_motion.position.x = mob_motion.position.x - healthbar.left_adjust;
-			mobhealth_motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2.f - healthbar.y_adjust;
+			mobhealth_motion.position = computeHealthBarPosition(mob_motion, { healthbar.left_adjust, healthbar.y_adjust });
 			break;
 		}
 	}

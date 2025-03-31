@@ -6,6 +6,7 @@
 #include "boss_def.hpp"
 
 #include "creature/creature_defs/blue_torch_goblin.hpp"
+#include "creature/creature_defs/purple_reaper.hpp"
 
 CreatureManager& CreatureManager::getInstance() {
     static CreatureManager instance;
@@ -53,4 +54,5 @@ std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
 
 void CreatureManager::loadDefinitions() {
     registerDefinition(&BlueTorchGoblinDefData::getInstance());
+    registerDefinition(&PurpleReaperData::getInstance());
 }

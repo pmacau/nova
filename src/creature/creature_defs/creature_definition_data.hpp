@@ -20,6 +20,7 @@ public:
     const PhysicsInfo& getPhysicsInfo() const { return physicsInfo; }
     const DropInfo& getDropInfo() const { return dropInfo; }
     const AIInfo& getAIInfo() const { return aiInfo; }
+    const UIInfo& getUIInfo() const { return uiInfo; }
     // const std::unordered_map<std::string, AnimationDefinition>& getAnimations() const { return animations; }
 
     virtual void initialize() {}
@@ -34,17 +35,7 @@ protected:
     virtual void initializeDropInfo();
     virtual void initializeAIInfo();
     virtual void initializeAnimations();
-
-
-    // virtual void initializeCreatureDefinition();
-    // virtual void initializeTransitionTable();
-    // virtual void initializeAIConfig();
-    // virtual void initializeAnimations();
-
-    // Data fields.
-    // CreatureDefinition definition;
-    // AIConfig aiConfig;
-    // const TransitionTable* transitionTable;  // Points to a shared table.
+    virtual void initializeUIInfo();
 
     CreatureID creatureID;
     CreatureType creatureType;
@@ -55,6 +46,7 @@ protected:
     PhysicsInfo physicsInfo;
     DropInfo dropInfo;
     AIInfo aiInfo;
+    UIInfo uiInfo;
 
 
 private:

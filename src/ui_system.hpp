@@ -20,6 +20,12 @@ public:
 	static void clearInventoryAndDrop(entt::registry& registry, float x, float y);
 	static void dropForMob(entt::registry& registry, entt::entity& entity);
 	static void mobDrop(entt::registry& registry, entt::entity& mob_entity);
+
+	static vec2 computeHealthBarPosition(Motion mob_motion, vec2 adjust) {
+		float left = mob_motion.position.x - adjust.x;
+		float top = mob_motion.position.y - mob_motion.scale.y / 2.f + adjust.y;
+		return { left, top };
+	}
 private:
 	static std::mt19937 rng;
 	static std::uniform_real_distribution<float> uniform_dist;

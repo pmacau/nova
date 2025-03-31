@@ -12,17 +12,17 @@
 #include <string>
 #include <iostream>
 #include <creature/creature_defs/ai_defs/basic_fighter.hpp>
-#include <creature/creature_defs/ai_defs/ai_globin_def.hpp>
+#include <creature/creature_defs/ai_defs/ai_purple_reaper_def.hpp>
 #include <animation/animation_manager.hpp>
 
-class BlueTorchGoblinDefData : public CreatureDefinitionData {
+class PurpleReaperData : public CreatureDefinitionData {
 public:
-    BlueTorchGoblinDefData() {
-        creatureID = CreatureID::BLUE_TORCH_GOBLIN;
-        creatureType = CreatureType::Mob;
+    PurpleReaperData() {
+        creatureID = CreatureID::BOSS;
+        creatureType = CreatureType::Boss;
         initialize();
     }
-    virtual ~BlueTorchGoblinDefData() = default;
+    virtual ~PurpleReaperData() = default;
 
     // Explicit initialize method that calls all the initialization functions.
     virtual void initialize() override {
@@ -35,44 +35,45 @@ public:
         initializeAIInfo();
         initializeAnimations();
         initializeUIInfo();
+
     }
 
-    static const BlueTorchGoblinDefData& getInstance() {
-        static BlueTorchGoblinDefData instance;
+    static const PurpleReaperData& getInstance() {
+        static PurpleReaperData instance;
         return instance;
     }
 
 protected:
     virtual void initializeSpawnInfo() override {
         spawnInfo.spawnProbability = 0.6f;
-        spawnInfo.group = {1, 2};
+        spawnInfo.group = {1, 1};
         spawnInfo.biomes = {Biome::B_FOREST, Biome::B_BEACH};
     }
 
     virtual void initializeStats() override {
-        stats.minHealth = 50;
-        stats.maxHealth = 70;
+        stats.minHealth = 500;
+        stats.maxHealth = 500;
         stats.damage = 10;
         stats.speed = 1.2f;
-        creatureType = CreatureType::Mob; // Set the creature type.
     }
 
     virtual void initializeRenderingInfo() override {
-        renderingInfo.scale = glm::vec2(1344.f / 7, 960.f / 5);
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
-        renderingInfo.spriteSheet.sheetDimensions = glm::vec2(1344.f, 960.f);
+        renderingInfo.scale = { 43.f, 55.f };
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB;
+        renderingInfo.spriteSheet.sheetDimensions = {43.f, 55.f};
     }
 
     virtual void initializePhysicsInfo() override {
-        physicsInfo.scale = renderingInfo.scale  * 0.9f;
-        physicsInfo.offset_to_ground = {0, renderingInfo.scale.y / 4.f * 0.8f};
-        float w = renderingInfo.scale.x * 0.4f;
-        float h = renderingInfo.scale.y * 0.5f;
+        physicsInfo.scale = vec2(100, 120);
+
+        physicsInfo.offset_to_ground = {0, physicsInfo.scale.y / 2.f};;
+        float w = physicsInfo.scale.x;
+	    float h = physicsInfo.scale.y;
         physicsInfo.hitbox.pts = {
             {w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
             {w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
         };
-        physicsInfo.hitbox.depth = 60;
+        physicsInfo.hitbox.depth = 50;
     }
 
     virtual void initializeDropInfo() override {
@@ -80,7 +81,7 @@ protected:
     }
 
     virtual void initializeAIInfo() override {
-        aiInfo.aiConfig = getGoblinAIConfig();
+        aiInfo.aiConfig = getBossAIConfig();
         aiInfo.transitionTable = &getBasicFighterTransitionTable();
         aiInfo.initialState = "patrol";
     }
@@ -91,17 +92,16 @@ protected:
         float frameHeight = renderingInfo.scale.y;
 
         std::string animationHeader = AnimationManager::getInstance().creatureAnimationHeader(creatureID);
-        // Create BlueTorch Goblin-specific idle animation.
+
         AnimationDefinition idle_right;
         idle_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::IDLE, MotionDirection::RIGHT);
-        idle_right.loop = true;
+        idle_right.loop = false; // a single image for now
         idle_right.frameWidth = frameWidth;
         idle_right.frameHeight = frameHeight;   
         idle_right.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 7; ++col) {
-            idle_right.frames.push_back({0, col});
-            idle_right.frameDurations.push_back(150.f);
-        }
+
+        idle_right.frames.push_back({0, 0});
+        idle_right.frameDurations.push_back(1000.f);
 
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::RIGHT, idle_right);
 
@@ -109,26 +109,24 @@ protected:
         // Create BlueTorch Goblin-specific walk animation.
         AnimationDefinition walk_right;
         walk_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::WALK, MotionDirection::RIGHT);
-        walk_right.loop = true;
+        walk_right.loop = false;
         walk_right.frameWidth = frameWidth;
         walk_right.frameHeight = frameHeight;
         walk_right.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 6; ++col) {
-            walk_right.frames.push_back({1, col});
-            walk_right.frameDurations.push_back(100.f);
-        }
+        walk_right.frames.push_back({0, 0});
+        walk_right.frameDurations.push_back(1000.f);
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::RIGHT, walk_right);
 
         renderingInfo.initAction = MotionAction::IDLE;
         renderingInfo.initDirection = MotionDirection::RIGHT;
         
         // Set up the animation mapping and default animation in rendering info.
-        renderingInfo.animationMapping.clear();
-        renderingInfo.animationMapping["idle"] = "blue_torch_goblin_idle";
-        renderingInfo.initialAnimationId = "idle";
+        // renderingInfo.animationMapping.clear();
+        // renderingInfo.animationMapping["idle"] = "blue_torch_goblin_idle";
+        // renderingInfo.initialAnimationId = "idle";
     }
 
     virtual void initializeUIInfo() override {
-        uiInfo.healthBar_y_adjust = physicsInfo.scale.y / 4.f;
+        uiInfo.healthBar_y_adjust = - 10.f;
     }
 };

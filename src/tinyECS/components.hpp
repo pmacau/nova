@@ -16,6 +16,7 @@ struct Background{};
 struct Boss{
 	float agro_range;
 	vec2 spawn;
+	float damage;
 };
 
 struct InputState {

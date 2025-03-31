@@ -366,7 +366,9 @@ void SpawnSystem::checkAndSpawnBoss() {
             // createDebugTile(registry, spawnData.spawnTile);
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
 
-            // createBoss(registry, spawnPos);
+
+            createCreature(registry, spawnPos, *def, def->getStats().minHealth);
+
 
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
                          tileCenter.x, tileCenter.y, spawnData.spawnTile.x, spawnData.spawnTile.y);
