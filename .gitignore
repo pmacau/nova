@@ -28,3 +28,5 @@ nova
 # exclude game save-state
 data/maps/map.bin
 data/maps/textured_map.png
+data/maps/biome_map.png
+data/maps/terrain_map.png

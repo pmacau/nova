@@ -894,6 +894,14 @@ void RenderSystem::renderGamePlay()
 		renderText(content, position.x, position.y, scale, color, projection, wrap);
 	}
 
+	float x_ratio = (playerMotion.position.x / 16.f) / 500.f;
+	float y_ratio = (playerMotion.position.y / 16.f) / 500.f;
+	vec2 scale = vec2(499.f) / 3.f;
+	vec2 offset = { WINDOW_WIDTH_PX - 175.f, 150.f };
+	vec2 marker_pos = vec2(scale.x * x_ratio, scale.y * y_ratio) + offset - scale / 2.f;
+
+	renderText("*", marker_pos.x, marker_pos.y, 1, vec3(0), ui_projection_2D);
+
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
 	gl_has_errors();
