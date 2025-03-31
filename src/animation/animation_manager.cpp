@@ -16,31 +16,12 @@ AnimationManager::AnimationManager() {
 }
 
 
-// const AnimationDefinition* AnimationManager::getAnimation(CreatureID creatureId, const std::string& animationName) const {
-//     // Query the CreatureManager for the creature's definition data.
-//     const auto* creatureDefData = CreatureManager::getInstance().getDefinition(creatureId);
-//     if (!creatureDefData) {
-//         std::cerr << "AnimationManager: No creature definition found for creature id " << static_cast<int>(creatureId) << "\n";
-//         return nullptr;
-//     }
-//     // Get the animations map from the creature definition.
-//     const auto& animMap = creatureDefData->getAnimations();
-//     auto it = animMap.find(animationName);
-//     if (it != animMap.end()) {
-//         return &it->second;
-//     }
-//     std::cerr << "AnimationManager: Animation \"" << animationName 
-//               << "\" not found for creature id " << static_cast<int>(creatureId) << "\n";
-//     return nullptr;
-// }
-
-
 const AnimationDefinition* AnimationManager::getAnimation(const std::string& id) const {
     auto it = animations.find(id);
     if (it != animations.end()) {
         return &it->second;
     }
-    std::cerr << "AnimationManager: Animation not found for id: " << id << "\n";
+    // std::cerr << "AnimationManager: Animation not found for id: " << id << "\n";
     return nullptr;
 }
 
@@ -144,45 +125,4 @@ void AnimationManager::initializeAnimations() {
         walkDown.frameDurations.push_back(80.f);
     }
     animations[walkDown.id] = walkDown;
-
-
-    // Mob
-    // SpriteSheet mob_spritesheet;
-    // mob_spritesheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
-    // mob_spritesheet.sheetDimensions = {1344.f, 960.f};
-
-    // AnimationDefinition mob2Idle;
-    // mob2Idle.id = "mob2_idle";
-    // mob2Idle.loop = true;
-    // mob2Idle.frameWidth = 1344.f / 7;
-    // mob2Idle.frameHeight = 960.f / 5;
-    // mob2Idle.spriteSheet = mob_spritesheet;
-    // for (int col = 0; col < 7; ++col) {
-    //     mob2Idle.frames.push_back({0, col});
-    //     mob2Idle.frameDurations.push_back(150.f); // 150 ms per frame.
-    // }
-    // animations[mob2Idle.id] = mob2Idle;
-
-    // // --- Mob1 Walk Animation ---
-    // AnimationDefinition mob2Walk;
-    // mob2Walk.id = "mob2_walk";
-    // mob2Walk.loop = true;
-    // mob2Walk.frameWidth = 1344.f / 7;
-    // mob2Walk.frameHeight = 960.f / 5;
-    // mob2Walk.spriteSheet = mob_spritesheet;
-    // for (int col = 0; col < 8; ++col) {
-    //     mob2Walk.frames.push_back({1, col});
-    //     mob2Walk.frameDurations.push_back(100.f); // 100 ms per frame.
-    // }
-    // animations[mob2Walk.id] = mob2Walk;
 }
-
-// const AnimationDefinition* AnimationManager::getAnimation(const std::string& id) const {
-//     auto it = animations.find(id);
-//     if (it != animations.end()) {
-//         return &it->second;
-//     }
-//     std::cerr << "Animation not found for id: " << id << "\n";
-//     return nullptr;
-// }
-

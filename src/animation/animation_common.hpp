@@ -18,6 +18,5 @@ enum class MotionAction {
 enum class MotionDirection {
     UP,
     DOWN,
-    LEFT,
     RIGHT
 };

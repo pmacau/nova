@@ -26,10 +26,6 @@ public:
 
     // Explicit initialize method that calls all the initialization functions.
     virtual void initialize() override {
-        // initializeCreatureDefinition();
-        // initializeTransitionTable();
-        // initializeAIConfig();
-        // initializeAnimations();
 
         initializeSpawnInfo();
         initializeStats();
@@ -89,40 +85,39 @@ protected:
     }
 
     virtual void initializeAnimations() override {
+
+        float frameWidth = renderingInfo.spriteSheet.sheetDimensions.x / 7;
+        float frameHeight = renderingInfo.spriteSheet.sheetDimensions.y / 5;
+
+        std::string animationHeader = AnimationManager::getInstance().creatureAnimationHeader(creatureID);
         // Create BlueTorch Goblin-specific idle animation.
-        AnimationDefinition idle;
-        idle.id = "blue_torch_goblin_idle";
-        idle.loop = true;
-        idle.frameWidth = 1344.f / 7;
-        idle.frameHeight = 960.f / 5;
-        idle.spriteSheet = renderingInfo.spriteSheet;
+        AnimationDefinition idle_right;
+        idle_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::IDLE, MotionDirection::RIGHT);
+        idle_right.loop = true;
+        idle_right.frameWidth = frameWidth;
+        idle_right.frameHeight = frameHeight;   
+        idle_right.spriteSheet = renderingInfo.spriteSheet;
         for (int col = 0; col < 7; ++col) {
-            idle.frames.push_back({0, col});
-            idle.frameDurations.push_back(150.f);
-        }
-        
-        // Create BlueTorch Goblin-specific walk animation.
-        AnimationDefinition walk;
-        walk.id = "blue_torch_goblin_walk";
-        walk.loop = true;
-        walk.frameWidth = 1344.f / 7;
-        walk.frameHeight = 960.f / 5;
-        walk.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 8; ++col) {
-            walk.frames.push_back({1, col});
-            walk.frameDurations.push_back(100.f);
+            idle_right.frames.push_back({0, col});
+            idle_right.frameDurations.push_back(150.f);
         }
 
-        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::RIGHT, idle);
-        AnimationDefinition idleLeft = idle;
-        idleLeft.flipForLeft = true;
-        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::LEFT, idleLeft);
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::RIGHT, idle_right);
+
         
-        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::RIGHT, walk);
-        AnimationDefinition walkLeft = walk;
-        walkLeft.flipForLeft = true;
-        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::LEFT, walkLeft);
-        
+        // Create BlueTorch Goblin-specific walk animation.
+        AnimationDefinition walk_right;
+        walk_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::WALK, MotionDirection::RIGHT);
+        walk_right.loop = true;
+        walk_right.frameWidth = frameWidth;
+        walk_right.frameHeight = frameHeight;
+        walk_right.spriteSheet = renderingInfo.spriteSheet;
+        for (int col = 0; col < 6; ++col) {
+            walk_right.frames.push_back({1, col});
+            walk_right.frameDurations.push_back(100.f);
+        }
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::RIGHT, walk_right);
+
         renderingInfo.initAction = MotionAction::IDLE;
         renderingInfo.initDirection = MotionDirection::RIGHT;
         
@@ -131,90 +126,4 @@ protected:
         renderingInfo.animationMapping["idle"] = "blue_torch_goblin_idle";
         renderingInfo.initialAnimationId = "idle";
     }
-
-
-    // Override the specific initialization functions for BlueTorch Goblin.
-    // virtual void initializeCreatureDefinition() override {
-    //     // Set basic info.
-    //     definition.id = creatureID;
-    //     definition.creatureType = CreatureType::Mob;
-        
-    //     // Spawn Info.
-    //     definition.spawnInfo.spawnProbability = 0.6f;
-    //     definition.spawnInfo.group = {1, 2};
-    //     definition.spawnInfo.biomes = {Biome::B_FOREST, Biome::B_BEACH};
-        
-    //     // Gameplay Stats.
-    //     definition.stats.minHealth = 50;
-    //     definition.stats.maxHealth = 70;
-    //     definition.stats.damage = 10;
-    //     definition.stats.speed = 1.2f;
-        
-    //     // Rendering Info.
-    //     definition.renderingInfo.scale = glm::vec2(1344.f / 7, 960.f / 5) * 0.9f;
-    //     definition.renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
-    //     definition.renderingInfo.spriteSheet.sheetDimensions = glm::vec2(1344.f, 960.f);
-        
-    //     // Drop Info.
-    //     definition.dropInfo.dropItems = {"potion", "torch"};
-        
-    //     // Physics Info.
-    //     definition.physicsInfo.offset_to_ground = {0, definition.renderingInfo.scale.y / 4.f * 0.8f};
-    //     float w = definition.renderingInfo.scale.x * 0.4f;
-    //     float h = definition.renderingInfo.scale.y * 0.5f;
-    //     definition.physicsInfo.hitbox.pts = {
-    //         {w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-    //         {w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
-    //     };
-    //     definition.physicsInfo.hitbox.depth = 60;
-    // }
-
-    // virtual void initializeTransitionTable() override {
-    //     // Use the goblin shared transition table.
-    //     transitionTable = &getBasicFighterTransitionTable();
-    //     definition.aiInfo.transitionTable = transitionTable;
-    //     definition.aiInfo.initialState = "patrol";
-    // }
-
-    // virtual void initializeAIConfig() override {
-    //     aiConfig = getGoblinAIConfig();
-    //     definition.aiInfo.aiConfig = getGoblinAIConfig();
-    // }
-
-    // virtual void initializeAnimations() override {
-    //     // Create BlueTorch Goblin-specific animations.
-    //     AnimationDefinition idle;
-    //     idle.id = "blue_torch_goblin_idle";
-    //     idle.loop = true;
-    //     idle.frameWidth = 1344.f / 7;
-    //     idle.frameHeight = 960.f / 5;
-    //     idle.spriteSheet = definition.renderingInfo.spriteSheet;
-    //     for (int col = 0; col < 7; ++col) {
-    //         idle.frames.push_back({0, col});
-    //         idle.frameDurations.push_back(150.f);
-    //     }
-        
-    //     AnimationDefinition walk;
-    //     walk.id = "blue_torch_goblin_walk";
-    //     walk.loop = true;
-    //     walk.frameWidth = 1344.f / 7;
-    //     walk.frameHeight = 960.f / 5;
-    //     walk.spriteSheet = definition.renderingInfo.spriteSheet;
-    //     for (int col = 0; col < 8; ++col) {
-    //         walk.frames.push_back({1, col});
-    //         walk.frameDurations.push_back(100.f);
-    //     }
-        
-    //     animations.clear();
-    //     animations["idle"] = idle;
-    //     animations["walk"] = walk;
-
-
-    //     definition.renderingInfo.animationMapping.clear();
-    //     definition.renderingInfo.animationMapping["idle"] = "default_idle";
-
-    //     definition.renderingInfo.initialAnimationId = "default_idle";
-    // }
 };
-
-// Mark all inline definitions to prevent multiple definition issues.
