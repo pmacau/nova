@@ -1,8 +1,7 @@
 #pragma once
 #include <random>
 #include <entt.hpp>
-#include "spawn_definitions.hpp"  
-#include <creature/enemy_definition.hpp>
+#include "spawn_definitions.hpp"
 #include <creature/creature_defs/creature_definition_data.hpp>
 
 class SpawnSystem {

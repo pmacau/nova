@@ -1,6 +1,5 @@
 #pragma once
-
-#include "creature/enemy_definition.hpp"
+#include <creature/creature_common.hpp>
 #include "ai/ai_common.hpp"              
 #include "ai/state_machine/transition.hpp"
 #include "animation/animation_definition.hpp" 

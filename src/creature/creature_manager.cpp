@@ -2,7 +2,6 @@
 #include <iostream>
 #include <glm/glm.hpp>
 #include <tinyECS/components.hpp>
-#include "enemy_definition.hpp"
 #include "boss_def.hpp"
 
 #include "creature/creature_defs/blue_torch_goblin.hpp"

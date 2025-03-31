@@ -1,7 +1,6 @@
 #pragma once
 
 #include "creature_definition_data.hpp"
-#include "creature/enemy_definition.hpp"
 #include "creature/creature_common.hpp"   // Contains enums like CreatureType, Biome, etc.
 #include "ai/ai_common.hpp"                // For AIConfig defaults.
 #include "ai/state_machine/transition.hpp" // For TransitionTable.
