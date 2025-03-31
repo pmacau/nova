@@ -33,15 +33,6 @@ vec4 vignette(vec4 in_color)
 	return in_color;
 }
 
-// TODO: uncomment this is we want to implement this again in the future
-// darken the screen, i.e., fade to black
-// vec4 fade_color(vec4 in_color) 
-// {
-// 	if (darken_screen_factor > 0)
-// 		in_color -= darken_screen_factor * vec4(0.8, 0.8, 0.8, 0);
-// 	return in_color;
-// }
-
 vec4 day_night_mix(vec4 in_color, float k) {
     float pi = 3.1415926;
     float t = time / 60.0;

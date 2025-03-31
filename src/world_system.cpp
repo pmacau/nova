@@ -340,6 +340,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (screen_state.time > (2.0 * M_PI * 60.0)) {
 		screen_state.time -= (2.0 * M_PI * 60.0);
 	}
+	MapSystem::update_weather(registry, player_entity);
 
 	if ((M_PI * 60.0) <= screen_state.time && screen_state.time <= (2.0 * M_PI * 60.0)) {
 		// It is night-time now
