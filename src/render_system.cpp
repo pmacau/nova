@@ -18,6 +18,7 @@
 #include <cctype>
 
 
+
 RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
 	registry(reg), 
 	quadTree(quadTree)
@@ -649,7 +650,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	#endif
 	
 	v.use();
-	v.setFloat("time", vignette ? screen.time : (M_PI_2 * 60.0));
+	v.setFloat("time", vignette ? screen.time : (M_PI / 2 * 60.0));
 	v.setVec2("resolution", vec2(w, h));
 	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 		
