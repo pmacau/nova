@@ -130,25 +130,16 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
 
 void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
-    //auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
-
     auto& motion = reg.get<Motion>(ent);
-    vec2& pos = motion.position;
-    vec2& formerPos = motion.formerPosition;
+    Biome currB = get_biome(get_tile(motion.position + motion.offset_to_ground));
 
-    Tile currT = get_tile(pos + motion.offset_to_ground);
-    Tile prevT = get_tile(formerPos + motion.offset_to_ground);
-
-    Biome currB = get_biome(currT);
-    Biome prevB = get_biome(prevT);
-
-    if (currB == prevB || currB == B_OCEAN) return;
+    if (currB == B_OCEAN) return;
     Music newTrack;
 
     switch (currB) {
         case B_FOREST:
             newTrack = Music::FOREST;
-            break;  
+            break;
         case B_BEACH:
             newTrack = Music::BEACH;
             break;
@@ -166,7 +157,7 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
             break;
     }
 
-    MusicSystem::playMusic(newTrack);
+    MusicSystem::playMusic(newTrack, -1, 500);
 }
 
 /*
