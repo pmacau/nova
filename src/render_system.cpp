@@ -639,12 +639,15 @@ void RenderSystem::drawToScreen(bool vignette)
 
 	Shader v = shaders.at("vignette");
 
-	if (vignette) {
+	#if WEATHER
+    if (vignette) {
 		if      (screen.curr_effect == EFFECT_ASSET_ID::E_FOG)  v = shaders.at("fog");
 		else if (screen.curr_effect == EFFECT_ASSET_ID::E_SNOW) v = shaders.at("snow");
 		else if (screen.curr_effect == EFFECT_ASSET_ID::E_HEAT) v = shaders.at("heat");
 		else if (screen.curr_effect == EFFECT_ASSET_ID::E_RAIN) v = shaders.at("rain");
 	}
+	#endif
+	
 	v.use();
 	v.setFloat("time", vignette ? screen.time : 0.f);
 	v.setVec2("resolution", vec2(w, h));
