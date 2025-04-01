@@ -56,6 +56,10 @@ void CollisionSystem::step(float elapsed_ms) {
 	for (auto projectile : projectiles) {
 		nearbyEntities.push_back(projectile); 
 	}
+	auto slashes = registry.view<Slash>(); 
+	for (auto slash : slashes) {
+		nearbyEntities.push_back(slash); 
+	}
 	nearbyEntities.push_back(playerEntity); 
 	
 	//std::cout << nearbyEntities.size() << std::endl;
@@ -219,10 +223,38 @@ void CollisionSystem::handle<Projectile, Obstacle>(
 	}
 }
 
+template<>
+void CollisionSystem::handle<Slash, Mob>(
+	entt::entity slash_ent, entt::entity mob_ent, float elapsed_ms
+) {
+	auto& slash = registry.get<Slash>(slash_ent); 
+	auto& mob = registry.get<Mob>(mob_ent);
+
+
+	debug_printf(DebugType::COLLISION, "Slash-mob collision!\n");
+	mob.health -= slash.damage;
+	MusicSystem::playSoundEffect(SFX::HIT);
+
+	UISystem::updateMobHealthBar(registry, mob_ent, true);
+	if (mob.health <= 0) {
+		for (auto&& [hb_ent, healthbar] : registry.view<MobHealthBar>().each()) {
+			if (healthbar.entity == mob_ent) {
+				destroy_entities.insert(hb_ent);
+				break;
+			}
+		}
+		if (registry.any_of<Drop>(mob_ent)) {
+			UISystem::mobDrop(registry, mob_ent);
+		}
+		destroy_entities.insert(mob_ent);
+	}
+}
+
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {
-	if      (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
+	if (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Mob>(e1, e2))  handle<Projectile, Mob>(e1, e2, elapsed_ms);
-	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms); 
+	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms);
+	else if (collision_type<Slash, Mob>(e1, e2)) handle<Slash, Mob>(e1, e2, elapsed_ms); 
 	// TODO: when AI gets improved, make all mobs unable to walk into obstacles
 	else if (collision_type<Obstacle, Player>(e1, e2)) handle<Obstacle, Player>(e1, e2, elapsed_ms);
 	else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);

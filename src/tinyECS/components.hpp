@@ -17,6 +17,10 @@ struct Boss{
 	vec2 spawn;
 };
 
+struct Slash {
+	float damage = 1000.f; // change after
+};
+
 struct InputState {
 	bool up = false;
 	bool down = false;

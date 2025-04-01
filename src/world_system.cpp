@@ -549,6 +549,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
+		std::cout << "slash " << std::endl; 
+		createSlash(registry); 
+	}
+
 	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
 		physics_system.dash(); 
 		std::cout << "daa " << std::endl; 

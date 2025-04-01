@@ -97,6 +97,38 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	return entity;
 }
 
+entt::entity createSlash(entt::registry& registry) {  
+   auto entity = registry.create();  
+
+   registry.emplace<Slash>(entity);  
+
+   auto player = registry.view<Player>().front();
+
+   auto motion_player = registry.get<Motion>(player); 
+
+   auto& motion = registry.emplace<Motion>(entity);  
+   motion.angle = 0.f;  
+   motion.velocity = {0, 0};  
+   motion.position = motion_player.position;  
+   motion.scale = motion.scale * 5.f;  // change later to a more acceptable value 
+   motion.offset_to_ground = {0, 0};  
+
+   float w = motion.scale.x;
+   float h = motion.scale.y;
+   auto& hitbox = registry.emplace<Hitbox>(entity);
+   hitbox.pts = {
+	   {w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
+	   {w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+   };
+   // have an animation animation (for another day)
+   /*auto& renderRequest = registry.emplace<RenderRequest>(entity);  
+   renderRequest.used_texture = TEXTURE_ASSET_ID::SLASH;  
+   renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;  
+   renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;  */
+
+   return entity;  
+}
+
 entt::entity createCamera(entt::registry& registry, entt::entity target)
 {
 	auto entity = registry.create();
