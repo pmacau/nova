@@ -52,7 +52,6 @@ void PhysicsSystem::dash() {
 	auto& motion = registry.get<Motion>(player);
 	// motion.acceleration = 2.0f * motion.velocity;
     motion.acceleration = { 0, 0 };
-    std::cout << "made"; 
     motion.velocity = 1200.f * glm::normalize(motion.velocity);
     
 	
