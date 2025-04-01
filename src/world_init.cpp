@@ -37,6 +37,12 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
+
+	auto& dash = registry.emplace<Dash>(entity); 
+	dash.cooldown = 3.0f;
+	dash.remainingDuration = 0.0f;
+
+
 	float w = motion.scale.x;
 	float h = motion.scale.y;
 	auto& hitbox = registry.emplace<Hitbox>(entity);

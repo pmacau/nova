@@ -10,6 +10,14 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 
 
 void PhysicsSystem::updatePlayerVelocity(InputState i) {
+	if (registry.view<Player>().empty()) return;
+    auto player_entity = registry.view<Player>().front(); 
+	auto dash = registry.get<Dash>(player_entity);
+    if (dash.inUse) {
+        return;
+    }
+
+
     auto& motion = registry.get<Motion>(registry.view<Player>().front());
 	vec2 proposedVelocity = { 0.0f, 0.0f };
     proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
@@ -29,12 +37,49 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
 	
 }
 
+
 // dash  
+void PhysicsSystem::dash() {
+    auto player = registry.view<Player, Dash>().front();
+    auto& dash = registry.get<Dash>(player);
+    if (dash.inUse) {
+        return;
+    }
+    else if (dash.cooldown < 0){
+        dash.inUse = true; 
+		dash.remainingDuration = 0.15f;
+    }
+	auto& motion = registry.get<Motion>(player);
+	// motion.acceleration = 2.0f * motion.velocity;
+    motion.acceleration = { 0, 0 };
+    std::cout << "made"; 
+    motion.velocity = 1200.f * glm::normalize(motion.velocity);
+    
+	
+}
 
 void PhysicsSystem::step(float elapsed_ms) {
     float elapsed_s = elapsed_ms / 1000;
     updateVelocity(elapsed_s);
     stepAcceleration(elapsed_s); 
+    updatePlayerState(elapsed_s); 
+}
+
+void PhysicsSystem::updatePlayerState(float elapsed_s) {
+	auto player = registry.view<Player, Dash>().front();
+	auto& dash = registry.get<Dash>(player);
+	if (dash.inUse && dash.remainingDuration > 0.0f) {
+		dash.remainingDuration -= elapsed_s;
+	} 
+	if (dash.cooldown > 0.0f) {
+		dash.cooldown -= elapsed_s;
+	}
+	if (dash.remainingDuration < 0.0f) {
+		dash.inUse = false;
+		dash.remainingDuration = 0.0f;
+		dash.cooldown = 1.5f;
+	}
+
 }
 
 // always bring it back to 0, maybe change the way it reverts to 0. 
@@ -60,7 +105,12 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     for (auto entity : players) {
         auto& motion = registry.get<Motion>(entity);
         motion.formerPosition = motion.position;
-        motion.velocity += motion.acceleration; // acceleration change
+        if (glm::length(motion.velocity + motion.acceleration) > MAX_SPEED) {
+            motion.velocity = glm::normalize(motion.velocity) * MAX_SPEED;
+        }
+        else {
+            motion.velocity += motion.acceleration; // acceleration change
+        }
         if (registry.all_of<MarkedCollision>(entity)) {
 			motion.velocity = registry.get<MarkedCollision>(entity).velocity;
         } 
@@ -94,8 +144,13 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     m1.acceleration += direction * repellentMagnitude; 
 }
 
-// knocks back e1 in respect to e2's position
+// knocks back e1 in respect to e2's position, E1 MUST BE PLAYER
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
+    auto player = registry.view<Player, Dash>().front(); 
+    auto dash = registry.get<Dash>(player); 
+    if (dash.inUse) {
+        return; 
+    }
     Motion& m1 = registry.get<Motion>(e1);
     vec2 direction = normalize(getDirection(e1, e2));
     m1.acceleration += direction * force;

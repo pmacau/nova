@@ -34,14 +34,14 @@ int main()
 {
 	// TOGGLE this if you don't want a new map every time...
 	int mapWidth = 500, mapHeight = 500; 
-	if (true) {
+	/*if (true) {
 		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		create_biome_map(generated_map);
 		create_terrain_map(generated_map);
 
 		save_map(generated_map, map_path("map.bin").c_str());
-	}
+	}*/
 
 	entt::registry reg;
 

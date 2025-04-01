@@ -57,6 +57,12 @@ struct Ship
 	float timer;
 };
 
+struct Dash {
+	float cooldown = -1.f;
+	float remainingDuration = 0.15f; 
+	bool inUse = false; 
+};
+
 struct ShipWeapon
 {
 };
