@@ -94,6 +94,11 @@ void CollisionSystem::step(float elapsed_ms) {
 			registry.destroy(entity);
 		}
 	}
+	for (auto slash : slashes) {
+		if (registry.valid(slash)) {
+			registry.destroy(slash);
+		}
+	}
 
 
 	/*for (auto&& [e1, m1, h1] : registry.view<Motion, Hitbox>().each()) {
@@ -248,6 +253,9 @@ void CollisionSystem::handle<Slash, Mob>(
 		}
 		destroy_entities.insert(mob_ent);
 	}
+	/*else {
+		kno
+	}*/
 }
 
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {

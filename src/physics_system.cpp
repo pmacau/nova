@@ -145,11 +145,11 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
 
 // knocks back e1 in respect to e2's position, E1 MUST BE PLAYER
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
-    auto player = registry.view<Player, Dash>().front(); 
+    /*auto player = registry.view<Player, Dash>().front(); 
     auto dash = registry.get<Dash>(player); 
     if (dash.inUse) {
         return; 
-    }
+    }*/
     Motion& m1 = registry.get<Motion>(e1);
     vec2 direction = normalize(getDirection(e1, e2));
     m1.acceleration += direction * force;

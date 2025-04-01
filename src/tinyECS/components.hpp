@@ -18,7 +18,7 @@ struct Boss{
 };
 
 struct Slash {
-	float damage = 1000.f; // change after
+	float damage = 100.f; // change after
 };
 
 struct InputState {
