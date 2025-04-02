@@ -19,7 +19,6 @@ public:
 	static void resetDragItem(entt::registry& registry);
 	static void dropItem(entt::registry& registry);
 	static void clearInventoryAndDrop(entt::registry& registry, float x, float y);
-	static void dropForMob(entt::registry& registry, entt::entity& entity);
 	static void mobDrop(entt::registry& registry, entt::entity& mob_entity);
 
 	static vec2 computeHealthBarPosition(Motion mob_motion, vec2 adjust) {

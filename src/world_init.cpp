@@ -632,7 +632,6 @@ entt::entity createCreature(entt::registry& registry, vec2 position, const Creat
 
 	UISystem::creatureDropForMob(registry, entity, def.getDropInfo());
 	
-	// UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = def.getRenderingInfo().spriteSheet.textureAssetID;
