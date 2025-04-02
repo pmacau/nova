@@ -52,8 +52,19 @@ struct RenderingInfo {
     MotionDirection initDirection;
 };
 
+struct QuantityRange {
+    int min;
+    int max;
+};
+
+struct DropItem {
+    Item::Type type;
+    QuantityRange quantityRange;
+    float probability; // Probability of dropping this item.
+};
+
 struct DropInfo {
-    std::vector<std::string> dropItems;
+    std::vector<DropItem> dropItems;
 };
 
 struct PhysicsInfo {

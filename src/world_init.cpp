@@ -629,8 +629,10 @@ entt::entity createCreature(entt::registry& registry, vec2 position, const Creat
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = def.getPhysicsInfo().hitbox.pts;
 	hitbox.depth = def.getPhysicsInfo().hitbox.depth;
+
+	UISystem::creatureDropForMob(registry, entity, def.getDropInfo());
 	
-	UISystem::dropForMob(registry, entity);
+	// UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = def.getRenderingInfo().spriteSheet.textureAssetID;

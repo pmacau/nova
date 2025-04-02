@@ -528,6 +528,24 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
 	}
 }
 
+void UISystem::creatureDropForMob(entt::registry& registry, entt::entity& entity, DropInfo dropInfo) {
+	auto& drop = registry.emplace<Drop>(entity);
+	drop.items.clear();
+	for (auto dropItem: dropInfo.dropItems) {
+		// roll for item drop
+		float randomNo = uniform_dist(rng);
+		if (randomNo <= dropItem.probability) {
+			Item item;
+			item.type = dropItem.type;
+			
+			auto distribution = std::uniform_int_distribution<int>(dropItem.quantityRange.min, dropItem.quantityRange.max);
+			int randomQuantity = distribution(rng);
+			item.no = randomQuantity;
+			drop.items.push_back(item);
+		}
+	}
+}
+
 // TODO use external file with set probabilities instead
 void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
 	if (registry.any_of<Drop>(entity)) {

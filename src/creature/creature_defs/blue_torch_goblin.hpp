@@ -75,7 +75,28 @@ protected:
     }
 
     virtual void initializeDropInfo() override {
-        dropInfo.dropItems = {"potion", "torch"};
+        dropInfo.dropItems.clear();
+
+        DropItem potion;
+        potion.type = Item::Type::POTION;
+        potion.quantityRange.min = 1;
+        potion.quantityRange.max = 3;
+        potion.probability = 0.5f;
+        dropInfo.dropItems.push_back(potion);
+
+        DropItem iron;
+        iron.type = Item::Type::IRON;
+        iron.quantityRange.min = 1;
+        iron.quantityRange.max = 5;
+        iron.probability = 0.2f;
+        dropInfo.dropItems.push_back(iron);
+
+        DropItem copper;
+        copper.type = Item::Type::COPPER;
+        copper.quantityRange.min = 1;
+        copper.quantityRange.max = 5;
+        copper.probability = 0.3f;
+        dropInfo.dropItems.push_back(copper);
     }
 
     virtual void initializeAIInfo() override {

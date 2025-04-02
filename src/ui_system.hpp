@@ -1,5 +1,6 @@
 #pragma once
 #include <entt.hpp>
+#include <creature/creature_common.hpp>
 #include "music_system.hpp"
 #include <random>
 
@@ -26,6 +27,8 @@ public:
 		float top = mob_motion.position.y - mob_motion.scale.y / 2.f + adjust.y;
 		return { left, top };
 	}
+
+	static void creatureDropForMob(entt::registry& registry, entt::entity& entity, DropInfo dropInfo);
 private:
 	static std::mt19937 rng;
 	static std::uniform_real_distribution<float> uniform_dist;
