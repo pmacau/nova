@@ -14,14 +14,14 @@
 #include <creature/creature_defs/ai_defs/ai_globin_def.hpp>
 #include <animation/animation_manager.hpp>
 
-class BlueTorchGoblinDefData : public CreatureDefinitionData {
+class PurpleTorchGoblinDefData : public CreatureDefinitionData {
 public:
-    BlueTorchGoblinDefData() {
-        creatureID = CreatureID::GOBLIN_TORCH_BLUE;
+PurpleTorchGoblinDefData() {
+        creatureID = CreatureID::GOBLIN_TORCH_PURPLE;
         creatureType = CreatureType::Mob;
         initialize();
     }
-    virtual ~BlueTorchGoblinDefData() = default;
+    virtual ~PurpleTorchGoblinDefData() = default;
 
     // Explicit initialize method that calls all the initialization functions.
     virtual void initialize() override {
@@ -36,8 +36,8 @@ public:
         initializeUIInfo();
     }
 
-    static const BlueTorchGoblinDefData& getInstance() {
-        static BlueTorchGoblinDefData instance;
+    static const PurpleTorchGoblinDefData& getInstance() {
+        static PurpleTorchGoblinDefData instance;
         return instance;
     }
 
@@ -45,7 +45,7 @@ protected:
     virtual void initializeSpawnInfo() override {
         spawnInfo.spawnProbability = 0.6f;
         spawnInfo.group = {1, 2};
-        spawnInfo.biomes = {Biome::B_ICE, Biome::B_FOREST};
+        spawnInfo.biomes = {Biome::B_JUNGLE};
     }
 
     virtual void initializeStats() override {
@@ -58,7 +58,7 @@ protected:
 
     virtual void initializeRenderingInfo() override {
         renderingInfo.scale = glm::vec2(1344.f / 7, 960.f / 5);
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_PURPLE;
         renderingInfo.spriteSheet.sheetDimensions = glm::vec2(1344.f, 960.f);
     }
 
