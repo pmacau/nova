@@ -1,6 +1,7 @@
 #pragma once
 #include "creature_common.hpp"
 #include "boss_def.hpp"
+#include <creature/creature_defs/creature_definition_data.hpp>
 
 class CreatureManager {
 public:
@@ -11,10 +12,12 @@ public:
     void loadDefinitions();
 
     // Get a creature definition by ID.
-    const CreatureDefinition* getDefinition(const std::string& id) const;
+    const CreatureDefinitionData* getDefinition(const CreatureID& id) const;
 
-    std::vector<const CreatureDefinition*> queryDefinitions(
-        const std::function<bool(const CreatureDefinition&)>& predicate) const;
+    void registerDefinition(const CreatureDefinitionData* def);
+
+    std::vector<const CreatureDefinitionData*> queryDefinitions(
+        const std::function<bool(const CreatureDefinitionData&)>& predicate) const;
 
     // TODO: hide this in future and provide a getter and setter
     std::vector<BossSpawn> bossSpawnData;
@@ -26,5 +29,5 @@ private:
 
     void loadBossSpawnData();
 
-    std::unordered_map<std::string, CreatureDefinition> definitions;
+    std::unordered_map<CreatureID, const CreatureDefinitionData*> definitions;
 };

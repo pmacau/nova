@@ -1,7 +1,7 @@
 #include "chase_state.hpp"
 #include "ai/ai_component.hpp"
 #include "ai/state_machine/attack_state.hpp"
-#include "ai/ai_common.hpp"  // for CHASE_SPEED, ATTACK_RANGE, etc.
+#include "ai/ai_common.hpp" 
 #include "tinyECS/components.hpp"
 #include <cmath>
 #include <iostream>
@@ -11,6 +11,8 @@
 
 #include <util/debug.hpp>
 #include <world_init.hpp>
+#include <animation_system.hpp>
+
 
 static Pathfinder g_pathFinder;
 
@@ -56,6 +58,12 @@ void ChaseState::onEnter(entt::registry& registry, entt::entity entity) {
     ivec2 playerTile = ivec2(MapSystem::get_tile_indices(playerFootPos));
 
     regeneratePath(registry, enemyTile, playerTile);
+
+    // animation
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::WALK);
+    }
 }
 
 void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
