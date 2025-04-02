@@ -71,27 +71,10 @@ vec2 MapSystem::populate_ecs(
                     p_pos = map_pos;
                     break;
                 case Decoration::TREE:
-                    if (get_terrain(game_map[i][j]) == Terrain::SAND) {
-                        createTree(reg, map_pos, {0, 1});
-                    } else {
-                        switch (get_biome(game_map[i][j])) {
-                            case B_FOREST:
-                                createTree(reg, map_pos, {0, 0});
-                                break;
-                            case B_SAVANNA:
-                                createTree(reg, map_pos, {0, 4});
-                                break;
-                            case B_ICE:
-                                createTree(reg, map_pos, {0, 3});
-                                break;
-                            case B_JUNGLE:
-                                createTree(reg, map_pos, {0, 5});
-                                break;
-                            default:
-                                createTree(reg, map_pos, {0, 2});
-                                break;
-                        }
-                    }
+                    createTree(
+                        reg, map_pos,
+                        get_biome(game_map[i][j]), get_terrain(game_map[i][j])
+                    );
                     break;
                 case Decoration::SHIP:
                     s_pos = map_pos;
@@ -130,19 +113,12 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
 
 void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
-    //auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
+    auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
 
     auto& motion = reg.get<Motion>(ent);
-    vec2& pos = motion.position;
-    vec2& formerPos = motion.formerPosition;
+    Biome currB = get_biome(get_tile(motion.position + motion.offset_to_ground));
 
-    Tile currT = get_tile(pos + motion.offset_to_ground);
-    Tile prevT = get_tile(formerPos + motion.offset_to_ground);
-
-    Biome currB = get_biome(currT);
-    Biome prevB = get_biome(prevT);
-
-    if (currB == prevB || currB == B_OCEAN) return;
+    if (currB == B_OCEAN) return;
     Music newTrack;
 
     switch (currB) {
@@ -166,7 +142,23 @@ void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
             break;
     }
 
-    MusicSystem::playMusic(newTrack);
+    MusicSystem::playMusic(newTrack, -1, 500);
+}
+
+void MapSystem::update_weather(entt::registry& reg, entt::entity ent) {
+    if (!reg.all_of<Motion>(ent)) return;
+    auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
+
+    auto& motion = reg.get<Motion>(ent);
+    Biome currB = get_biome(get_tile(motion.position + motion.offset_to_ground));
+
+    if      (currB == B_OCEAN)   return;
+    else if (currB == B_FOREST)  screen.curr_effect = EFFECT_ASSET_ID::VIGNETTE;
+    else if (currB == B_BEACH)   screen.curr_effect = EFFECT_ASSET_ID::E_RAIN;
+    else if (currB == B_SAVANNA) screen.curr_effect = EFFECT_ASSET_ID::E_HEAT;
+    else if (currB == B_JUNGLE)  screen.curr_effect = EFFECT_ASSET_ID::E_FOG;
+    else if (currB == B_ICE)     screen.curr_effect = EFFECT_ASSET_ID::E_SNOW;
+    else                         screen.curr_effect = EFFECT_ASSET_ID::VIGNETTE;
 }
 
 /*

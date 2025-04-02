@@ -33,18 +33,9 @@ vec4 vignette(vec4 in_color)
 	return in_color;
 }
 
-// TODO: uncomment this is we want to implement this again in the future
-// darken the screen, i.e., fade to black
-// vec4 fade_color(vec4 in_color) 
-// {
-// 	if (darken_screen_factor > 0)
-// 		in_color -= darken_screen_factor * vec4(0.8, 0.8, 0.8, 0);
-// 	return in_color;
-// }
-
 vec4 day_night_mix(vec4 in_color, float k) {
     float pi = 3.1415926;
-    float t = 4 * time / (60.0 * pi);
+    float t = time / 60.0;
 
     vec2 center = vec2(0.5, 0.5);
     vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
@@ -52,7 +43,7 @@ vec4 day_night_mix(vec4 in_color, float k) {
 
     float radius = 0.1;
 
-    float darkness = clamp(0.5 * (1.0 + tanh(k * sin(t - (5.0 * pi / 6.0)))), 0.0, 0.95);
+    float darkness = clamp(0.5 * (1.0 + tanh(k * cos(t - (3.0 * pi / 2.0)))), 0.0, 0.95);
     float light_strength = smoothstep(0, radius, dist);
 
     if (dist <= radius && darkness > 0.5) {

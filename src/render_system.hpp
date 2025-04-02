@@ -84,6 +84,9 @@ class RenderSystem {
 		shader_path("text"),
 		shader_path("line"),
 		shader_path("snow"),
+		shader_path("fog"),
+		shader_path("heat"),
+		shader_path("rain"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
