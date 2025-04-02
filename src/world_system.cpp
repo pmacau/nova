@@ -262,30 +262,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		mouse_click_poll = MOUSE_POLL_RATE;
 	}
 
-
-	// TODO: move direction system
-	float threshold = 5.f;
-	auto dir_view = registry.view<Motion, Sprite>();
-	for (auto& entity : dir_view) {
-		auto& motion = registry.get<Motion>(entity);
-		auto& sprite = registry.get<Sprite>(entity);
-
-		if (length(motion.velocity) > threshold) {
-			vec2 velo = motion.velocity;
-			float x_scale = abs(motion.scale.x);
-
-			if (abs(velo.y) > threshold) {
-				sprite.coord.row = (velo.y > threshold) ? sprite.down_row : sprite.up_row;
-				motion.scale.x = x_scale;
-			}
-
-			if (abs(velo.x) > threshold) {
-				sprite.coord.row = sprite.right_row;
-				motion.scale.x = (velo.x < threshold) ? -1.f * x_scale : x_scale;
-			}
-		}
-	}
-
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
 	auto &ship = registry.get<Ship>(ship_entity);
 	auto mobs = registry.view<Mob>();

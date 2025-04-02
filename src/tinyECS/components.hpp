@@ -6,7 +6,8 @@
 #include <cmath>
 #include <limits>
 #include <entt.hpp>
-#include <animation/animation_definition.hpp>
+#include <animation/animation_common.hpp>
+#include <map/tile.hpp>
 
 struct Glyph{};
 struct Tree{};
@@ -15,6 +16,7 @@ struct Background{};
 struct Boss{
 	float agro_range;
 	vec2 spawn;
+	float damage;
 };
 
 struct InputState {
