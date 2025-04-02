@@ -32,7 +32,7 @@ enum SFX {
 const int sfx_count = (int) SFX_COUNT;
 
 enum Music {
-    FOREST, BEACH, JUNGLE, OCEAN, SAVANNA, SNOWLANDS,
+    FOREST, BEACH, JUNGLE, NIGHT, SAVANNA, SNOWLANDS,
     MUSIC_COUNT
 };
 const int music_count = (int) MUSIC_COUNT;
@@ -80,7 +80,7 @@ public:
         static void playMusic(Music music, int loops = -1, int fade_time = 0) {
             if (music != currentTrack && music_map.find(music) != music_map.end()) {
                 std::thread(fade_to_track, music, loops, fade_time).detach();
-            };
+            }
         }
 
         static void updateSoundTimers(int elapsed_ms) {
@@ -105,7 +105,7 @@ private:
             {FOREST,    {"music/forest.wav"}},
             {BEACH,     {"music/beach.wav"}},
             {JUNGLE,    {"music/jungle.wav"}},
-            {OCEAN,     {"music/ocean.wav"}},
+            {NIGHT,     {"music/night.wav"}},
             {SAVANNA,   {"music/savanna.wav"}},
             {SNOWLANDS, {"music/snowlands.wav"}}
         };
@@ -157,6 +157,8 @@ private:
 
         static void fade_to_track(Music music, int loops = -1, int fade_time = 0) {
             std::lock_guard<std::mutex> lock(musicMutex);
+
+            if (music == currentTrack) return;
 
             if (Mix_PlayingMusic()) {
                 Mix_FadeOutMusic(fade_time);

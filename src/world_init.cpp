@@ -416,37 +416,88 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 // 	return entity;
 // }
 
-entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoord) {
-	auto entity = registry.create();
 
-	registry.emplace<Tree>(entity);
+std::random_device rd;
+std::mt19937 rng(rd());
+std::uniform_real_distribution<float> flip(0.f, 1.f);
+std::uniform_int_distribution<int> variation(0, 2);
+
+void setTreeType(
+	entt::registry& registry,
+	entt::entity entity,
+	vec2 pos,
+	Biome biome, Terrain terrain
+) {
+	vec2 box_dims = {132.f, 148.f};
 
 	auto& motion = registry.emplace<Motion>(entity);
-	//motion.scale = GAME_SCALE * vec2(50.f, 99.f);
-	//motion.offset_to_ground = GAME_SCALE * vec2(0.f, 49.5f);
-	motion.scale = GAME_SCALE * vec2(132.f, 148.f);
-	motion.offset_to_ground = GAME_SCALE * vec2(0.f, 74.f);
+	motion.scale = GAME_SCALE * box_dims;
+	motion.offset_to_ground = GAME_SCALE * vec2(0.f, box_dims.y / 2.f);
 	motion.position = pos - motion.offset_to_ground;
 	motion.velocity = {0.f, 0.f};
 
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.coord = spriteCoord;
-	//sprite.dims = {50.f, 99.f};
-	sprite.dims = {132.f, 148.f};
-	//sprite.sheet_dims = {250.f, 99.f};
-	sprite.sheet_dims = {792.f, 148.f};
+	sprite.sheet_dims = {1320.f, 296.f};
+	sprite.dims = box_dims;
 
-	// TODO: make this hitbox trapezoid at the root
-	float w = 18.f;
-	float h = 16.f;
-	float g = 100.f;
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	float w = 18.f, h = 16.f, g = 100.f;
+
+	bool normal = flip(rng) <= 0.7;
+	int t = variation(rng);
+
+	switch (biome) {
+		case B_JUNGLE:
+			if (normal) {
+				sprite.coord = {1, 0 + t};
+			} else {
+				w = 24.f;
+				sprite.coord = {1, 3 + t};
+			}
+			break;
+
+		case B_ICE:
+			if (normal) {
+				sprite.coord = {0, 3};
+			} else {
+				sprite.coord = {0, 4};
+			}
+			break;
+
+		case B_SAVANNA:
+			if (normal) {
+				hitbox.depth = 20.f;
+				sprite.coord = {0, 7 + t};
+			} else {
+				w = 38.f;
+				sprite.coord = {1, 7 + t};
+			}
+			break;
+
+		case B_BEACH:
+			sprite.coord = {0, 5};
+			break;
+
+		default: // set to forest stats otherwise
+			sprite.coord = {0, 0 + t};
+			break;
+	}
+
+	if (terrain == Terrain::SAND) {
+		sprite.coord = {0, 6};
+		w = 18.f;
+	}
 
 	// hitbox is relative to object's center
-	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = {
 		{w * -0.5f, g + h * -0.5f}, {w * 0.5f, g + h * -0.5f},
 		{w * 0.5f, g + h * 0.5f},   {w * -0.5f, g + h * 0.5f}
 	};
+}
+
+entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain terrain) {
+	auto entity = registry.create();
+	registry.emplace<Tree>(entity);
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
@@ -455,6 +506,8 @@ entt::entity createTree(entt::registry& registry, vec2 pos, FrameIndex spriteCoo
 	renderRequest.used_texture = TEXTURE_ASSET_ID::TREE;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	setTreeType(registry, entity, pos, biome, terrain);
 
 	return entity;
 }

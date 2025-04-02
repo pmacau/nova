@@ -18,6 +18,7 @@ public:
 
     static void update_location(entt::registry& reg, entt::entity ent);
     static void update_background_music(entt::registry& reg, entt::entity ent);
+    static void update_weather(entt::registry& reg, entt::entity ent);
 
     inline static int map_width  = -1;
     inline static int map_height = -1;
