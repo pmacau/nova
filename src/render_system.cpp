@@ -1002,7 +1002,7 @@ void RenderSystem::renderUpgradeUI()
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			int textWidth = getTextWidth(ui_option.text, 4);
+			int textWidth = getTextWidth(ui_option.text, 4.0);
 			float centeredX = ui_option.position.x - textWidth / 2.0f;
 			float centeredY = ui_option.position.y + ui_option.size.y / 2.0f + 10.0f;
 			
@@ -1010,7 +1010,7 @@ void RenderSystem::renderUpgradeUI()
 				ui_option.text, 
 				centeredX, 
 				centeredY, 
-				4, 
+				4.0, 
 				glm::vec3(1.0f, 1.0f, 1.0f), 
 				ui_projection_2D
 			);
@@ -1024,9 +1024,9 @@ void RenderSystem::renderUpgradeUI()
 
 	renderText(
 		"UPGRADES",  
-		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 4)/2, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 6)/2, 
 		100.f,
-		4, 
+		6, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1095,9 +1095,9 @@ void RenderSystem::renderShipUI()
 	drawToScreen(false);
 	renderText(
 		"SHIP UPGRADES", 
-		WINDOW_WIDTH_PX / 2 - 180, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("SHIP UPGRADES", 6)/2, 
 		100.f,
-		4, 
+		6, 
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1189,17 +1189,48 @@ void RenderSystem::renderShipUI()
 				ui_projection_2D);
 		}
 	}
-	
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
+}
+
+void RenderSystem::renderWeaponUI() 
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// dark purple background
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	drawToScreen(false);
 	renderText(
-		"SHIP UPGRADES", 
-		-width/2*0.15f,
-		height/2*0.4f, 
-		1, 
-		glm::vec3(1.0f, 1.0f, 1.0f), 
+		"WEAPON UPGRADES", 
+		WINDOW_WIDTH_PX / 2 - 180, 
+		100.f,
+		4, 
+		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
-
-
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -1226,7 +1257,7 @@ void RenderSystem::draw()
             // renderPlayerUI
             break;
 		case ScreenState::ScreenType::WEAPON_UPGRADE_UI:
-            // renderWeaponUI
+            renderWeaponUI();
             break;
         case ScreenState::ScreenType::GAMEPLAY:
             renderGamePlay();

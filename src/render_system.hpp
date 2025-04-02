@@ -142,6 +142,7 @@ private:
 	void renderGamePlay();
 	void renderUpgradeUI();
 	void renderShipUI();
+	void renderWeaponUI();
 	void drawDebugHitBoxes(const glm::mat3& projection);
 	void drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection);
 

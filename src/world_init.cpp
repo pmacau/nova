@@ -932,7 +932,7 @@ entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 s
 	return entity;
 }
 
-entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int iconNum, vec2 sprite_dims, vec2 sprite_sheet_dims)
+entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, TEXTURE_ASSET_ID icon, vec2 sprite_dims, vec2 sprite_sheet_dims)
 {
 	auto entity = registry.create();
 	registry.emplace<UIIcon>(entity);
@@ -951,9 +951,9 @@ entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int
 	sprite.sheet_dims = sprite_sheet_dims;
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	iconNum = std::clamp(iconNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+	// iconNum = std::clamp(iconNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
 
-	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(iconNum);
+	renderRequest.used_texture = icon;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 

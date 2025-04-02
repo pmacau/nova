@@ -130,8 +130,9 @@ void WorldSystem::init() {
 	createButton(registry, vec2(w/4, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::PLAYER, "Player"); 
 	createButton(registry, vec2(2*w/6 + w/2*0.15f, h/4), vec2(w/6 - w/2*0.21f, w/6 - w/2*0.21f), ButtonOption::Option::WEAPON, "Weapons"); 
 
-	createIcon(registry, vec2(2*w/6 - w/2*0.48f, h/4 - h/2*0.005f), vec2(w/6 - w/2*0.23f, w/6 - w/2*0.23f), 1, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
-	createIcon(registry, vec2(w/4, h/4), PLAYER_SPRITESHEET.dims * vec2(1.8f, 1.8f), 0, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
+	createIcon(registry, vec2(2*w/6 - w/2*0.48f, h/4 - h/2*0.005f), vec2(w/6 - w/2*0.23f, w/6 - w/2*0.23f), TEXTURE_ASSET_ID::SHIP_FULL_HP, vec2(128.0f, 128.0f), vec2(128.0f, 128.0f)); 
+	createIcon(registry, vec2(w/4, h/4), PLAYER_SPRITESHEET.dims * vec2(1.8f, 1.8f), TEXTURE_ASSET_ID::PLAYER, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims); 
+	createIcon(registry, vec2(4*w/6 - w/2*0.515f, h/4 - h/2*0.005f), 0.8f * vec2((w/6 - w/2*0.23f) * 0.75f, (w/12 - w/4*0.23f) * 0.66f), TEXTURE_ASSET_ID::DEFAULT_WEAPON, vec2(100.0f, 100.0f), vec2(100.0f, 100.0f)); 
 
 
 	// init all the ui ship stuff
@@ -564,8 +565,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         } else if (screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
 			debug_printf(DebugType::USER_INPUT, "Closing Upgrade UI\n");
             screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
-        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
-			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
+        } else if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI || 
+					screen_state.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI ||
+					screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+			debug_printf(DebugType::USER_INPUT, "Closing Ship/Weapon/Player Upgrade UI\n");
             // screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 			screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
         }
@@ -705,6 +708,9 @@ void WorldSystem::left_mouse_click() {
 				MusicSystem::playSoundEffect(SFX::SELECT);
 				if (title_option.type == ButtonOption::Option::SHIP) {
 					screen_state.current_screen = ScreenState::ScreenType::SHIP_UPGRADE_UI;
+					return;
+				} else if (title_option.type == ButtonOption::Option::WEAPON) {
+					screen_state.current_screen = ScreenState::ScreenType::WEAPON_UPGRADE_UI;
 					return;
 				}
 				// else if (title_option.type == ButtonOption::Option::EXIT) {
