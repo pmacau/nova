@@ -6,7 +6,8 @@
 #include <cmath>
 #include <limits>
 #include <entt.hpp>
-#include <animation/animation_definition.hpp>
+#include <animation/animation_common.hpp>
+#include <map/tile.hpp>
 
 struct Glyph{};
 struct Tree{};
@@ -15,6 +16,7 @@ struct Background{};
 struct Boss{
 	float agro_range;
 	vec2 spawn;
+	float damage;
 };
 
 struct InputState {
@@ -411,7 +413,7 @@ enum class TEXTURE_ASSET_ID {
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
-	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, LINE, E_SNOW, EFFECT_COUNT
+	TEXTURED, VIGNETTE, COLOURED, DEBUG, TEXT, LINE, E_SNOW, E_FOG, E_HEAT, E_RAIN, EFFECT_COUNT
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -480,6 +482,7 @@ struct ScreenState
     };
 
     ScreenType current_screen;
+	EFFECT_ASSET_ID curr_effect = EFFECT_ASSET_ID::VIGNETTE;
 
 	float time = 0;
 	float darken_screen_factor = 0;

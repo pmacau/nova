@@ -18,6 +18,7 @@
 #include <cctype>
 
 
+
 RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
 	registry(reg), 
 	quadTree(quadTree)
@@ -636,19 +637,26 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	auto& screen = registry.get<ScreenState>(screen_entity);
+
+	Shader v = shaders.at("vignette");
+
+	#if WEATHER
+    if (vignette) {
+		if      (screen.curr_effect == EFFECT_ASSET_ID::E_FOG)  v = shaders.at("fog");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_SNOW) v = shaders.at("snow");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_HEAT) v = shaders.at("heat");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_RAIN) v = shaders.at("rain");
+	}
+	#endif
 	
-
-	Shader& v = shaders.at("vignette");
 	v.use();
-	unsigned int program = v.ID;
-
-	v.setFloat("time", vignette ? screen.time : 0.f);
-	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
+	v.setFloat("time", vignette ? screen.time : (M_PI / 2 * 60.0));
 	v.setVec2("resolution", vec2(w, h));
+	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 		
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(v.ID, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();
@@ -893,6 +901,14 @@ void RenderSystem::renderGamePlay()
 	for (const auto& [content, position, scale, color, projection, wrap] : textsToRender) {
 		renderText(content, position.x, position.y, scale, color, projection, wrap);
 	}
+
+	float x_ratio = (playerMotion.position.x / 16.f) / 500.f;
+	float y_ratio = (playerMotion.position.y / 16.f) / 500.f;
+	vec2 scale = vec2(499.f) / 3.f;
+	vec2 offset = { WINDOW_WIDTH_PX - 175.f, 150.f };
+	vec2 marker_pos = vec2(scale.x * x_ratio, scale.y * y_ratio) + offset - scale / 2.f;
+
+	renderText("*", marker_pos.x, marker_pos.y, 1, vec3(0), ui_projection_2D);
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);

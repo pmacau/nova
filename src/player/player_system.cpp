@@ -4,6 +4,8 @@
 #include <cmath>
 #include <algorithm>
 #include <animation/animation_component.hpp>
+#include <animation/animation_manager.hpp>
+#include <animation_system.hpp>
 
 PlayerSystem::PlayerSystem(entt::registry& registry)
     : registry(registry)
@@ -27,49 +29,21 @@ void PlayerSystem::updatePlayerAnimationState() {
     vec2 velocity = motion.velocity;
     constexpr float epsilon = 1.f;
 
-    if (length(velocity) < epsilon) {
-        // If velocity is very low, switch to idle animation.
-        if (animComp.currentAnimationId == "player_walk_right") {
-            animComp.currentAnimationId = "player_idle_right";
-            animComp.timer = 0.0f;
-            animComp.currentFrameIndex = 0;
-        }
-        else if (animComp.currentAnimationId == "player_walk_up") {
-            animComp.currentAnimationId = "player_idle_up";
-            animComp.timer = 0.0f;
-            animComp.currentFrameIndex = 0;
-        }
-        else if (animComp.currentAnimationId == "player_walk_down") {
-            animComp.currentAnimationId = "player_idle_down";
-            animComp.timer = 0.0f;
-            animComp.currentFrameIndex = 0;
-        }
+    std::string animation_id = AnimationManager::getInstance().buildAnimationKey(
+        animComp.animation_header, animComp.action, animComp.direction);
 
-        // if (animComp.currentAnimationId != "player_idle") {
-        //     animComp.currentAnimationId = "player_idle";
-        //     animComp.timer = 0.0f;
-        //     animComp.currentFrameIndex = 0;
-        // }
-        // Ensure no horizontal flip.
-        // motion.scale.x = std::abs(motion.scale.x);
+    std::string player_walk_right = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::WALK, MotionDirection::RIGHT);
+    std::string player_walk_up = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::WALK, MotionDirection::UP);
+    std::string player_walk_down = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::WALK, MotionDirection::DOWN);
+
+    std::string player_idle_right = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::RIGHT);
+    std::string player_idle_up = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::UP);
+    std::string player_idle_down = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::DOWN);
+
+    if (length(velocity) < epsilon) {
+        AnimationSystem::setAnimationAction(animComp, MotionAction::IDLE);
     }
     else {
-        if (std::abs(velocity.x) > std::abs(velocity.y)) {
-            animComp.currentAnimationId = "player_walk_right";
-            // Flip sprite if moving left.
-            if (velocity.x < 0)
-                motion.scale.x = -std::abs(motion.scale.x);
-            else
-                motion.scale.x = std::abs(motion.scale.x);
-        }
-        else {
-            if (velocity.y > 0)
-                animComp.currentAnimationId = "player_walk_down";
-            else
-                animComp.currentAnimationId = "player_walk_up";
-            // Ensure no horizontal flip.
-            motion.scale.x = std::abs(motion.scale.x);
-        }
+        AnimationSystem::setAnimationAction(animComp, MotionAction::WALK);
     }
-    // The generic AnimationSystem will read animComp.currentAnimationId and update frame timing.
 }

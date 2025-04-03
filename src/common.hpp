@@ -28,6 +28,8 @@ using namespace glm;
 #define M_PI 3.14159265358979323846f
 #endif
 
+// Switch between 0 and 1 to toggle weather effects
+#define WEATHER 0
 
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
@@ -101,7 +103,7 @@ const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
 const int SHIP_RANGE_UPGRADE_IRON = 5;
 
 // Weather
-const bool ENABLE_WEATHER = false;
+const bool ENABLE_WEATHER = true;
 
 // Camera system
 const float CAMERA_SPEED = 0.2f;

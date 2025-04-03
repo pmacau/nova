@@ -262,30 +262,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		mouse_click_poll = MOUSE_POLL_RATE;
 	}
 
-
-	// TODO: move direction system
-	float threshold = 5.f;
-	auto dir_view = registry.view<Motion, Sprite>();
-	for (auto& entity : dir_view) {
-		auto& motion = registry.get<Motion>(entity);
-		auto& sprite = registry.get<Sprite>(entity);
-
-		if (length(motion.velocity) > threshold) {
-			vec2 velo = motion.velocity;
-			float x_scale = abs(motion.scale.x);
-
-			if (abs(velo.y) > threshold) {
-				sprite.coord.row = (velo.y > threshold) ? sprite.down_row : sprite.up_row;
-				motion.scale.x = x_scale;
-			}
-
-			if (abs(velo.x) > threshold) {
-				sprite.coord.row = sprite.right_row;
-				motion.scale.x = (velo.x < threshold) ? -1.f * x_scale : x_scale;
-			}
-		}
-	}
-
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
 	auto &ship = registry.get<Ship>(ship_entity);
 	auto mobs = registry.view<Mob>();
@@ -337,7 +313,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// TODO: freeze everything if in ship_ui
 	
 	MapSystem::update_location(registry, player_entity);
-	MapSystem::update_background_music(registry, player_entity);
+	if (screen_state.time > (2.0 * M_PI * 60.0)) {
+		screen_state.time -= (2.0 * M_PI * 60.0);
+	}
+	MapSystem::update_weather(registry, player_entity);
+
+	if ((M_PI * 60.0) <= screen_state.time && screen_state.time <= (2.0 * M_PI * 60.0)) {
+		// It is night-time now
+		MusicSystem::playMusic(NIGHT, -1, 200);
+	} else {
+		MapSystem::update_background_music(registry, player_entity);
+	}
   
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
@@ -513,7 +499,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
+		// int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
 		// glfwGetWindowSize(window, &w, &h);
 
         restart_game();
@@ -592,14 +578,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
-	//// TODO: testing sound system. remove this later
-	//if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
-	//if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
-	//if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
-	//if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
-	//if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
-	//if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
 
 	if (key == GLFW_KEY_1 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 50.f, 50.f, Click::LEFT);
 	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 95.f, 50.f, Click::LEFT);
