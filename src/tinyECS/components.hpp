@@ -150,6 +150,11 @@ struct UIIcon
 
 };
 
+struct WeaponUIIcon
+{
+
+};
+
 struct PlayerHealthBar
 {
 };
@@ -159,7 +164,19 @@ struct Button
 
 };
 
-struct UpgradeButton
+struct WeaponButton
+{
+
+};
+
+struct ShipUpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
+};
+
+struct WeaponUpgradeButton
 {
 	std::string text;
 	bool missingResources = false;
@@ -242,6 +259,16 @@ struct ButtonOption
 		SHIP_BLASTER_UPGRADE,
 		SHIP_RANGE_UPGRADE,
 		SHIP_FIRERATE_UPGRADE,
+
+		// for weapon upgrade screen
+		PISTOL_UPGRADE,
+		PISTOL_UNLOCK,
+		HOMING_MISSLE_UPGRADE,
+		HOMING_MISSLE_UNLOCK,
+		SHOTGUN_UPGRADE,
+		SHOTGUN_UNLOCK,
+		MELEE_UPGRADE,
+		MELEE_UNLOCK,
 	};
 	Option type;
 	std::string text;
@@ -402,6 +429,10 @@ enum class TEXTURE_ASSET_ID {
 	GREEN_BUTTON_PRESSED,
 	RED_BUTTON_ACTIVE,
 	RED_BUTTON_PRESSED,
+	BLUE_BUTTON_ACTIVE,
+	BLUE_BUTTON_PRESSED,
+	WEAPON_UPGRADE_BUTTON,
+	PURPLE_BUTTON,
 	MINIMAP,
 	TEXT,
 	TEXTURE_COUNT

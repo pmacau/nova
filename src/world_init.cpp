@@ -657,24 +657,31 @@ void createDefaultWeapon(entt::registry& registry) {
 	auto default_weapon_entity = registry.create();
 	registry.emplace<UI>(default_weapon_entity);
 	registry.emplace<FixedUI>(default_weapon_entity);
+
 	auto& motion = registry.emplace<Motion>(default_weapon_entity);
 	motion.position = { 50.f, 50.f };
 	motion.scale = vec2(121.f, 54.f) / 4.0f;
+
 	auto& item = registry.emplace<Item>(default_weapon_entity);
 	item.type = Item::Type::DEFAULT_WEAPON;
 	inventory_slot.hasItem = true;
 	inventory_slot.item = default_weapon_entity;
+
 	auto& sprite = registry.emplace<Sprite>(default_weapon_entity);
 	sprite.dims = { 121.f, 54.f };
 	sprite.sheet_dims = { 121.f, 54.f };
+
 	auto& render_request_weapon = registry.emplace<RenderRequest>(default_weapon_entity);
 	render_request_weapon.used_texture = TEXTURE_ASSET_ID::DEFAULT_WEAPON;
 	render_request_weapon.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_weapon.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	
 	registry.emplace<ActiveSlot>(slot_entity);
 	auto& render_request = registry.get<RenderRequest>(slot_entity);
 	render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT_ACTIVE;
 	// TODO the weapon upgrade should be available from ship
+
+
 	auto& slot_entity_2 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[1];
 	auto& inventory_slot_2 = registry.get<InventorySlot>(slot_entity_2);
 	auto homing_missile_entity = registry.create();
@@ -694,6 +701,8 @@ void createDefaultWeapon(entt::registry& registry) {
 	render_request_missile.used_texture = TEXTURE_ASSET_ID::HOMING_MISSILE;
 	render_request_missile.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_missile.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+
 	auto& slot_entity_3 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[2];
 	auto& inventory_slot_3 = registry.get<InventorySlot>(slot_entity_3);
 	auto shotgun_entity = registry.create();
@@ -918,12 +927,17 @@ entt::entity createMinimap(entt::registry & registry) {
 	return entity;
 }
 
-entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text)
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text, TEXTURE_ASSET_ID buttonID, ScreenState::ScreenType screenType)
 {
 	auto entity = registry.create();
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
-	registry.emplace<Button>(entity);
+	
+	if (screenType == ScreenState::ScreenType::UPGRADE_UI) {
+		registry.emplace<Button>(entity);
+	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		registry.emplace<WeaponButton>(entity);
+	}
 
 	auto& current_option = registry.emplace<ButtonOption>(entity);
 	current_option.type = option;
@@ -945,21 +959,27 @@ entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, Bu
     sprite.sheet_dims = {128.f, 128.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::SELECTION_BUTTON;
+	renderRequest.used_texture = buttonID;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
 	return entity;
 }
 
-entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID)
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID, ScreenState::ScreenType screenType, std::string text)
 {
 	auto entity = registry.create();
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
-	auto& upgradeButton = registry.emplace<UpgradeButton>(entity);
-	upgradeButton.text = "Upgrade";
 
+	if (screenType == ScreenState::ScreenType::UPGRADE_UI) {
+		auto& upgradeButton = registry.emplace<ShipUpgradeButton>(entity);
+		upgradeButton.text = text;
+	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		auto& upgradeButton = registry.emplace<WeaponUpgradeButton>(entity);
+		upgradeButton.text = text;
+	}
+	
 	auto& current_option = registry.emplace<ButtonOption>(entity);
 	current_option.type = option;
 	// current_option.text = text;
@@ -985,12 +1005,17 @@ entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 s
 	return entity;
 }
 
-entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, TEXTURE_ASSET_ID icon, vec2 sprite_dims, vec2 sprite_sheet_dims)
+entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, TEXTURE_ASSET_ID icon, vec2 sprite_dims, vec2 sprite_sheet_dims, ScreenState::ScreenType screenType)
 {
 	auto entity = registry.create();
-	registry.emplace<UIIcon>(entity);
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
+
+	if (screenType == ScreenState::ScreenType::UPGRADE_UI) {
+		registry.emplace<UIIcon>(entity);
+	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		registry.emplace<WeaponUIIcon>(entity);
+	}
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;

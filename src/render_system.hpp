@@ -67,6 +67,10 @@ class RenderSystem {
 		textures_path("ui/green-btn-pressed.png"),
 		textures_path("ui/red-btn-active.png"),
 		textures_path("ui/red-btn-pressed.png"),
+		textures_path("ui/blue-btn-active.png"),
+		textures_path("ui/blue-btn-pressed.png"),
+		textures_path("ui/weapon-upgrade-btn.png"),
+		textures_path("ui/purple-button.png"),
 		map_path("biome_map.png"),
 		textures_path("text/text.png")
 	};

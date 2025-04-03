@@ -741,12 +741,12 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// render all the ship weapons/engine
-	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, WeaponButton, WeaponUIIcon>);
     shipEngineRenders.use<Motion>();
     for (auto entity : shipEngineRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
-	auto shipWeaponRenders = registry.view<ShipWeapon, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+	auto shipWeaponRenders = registry.view<ShipWeapon, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, WeaponButton, WeaponUIIcon>);
     shipWeaponRenders.use<Motion>();
     for (auto entity : shipWeaponRenders) {
         drawTexturedMesh(entity, projection_2D);
@@ -783,7 +783,7 @@ void RenderSystem::renderGamePlay()
 	}
 
 
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, WeaponButton, WeaponUIIcon>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
@@ -793,7 +793,7 @@ void RenderSystem::renderGamePlay()
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3, bool>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, WeaponButton, WeaponUIIcon>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -821,7 +821,7 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory, Button, UIIcon>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory, Button, UIIcon, WeaponUIIcon>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
@@ -1081,7 +1081,7 @@ void RenderSystem::renderShipUI()
 
 	// render upgrade buttons
 	std::vector<entt::entity> buttonEntities;
-	for (auto entity : registry.view<UpgradeButton, Motion, RenderRequest>()) {
+	for (auto entity : registry.view<ShipUpgradeButton, Motion, RenderRequest>()) {
 		buttonEntities.push_back(entity);
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
@@ -1175,7 +1175,7 @@ void RenderSystem::renderShipUI()
 
 	// display all the text for the buttons
 	for (auto& entity : buttonEntities) {
-		auto& button = registry.get<UpgradeButton>(entity);
+		auto& button = registry.get<ShipUpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
 		renderText(
 			button.text, 
@@ -1238,7 +1238,27 @@ void RenderSystem::renderWeaponUI()
 
 	mat3 ui_projection_2D = createUIProjectionMatrix();
 
+	auto buttons = registry.view<WeaponButton, Motion, RenderRequest>();
+
+	// render the buttons
+	for (auto entity : buttons) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	// render the icons for each button
+	for (auto entity : registry.view<WeaponUIIcon, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	// render upgrade buttons
+	std::vector<entt::entity> buttonEntities;
+	for (auto entity : registry.view<WeaponUpgradeButton, Motion, RenderRequest>()) {
+		buttonEntities.push_back(entity);
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
 	drawToScreen(false);
+
 	renderText(
 		"WEAPON UPGRADES", 
 		WINDOW_WIDTH_PX / 2 - 180, 
@@ -1247,6 +1267,41 @@ void RenderSystem::renderWeaponUI()
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
+
+	// display all the text for the buttons
+	for (auto& entity : buttonEntities) {
+		auto& button = registry.get<WeaponUpgradeButton>(entity);
+		auto& motion = registry.get<Motion>(entity);
+		renderText(
+			button.text, 
+			motion.position.x - 35.0f, 
+			motion.position.y, 
+			2, 
+			glm::vec3(1.0f, 1.0f, 1.0f),
+			ui_projection_2D)
+		;
+
+		if (button.missingResources) {
+			renderText(
+				button.missingResourcesText, 
+				motion.position.x - 65.0f,
+				motion.position.y + 35.0f,
+				2, 
+				glm::vec3(1.0f, 0.0f, 0.0f), 
+				ui_projection_2D
+			);
+		} else {
+			renderText(
+				button.missingResourcesText, 
+				motion.position.x - 65.0f, 
+				motion.position.y + 35.0f, 
+				2, 
+				glm::vec3(0.0f, 1.0f, 0.0f), 
+				ui_projection_2D);
+		}
+	}
+
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
