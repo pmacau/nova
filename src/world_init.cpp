@@ -97,11 +97,20 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	return entity;
 }
 
+
+//Motion& slashOffSetHelper(entt::registry& registry) {
+//	auto player = registry.view<Player>().front(); 
+//	auto& direction = registry.get<InputState>(player); 
+//	std::cout << direction.down << " " << direction.up << " " << direction.left << " " << direction.right << std::endl; 
+//	auto& motion = registry.get<Motion>(player); 
+//	return motion; 
+//}
+
 entt::entity createSlash(entt::registry& registry) {  
    auto entity = registry.create();  
 
    registry.emplace<Slash>(entity);  
-
+   // slashOffSetHelper(registry); 
    auto player = registry.view<Player>().front();
 
    auto motion_player = registry.get<Motion>(player); 
@@ -110,7 +119,7 @@ entt::entity createSlash(entt::registry& registry) {
    motion.angle = 0.f;  
    motion.velocity = {0, 0};  
    motion.position = motion_player.position;  
-   motion.scale = motion.scale * 5.f;  // change later to a more acceptable value 
+   motion.scale = motion.scale * 10.f;  // change later to a more acceptable value 
    motion.offset_to_ground = {0, 0};  
 
    float w = motion.scale.x;

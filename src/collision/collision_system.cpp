@@ -253,9 +253,10 @@ void CollisionSystem::handle<Slash, Mob>(
 		}
 		destroy_entities.insert(mob_ent);
 	}
-	/*else {
-		kno
-	}*/
+	else {
+		auto player_ent = registry.view<Player>().front();
+		physics.knockback(mob_ent, player_ent, slash.force); 
+	}
 }
 
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {

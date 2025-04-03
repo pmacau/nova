@@ -17,8 +17,10 @@ struct Boss{
 	vec2 spawn;
 };
 
+// TODO: Tweak values
 struct Slash {
-	float damage = 100.f; // change after
+	float damage = 10.f; 
+	float force = 250.f; 
 };
 
 struct InputState {
