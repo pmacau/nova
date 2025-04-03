@@ -119,7 +119,7 @@ entt::entity createSlash(entt::registry& registry) {
    motion.angle = 0.f;  
    motion.velocity = {0, 0};  
    motion.position = motion_player.position;  
-   motion.scale = motion.scale * 10.f;  // change later to a more acceptable value 
+   motion.scale = motion.scale * 15.f;  // change later to a more acceptable value 
    motion.offset_to_ground = {0, 0};  
 
    float w = motion.scale.x;

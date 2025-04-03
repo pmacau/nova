@@ -26,8 +26,7 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
 
     auto& motion = registry.get<Motion>(registry.view<Player>().front());
 	    vec2 proposedVelocity = { 0.0f, 0.0f };
-   /* proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
-    proposedVelocity.x = (!i.left) ? (i.right ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;*/
+   
 
     if (i.up) {
         proposedVelocity.y = -PLAYER_SPEED;
