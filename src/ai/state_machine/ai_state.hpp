@@ -22,6 +22,10 @@ public:
 
     virtual std::string getId() const { return id; }
 
+    virtual bool isStateComplete() const {
+        return false;
+    }
+
 protected:
     std::string id;
 };
