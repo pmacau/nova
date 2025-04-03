@@ -42,6 +42,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	dash.cooldown = 3.0f;
 	dash.remainingDuration = 0.0f;
 
+	
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
@@ -110,7 +111,6 @@ entt::entity createSlash(entt::registry& registry) {
    auto entity = registry.create();  
 
    registry.emplace<Slash>(entity);  
-   // slashOffSetHelper(registry); 
    auto player = registry.view<Player>().front();
 
    auto motion_player = registry.get<Motion>(player); 

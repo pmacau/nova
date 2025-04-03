@@ -9,32 +9,71 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 
 
 
-void PhysicsSystem::updatePlayerVelocity(InputState i) {
-	if (registry.view<Player>().empty()) return;
-    auto player_entity = registry.view<Player>().front(); 
-	auto dash = registry.get<Dash>(player_entity);
-    if (dash.inUse) {
-        return;
-    }
 
+void PhysicsSystem::updatePlayerVelocity(InputState i) {
+    if (registry.view<Player>().empty()) return;
+    auto player_entity = registry.view<Player>().front(); 
+	    auto dash = registry.get<Dash>(player_entity);
+    if (dash.inUse) {
+    return;
+    }
+    auto& player = registry.get<Player>(player_entity);
+    InputState& player_direction = player.direction; 
+    player_direction.down = false;
+    player_direction.up = false;
+    player_direction.left = false;
+    player_direction.right = false;
 
     auto& motion = registry.get<Motion>(registry.view<Player>().front());
-	vec2 proposedVelocity = { 0.0f, 0.0f };
-    proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
-    proposedVelocity.x = (!i.left) ? (i.right ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
+	    vec2 proposedVelocity = { 0.0f, 0.0f };
+   /* proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
+    proposedVelocity.x = (!i.left) ? (i.right ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;*/
 
-    if (i.up && i.down)  proposedVelocity.y = 0.0f;
-    else if (i.left && i.right) proposedVelocity.x = 0.0f;
-    else if (i.left && i.up)    proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
-    else if (i.left && i.down)  proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
-    else if (i.right && i.up)    proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
-    else if (i.right && i.down)  proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+    if (i.up) {
+        proposedVelocity.y = -PLAYER_SPEED;
+        player_direction.up = true;
+    }
+    else if (i.down){
+        proposedVelocity.y = PLAYER_SPEED;
+        player_direction.down = true;
+    }
+    else if (i.right) {
+        proposedVelocity.x = PLAYER_SPEED; 
+        player_direction.right = true; 
+    }
+    else if (i.left) {
+        proposedVelocity.x = -PLAYER_SPEED;
+        player_direction.left = true;
+    }
 
-	if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
-		motion.velocity = proposedVelocity;
-	} 
+    if (i.up && i.down) {
+        proposedVelocity.y = 0.0f;
+        player_direction.up = true; 
+    }
+    else if (i.left && i.right) {
+        proposedVelocity.x = 0.0f;
+        player_direction.right = true; 
+    }
+    else if (i.left && i.up) {
+        proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
+        player_direction.left = true; 
+    }
+    else if (i.left && i.down) {
+        proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
+        player_direction.left = true; 
+    }
+    else if (i.right && i.up) {
+        proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
+        player_direction.right = true; 
+    }
+    else if (i.right && i.down) {
+        proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+        player_direction.right = true;
+    }
 
-	
+    if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
+        motion.velocity = proposedVelocity;
+    } 	
 }
 
 
