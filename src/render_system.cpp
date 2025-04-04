@@ -1272,19 +1272,23 @@ void RenderSystem::renderWeaponUI()
 	for (auto& entity : buttonEntities) {
 		auto& button = registry.get<WeaponUpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
+
+		float button_x = motion.position.x - getTextWidth(button.text, 2)/2;
+		float missing_resources_x = motion.position.x - getTextWidth(button.missingResourcesText, 2)/2;
 		renderText(
 			button.text, 
-			motion.position.x - 35.0f, 
+			// motion.position.x - 35.0f, 
+			button_x,
 			motion.position.y, 
 			2, 
 			glm::vec3(1.0f, 1.0f, 1.0f),
-			ui_projection_2D)
-		;
+			ui_projection_2D);
 
-		if (button.missingResources) {
+		if (button.missingResources || button.maxUpgrade) {
 			renderText(
 				button.missingResourcesText, 
-				motion.position.x - 65.0f,
+				// motion.position.x - 65.0f,
+				missing_resources_x,
 				motion.position.y + 35.0f,
 				2, 
 				glm::vec3(1.0f, 0.0f, 0.0f), 
@@ -1293,7 +1297,8 @@ void RenderSystem::renderWeaponUI()
 		} else {
 			renderText(
 				button.missingResourcesText, 
-				motion.position.x - 65.0f, 
+				// motion.position.x - 65.0f, 
+				missing_resources_x,
 				motion.position.y + 35.0f, 
 				2, 
 				glm::vec3(0.0f, 1.0f, 0.0f), 

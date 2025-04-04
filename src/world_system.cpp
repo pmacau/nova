@@ -1128,14 +1128,17 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "pistol upgrade" << std::endl;
 					player_comp.default_weapon_damage *= 1.2;
 					player_comp.default_weapon_cooldown -= 0.1;
-					std::cout << "pistol damage = " << player_comp.default_weapon_damage << std::endl;
-					std::cout << "pistol cooldown = " << player_comp.default_weapon_cooldown << std::endl;
 
 					upgrade_inventory(PISTOL_UPGRADE_IRON, 0);
-				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && 
+				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+				}
+				
+				if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && 
 							player_comp.homing_missle_weapon_damage <= HOMING_MISSLE_MAX_DAMAGE && 
 							player_comp.homing_missle_weapon_cooldown > HOMING_MISSLE_MAX_COOLDOWN &&
 							ironCount >= HOMING_MISSLE_UPGRADE_IRON && 
@@ -1144,14 +1147,17 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "homing missle upgrade" << std::endl;
 					player_comp.homing_missle_weapon_damage *= 1.2;
 					player_comp.homing_missle_weapon_cooldown -= 0.4;
-					std::cout << "homing missle damage = " << player_comp.homing_missle_weapon_damage;
-					std::cout << "homing missle cooldown = " << player_comp.homing_missle_weapon_cooldown;
 
 					upgrade_inventory(HOMING_MISSLE_UPGRADE_IRON, HOMING_MISSLE_UPGRADE_COPPER);
-				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE && 
+				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+				} 
+				
+				if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE && 
 							player_comp.shotgun_weapon_damage <= SHOTGUN_MAX_DAMAGE && 
 							player_comp.shotgun_weapon_cooldown > SHOTGUN_MAX_COOLDOWN &&
 							ironCount >= SHOTGUN_UPGRADE_IRON && 
@@ -1160,19 +1166,20 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "shotgun upgrade" << std::endl;
 					player_comp.shotgun_weapon_damage *= 1.2;
 					player_comp.shotgun_weapon_cooldown -= 0.2;
-					std::cout << "shotgun damage = " << player_comp.shotgun_weapon_damage;
-					std::cout << "shotgun cooldown = " << player_comp.shotgun_weapon_cooldown;
 
 					upgrade_inventory(SHOTGUN_UPGRADE_IRON, SHOTGUN_UPGRADE_COPPER);
-				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {
+				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+				}
+				
+				if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
-
-					std::cout << "melee upgrade" << std::endl;
 
 					for (auto ui_ship_entity : registry.view<UIShip>()) {
 						// update inventory
@@ -1189,7 +1196,6 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "homing missle unlock" << std::endl;
 					upgrade_button.maxUpgrade = true;
 					entt::entity homing_missle_entity = createHomingMissleWeapon(registry);
 					UISystem::addToInventory(registry, homing_missle_entity);
@@ -1206,7 +1212,6 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "shotgun unlock" << std::endl;
 					upgrade_button.maxUpgrade = true;
 					entt::entity shotgun_entity = createShotgunWeapon(registry);
 					UISystem::addToInventory(registry, shotgun_entity);
@@ -1219,8 +1224,6 @@ void WorldSystem::left_mouse_click() {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
-
-					std::cout << "melee unlock" << std::endl;
 
 					for (auto ui_ship_entity : registry.view<UIShip>()) {
 						// update inventory
