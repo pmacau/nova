@@ -10,6 +10,7 @@
 #include <ai/ai_initializer.hpp>
 #include "collision/hitbox.hpp"
 #include <creature/creature_common.hpp>
+#include <animation/animation_manager.hpp>
 #include "ui_system.hpp"
 #include <map/map_system.hpp>
 
@@ -18,8 +19,11 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	auto entity = registry.create();
 
 	auto& animComp = registry.emplace<AnimationComponent>(entity);
-    animComp.currentAnimationId = "player_idle_down";
-    animComp.timer = 0.0f;
+    // animComp.currentAnimationId = AnimationManager::getInstance().buildAnimationKey(AnimationManager::playerAnimationHeader(), MotionAction::IDLE, MotionDirection::DOWN);
+    animComp.animation_header = AnimationManager::playerAnimationHeader();
+	animComp.action = MotionAction::IDLE;
+	animComp.direction = MotionDirection::DOWN;
+	animComp.timer = 0.0f;
     animComp.currentFrameIndex = 0;
 
 	auto& sprite = registry.emplace<Sprite>(entity);
@@ -101,60 +105,6 @@ entt::entity createCamera(entt::registry& registry, entt::entity target)
 	return entity;
 }
 
-entt::entity createMob(entt::registry& registry, vec2 position, int health) {
-	// ENTITY CREATION
-	auto entity = registry.create();
-
-	auto& mob = registry.emplace<Mob>(entity);
-	mob.health = health;
-	mob.hit_time = 1.f;
-
-	// SPRITE 
-	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = { 43.f, 55.f };	
-	sprite.sheet_dims = {43.f, 55.f};
-	
-	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-	// motion.position = position;
-	motion.position.x = position.x;
-	motion.position.y = position.y;
-
-	motion.scale = vec2(100, 120);
-
-	// HITBOX
-	float w = motion.scale.x;
-	float h = motion.scale.y;
-	auto& hitbox = registry.emplace<Hitbox>(entity);
-	hitbox.pts = {
-		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
-	};
-	hitbox.depth = 50;
-
-	// motion.scale = vec2(GAME_SCALE * 40.f, GAME_SCALE * 54.f);
-	//motion.scale = vec2(38*3, 54*3);
-	motion.offset_to_ground = {0, motion.scale.y / 2.f};
-	
-	UISystem::dropForMob(registry, entity);
-
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::MOB;
-	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-
-	createMobHealthBar(registry, entity, 15.f);
-	// ai set up
-	// TODO: create a generic enemy creation
-	auto& aiComp = registry.emplace<AIComponent>(entity);
-	AIConfig bossConfig = getBossAIConfig();
-	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
-	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, bossConfig, goblinTransitions);
-   
-	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
-	return entity; 
-}
 
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust) {
 	auto entity = registry.create();
@@ -170,8 +120,9 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 
 	auto& motion = registry.emplace<Motion>(entity);
 	auto& mob_motion = registry.get<Motion>(mob_entity);
-	motion.position.x = mob_motion.position.x;
-	motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2 - 15 - healthbar.y_adjust;
+
+	motion.position = UISystem::computeHealthBarPosition(mob_motion, { 0, y_adjust });
+
 	motion.angle = 0.f;
 	motion.velocity = vec2({ 0, 0 });
 	motion.scale = vec2({ 40.0f, 8.f}); // for boss we may want bigger health bar hence max function
@@ -184,67 +135,6 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	return entity;
-}
-
-entt::entity createMob2(entt::registry& registry, vec2 position, int health) {
-	// ENTITY CREATION
-	auto entity = registry.create();
-
-	auto& mob = registry.emplace<Mob>(entity);
-	mob.health = health;
-	mob.hit_time = 1.f;
-
-	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = vec2(1344.f / 7, 960.f / 5);
-	sprite.sheet_dims = {1344.f, 960.f};
-
-	auto& motion = registry.emplace<Motion>(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
-
-	motion.position.x = position.x;
-	motion.position.y = position.y;
-
-	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
-	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.8f};
-
-	float w = motion.scale.x * 0.4;
-	float h = motion.scale.y * 0.5;
-	auto& hitbox = registry.emplace<Hitbox>(entity);
-	hitbox.pts = {
-		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
-	};
-	hitbox.depth = 60;
-	
-	UISystem::dropForMob(registry, entity);
-
-	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
-	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
-	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-
-	// Setup AnimationComponent (runtime state for animations).
-    auto& animComp = registry.emplace<AnimationComponent>(entity);
-    animComp.currentAnimationId = "mob2_idle";
-    animComp.timer = 0.0f;
-    animComp.currentFrameIndex = 0;
-
-	// TODO: create a generic enemy creation
-	// set up ai for goblin
-	auto& aiComp = registry.emplace<AIComponent>(entity);
-	AIConfig goblinConfig = getGoblinAIConfig();
-	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
-	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, goblinConfig, goblinTransitions);
-   
-	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
-
-	//initial state
-	static PatrolState patrolState;
-	aiComp.stateMachine->changeState(&patrolState);
-
-	createMobHealthBar(registry, entity, -40.0f);
-	return entity; 
 }
 
 // GAME PLAY SHIP
@@ -515,16 +405,16 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	return entity;
 }
 
-entt::entity createBoss(entt::registry& registry, vec2 pos) {
-	auto entity = createMob(registry, pos, MOB_HEALTH * 10);
-	Boss& boss = registry.emplace<Boss>(entity);
-	boss.agro_range = 500.f;
-	boss.spawn = pos;
-	UISystem::dropForMob(registry, entity);
+// entt::entity createBoss(entt::registry& registry, vec2 pos) {
+// 	auto entity = createMob(registry, pos, MOB_HEALTH * 10);
+// 	Boss& boss = registry.emplace<Boss>(entity);
+// 	boss.agro_range = 500.f;
+// 	boss.spawn = pos;
+// 	UISystem::dropForMob(registry, entity);
 
-	debug_printf(DebugType::WORLD_INIT, "Boss created at: (%.1f, %.1f)\n", pos.x, pos.y);
-	return entity;
-}
+// 	debug_printf(DebugType::WORLD_INIT, "Boss created at: (%.1f, %.1f)\n", pos.x, pos.y);
+// 	return entity;
+// }
 
 
 std::random_device rd;
@@ -769,7 +659,7 @@ void destroy_creature(entt::registry& registry, entt::entity creature) {
 }
 
 
-entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDefinition def, int health)
+entt::entity createCreature(entt::registry& registry, vec2 position, const CreatureDefinitionData& def, int health)
 {
     // ENTITY CREATION
 	auto entity = registry.create();
@@ -778,57 +668,59 @@ entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDef
 	mob.health = health;
 	mob.hit_time = 1.f;
 
+	// Setup AnimationComponent (runtime state for animations).
+    auto& animComp = registry.emplace<AnimationComponent>(entity);
+    // animComp.currentAnimationId = AnimationManager::getInstance().buildCreatureAnimationKey(
+	// 	def.getCreatureID(), def.getRenderingInfo().initAction, def.getRenderingInfo().initDirection);
+
+	animComp.animation_header = AnimationManager::getInstance().creatureAnimationHeader(def.getCreatureID());
+	animComp.action = def.getRenderingInfo().initAction;
+	animComp.direction = def.getRenderingInfo().initDirection;
+    animComp.timer = 0.0f;
+    animComp.currentFrameIndex = 0;
+
+	const AnimationDefinition* animation_def = AnimationManager::getInstance().getCreatureAnimation(
+		def.getCreatureID(), def.getRenderingInfo().initAction, def.getRenderingInfo().initDirection);
+
 	auto& sprite = registry.emplace<Sprite>(entity);
-	sprite.dims = vec2(1344.f / 7, 960.f / 5);
-	sprite.sheet_dims = {1344.f, 960.f};
+	sprite.dims = vec2(animation_def->frameWidth, animation_def->frameHeight);
+	sprite.sheet_dims = def.getRenderingInfo().spriteSheet.sheetDimensions;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
-	motion.position.x = position.x + sprite.dims[0] / 2;
-	motion.position.y = position.y + sprite.dims[1] / 2;
-	motion.scale = vec2(1344.f / 7, 960.f / 5) * 0.9f;
-	motion.offset_to_ground = {0, motion.scale.y / 4.f * 0.9f};
 
-	float w = motion.scale.x * 0.4;
-	float h = motion.scale.y * 0.5;
+	motion.position.x = position.x;
+	motion.position.y = position.y;
+
+	motion.scale = def.getPhysicsInfo().scale;
+	motion.offset_to_ground = def.getPhysicsInfo().offset_to_ground;
+
 	auto& hitbox = registry.emplace<Hitbox>(entity);
-	hitbox.pts = {
-		{w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
-	};
-	hitbox.depth = 60;
+	hitbox.pts = def.getPhysicsInfo().hitbox.pts;
+	hitbox.depth = def.getPhysicsInfo().hitbox.depth;
+
+	UISystem::creatureDropForMob(registry, entity, def.getDropInfo());
 	
-	UISystem::dropForMob(registry, entity);
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
+	renderRequest.used_texture = def.getRenderingInfo().spriteSheet.textureAssetID;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-
-	// Setup AnimationComponent (runtime state for animations).
-    auto& animComp = registry.emplace<AnimationComponent>(entity);
-    animComp.currentAnimationId = "mob2_idle";
-    animComp.timer = 0.0f;
-    animComp.currentFrameIndex = 0;
 
 	// TODO: create a generic enemy creation
 	// set up ai for goblin
 	auto& aiComp = registry.emplace<AIComponent>(entity);
-	AIConfig goblinConfig = getGoblinAIConfig();
-	const TransitionTable& goblinTransitions = getGoblinTransitionTable();
-	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, goblinConfig, goblinTransitions);
+	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, def.getAIInfo().aiConfig, *def.getAIInfo().transitionTable);
    
-	aiComp.stateMachine->changeState(g_stateFactory.createState("patrol").release());
+	aiComp.stateMachine->changeState(g_stateFactory.createState(def.getAIInfo().initialState).release());
 
 	//initial state
-	static PatrolState patrolState;
-	aiComp.stateMachine->changeState(&patrolState);
+	// static PatrolState patrolState;
+	// aiComp.stateMachine->changeState(&patrolState);
 
-	createMobHealthBar(registry, entity, -40.0f);
+	createMobHealthBar(registry, entity, def.getUIInfo().healthBar_y_adjust);
 	return entity; 
-
-    return entity;
 }
 
 entt::entity createTitleScreen(entt::registry& registry) {
