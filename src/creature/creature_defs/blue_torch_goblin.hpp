@@ -17,7 +17,7 @@
 class BlueTorchGoblinDefData : public CreatureDefinitionData {
 public:
     BlueTorchGoblinDefData() {
-        creatureID = CreatureID::BLUE_TORCH_GOBLIN;
+        creatureID = CreatureID::GOBLIN_TORCH_BLUE;
         creatureType = CreatureType::Mob;
         initialize();
     }
@@ -45,7 +45,7 @@ protected:
     virtual void initializeSpawnInfo() override {
         spawnInfo.spawnProbability = 0.6f;
         spawnInfo.group = {1, 2};
-        spawnInfo.biomes = {Biome::B_FOREST, Biome::B_BEACH};
+        spawnInfo.biomes = {Biome::B_ICE, Biome::B_FOREST};
     }
 
     virtual void initializeStats() override {
@@ -124,7 +124,6 @@ protected:
         }
 
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::RIGHT, idle_right);
-
         
         // Create BlueTorch Goblin-specific walk animation.
         AnimationDefinition walk_right;
@@ -138,6 +137,42 @@ protected:
             walk_right.frameDurations.push_back(100.f);
         }
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::RIGHT, walk_right);
+
+        AnimationDefinition attack_right;
+        attack_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::ATTACK, MotionDirection::RIGHT);
+        attack_right.loop = false;
+        attack_right.frameWidth = frameWidth;
+        attack_right.frameHeight = frameHeight;
+        attack_right.spriteSheet = renderingInfo.spriteSheet;
+        for (int col = 0; col < 6; ++col) {
+            attack_right.frames.push_back({2, col});
+            attack_right.frameDurations.push_back(100.f);
+        }
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::ATTACK, MotionDirection::RIGHT, attack_right);
+
+        AnimationDefinition attack_down;
+        attack_down.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::ATTACK, MotionDirection::DOWN);
+        attack_down.loop = false;
+        attack_down.frameWidth = frameWidth;
+        attack_down.frameHeight = frameHeight;
+        attack_down.spriteSheet = renderingInfo.spriteSheet;
+        for (int col = 0; col < 6; ++col) {
+            attack_down.frames.push_back({3, col});
+            attack_down.frameDurations.push_back(100.f);
+        }
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::ATTACK, MotionDirection::DOWN, attack_down);
+
+        AnimationDefinition attack_up;
+        attack_up.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::ATTACK, MotionDirection::UP);
+        attack_up.loop = false;
+        attack_up.frameWidth = frameWidth;
+        attack_up.frameHeight = frameHeight;
+        attack_up.spriteSheet = renderingInfo.spriteSheet;
+        for (int col = 0; col < 6; ++col) {
+            attack_up.frames.push_back({4, col});
+            attack_up.frameDurations.push_back(100.f);
+        }
+        AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::ATTACK, MotionDirection::UP, attack_up);
 
         renderingInfo.initAction = MotionAction::IDLE;
         renderingInfo.initDirection = MotionDirection::RIGHT;

@@ -5,6 +5,9 @@
 #include "boss_def.hpp"
 
 #include "creature/creature_defs/blue_torch_goblin.hpp"
+#include "creature/creature_defs/red_torch_goblin.hpp"
+#include "creature/creature_defs/purple_torch_goblin.hpp"
+#include "creature/creature_defs/yellow_torch_goblin.hpp"
 #include "creature/creature_defs/purple_reaper.hpp"
 
 CreatureManager& CreatureManager::getInstance() {
@@ -53,5 +56,8 @@ std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
 
 void CreatureManager::loadDefinitions() {
     registerDefinition(&BlueTorchGoblinDefData::getInstance());
+    registerDefinition(&RedTorchGoblinDefData::getInstance());
+    registerDefinition(&PurpleTorchGoblinDefData::getInstance());
+    registerDefinition(&YellowTorchGoblinDefData::getInstance());
     registerDefinition(&PurpleReaperData::getInstance());
 }
