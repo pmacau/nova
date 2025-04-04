@@ -1118,7 +1118,10 @@ void WorldSystem::left_mouse_click() {
 							player_comp.homing_missle_weapon_damage <= HOMING_MISSLE_MAX_DAMAGE && 
 							player_comp.homing_missle_weapon_cooldown > HOMING_MISSLE_MAX_COOLDOWN &&
 							ironCount >= HOMING_MISSLE_UPGRADE_IRON && 
-							copperCount >= HOMING_MISSLE_UPGRADE_COPPER) {
+							copperCount >= HOMING_MISSLE_UPGRADE_COPPER &&
+							player_comp.unlock_homing_missle_weapon) {
+
+								std::cout << "upgraded" << std::endl;
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
@@ -1127,6 +1130,9 @@ void WorldSystem::left_mouse_click() {
 					player_comp.homing_missle_weapon_cooldown -= 0.4;
 
 					upgrade_inventory(HOMING_MISSLE_UPGRADE_IRON, HOMING_MISSLE_UPGRADE_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && !player_comp.unlock_homing_missle_weapon) {
+					std::cout << "not unlocked yet" << std::endl;
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
@@ -1137,7 +1143,8 @@ void WorldSystem::left_mouse_click() {
 							player_comp.shotgun_weapon_damage <= SHOTGUN_MAX_DAMAGE && 
 							player_comp.shotgun_weapon_cooldown > SHOTGUN_MAX_COOLDOWN &&
 							ironCount >= SHOTGUN_UPGRADE_IRON && 
-							copperCount >= SHOTGUN_UPGRADE_COPPER) {
+							copperCount >= SHOTGUN_UPGRADE_COPPER && 
+							player_comp.unlock_shotgun_weapon) {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
@@ -1146,6 +1153,8 @@ void WorldSystem::left_mouse_click() {
 					player_comp.shotgun_weapon_cooldown -= 0.2;
 
 					upgrade_inventory(SHOTGUN_UPGRADE_IRON, SHOTGUN_UPGRADE_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE && !player_comp.unlock_shotgun_weapon) {
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
@@ -1179,6 +1188,8 @@ void WorldSystem::left_mouse_click() {
 					upgrade_button.text = "Unlocked";
 					upgrade_button.missingResourcesText = "";
 
+					player_comp.unlock_homing_missle_weapon = true;
+
 					upgrade_inventory(HOMING_MISSLE_UNLOCK_IRON, HOMING_MISSLE_UNLOCK_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UNLOCK && 
 							!upgrade_button.maxUpgrade && 
@@ -1194,6 +1205,8 @@ void WorldSystem::left_mouse_click() {
 
 					upgrade_button.text = "Unlocked";
 					upgrade_button.missingResourcesText = "";
+
+					player_comp.unlock_shotgun_weapon = true;
 
 					upgrade_inventory(SHOTGUN_UNLOCK_IRON, SHOTGUN_UNLOCK_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UNLOCK && !upgrade_button.maxUpgrade) {
@@ -1419,6 +1432,8 @@ void WorldSystem::update_weapon_upgrade_buttons() {
 		if (item.type == Item::Type::IRON) ironCount += item.no;
 	}
 
+	auto& player_comp = registry.get<Player>(player_entity);
+
 	// if have enough resources, change the buttons in the UI to green (upgradeable)
 	auto upgradeButtons = registry.view<WeaponUpgradeButton, ButtonOption>();
 	for (auto entity : upgradeButtons) {
@@ -1439,7 +1454,7 @@ void WorldSystem::update_weapon_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(PISTOL_UPGRADE_IRON) + " iron";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && ironCount >= HOMING_MISSLE_UPGRADE_IRON && copperCount >= HOMING_MISSLE_UPGRADE_COPPER) {
+		if (buttonOption.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && ironCount >= HOMING_MISSLE_UPGRADE_IRON && copperCount >= HOMING_MISSLE_UPGRADE_COPPER && player_comp.unlock_homing_missle_weapon) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(HOMING_MISSLE_UPGRADE_IRON) + " iron, " + std::to_string(HOMING_MISSLE_UPGRADE_COPPER) + " copper";
@@ -1449,7 +1464,7 @@ void WorldSystem::update_weapon_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(HOMING_MISSLE_UPGRADE_IRON) + " iron, " + std::to_string(HOMING_MISSLE_UPGRADE_COPPER) + " copper";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::SHOTGUN_UPGRADE && ironCount >= SHOTGUN_UPGRADE_IRON && copperCount >= SHOTGUN_UPGRADE_COPPER) {
+		if (buttonOption.type == ButtonOption::Option::SHOTGUN_UPGRADE && ironCount >= SHOTGUN_UPGRADE_IRON && copperCount >= SHOTGUN_UPGRADE_COPPER && player_comp.unlock_shotgun_weapon) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHOTGUN_UPGRADE_IRON) + " iron, " + std::to_string(SHOTGUN_UPGRADE_COPPER) + " copper";
