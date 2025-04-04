@@ -1121,8 +1121,6 @@ void WorldSystem::left_mouse_click() {
 							copperCount >= HOMING_MISSLE_UPGRADE_COPPER &&
 							player_comp.unlock_homing_missle_weapon) {
 
-								std::cout << "upgraded" << std::endl;
-
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
@@ -1131,7 +1129,6 @@ void WorldSystem::left_mouse_click() {
 
 					upgrade_inventory(HOMING_MISSLE_UPGRADE_IRON, HOMING_MISSLE_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && !player_comp.unlock_homing_missle_weapon) {
-					std::cout << "not unlocked yet" << std::endl;
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE) {
 					upgrade_button.maxUpgrade = true;
@@ -1153,7 +1150,6 @@ void WorldSystem::left_mouse_click() {
 					player_comp.shotgun_weapon_cooldown -= 0.2;
 
 					player_comp.shotgun_stage++;
-					std::cout << "shotgun_stage = " << player_comp.shotgun_stage << std::endl;
 
 					upgrade_inventory(SHOTGUN_UPGRADE_IRON, SHOTGUN_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE && !player_comp.unlock_shotgun_weapon) {
@@ -1287,8 +1283,6 @@ void WorldSystem::left_mouse_click() {
 			MusicSystem::playSoundEffect(SFX::SHOTGUN);
 		}
 		else if (weapon.type == Item::Type::SHOTGUN && player_comp.shotgun_weapon_cooldown_dynamic <= 0 && (player_comp.shotgun_stage == 3)) {
-			std::cout << "stage 3" << std::endl;
-
 			// center bullet
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
     
