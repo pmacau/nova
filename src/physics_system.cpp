@@ -7,8 +7,6 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 }
 
 
-
-
 void PhysicsSystem::updatePlayerVelocity(InputState i) {
     auto& motion = registry.get<Motion>(registry.view<Player>().front());
 	vec2 proposedVelocity = { 0.0f, 0.0f };
