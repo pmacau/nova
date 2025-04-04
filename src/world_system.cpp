@@ -1194,7 +1194,8 @@ void WorldSystem::left_mouse_click() {
 					entt::entity homing_missle_entity = createHomingMissleWeapon(registry);
 					UISystem::addToInventory(registry, homing_missle_entity);
 					
-
+					upgrade_button.text = "Unlocked";
+					upgrade_button.missingResourcesText = "";
 
 					upgrade_inventory(HOMING_MISSLE_UNLOCK_IRON, HOMING_MISSLE_UNLOCK_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UNLOCK && 
@@ -1209,6 +1210,9 @@ void WorldSystem::left_mouse_click() {
 					upgrade_button.maxUpgrade = true;
 					entt::entity shotgun_entity = createShotgunWeapon(registry);
 					UISystem::addToInventory(registry, shotgun_entity);
+
+					upgrade_button.text = "Unlocked";
+					upgrade_button.missingResourcesText = "";
 
 					upgrade_inventory(SHOTGUN_UNLOCK_IRON, SHOTGUN_UNLOCK_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UNLOCK && !upgrade_button.maxUpgrade) {
@@ -1442,6 +1446,8 @@ void WorldSystem::update_weapon_upgrade_buttons() {
 		auto& buttonOption = registry.get<ButtonOption>(entity);
 		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
 		auto& upgradeButton = registry.get<WeaponUpgradeButton>(entity);
+
+		if (upgradeButton.maxUpgrade) continue;
 		
 		// upgrades --------------------------------------------------------------------------------------------------------------
 		if (buttonOption.type == ButtonOption::Option::PISTOL_UPGRADE && ironCount >= PISTOL_UPGRADE_IRON) {

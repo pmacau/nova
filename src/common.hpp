@@ -136,8 +136,8 @@ const int SHOTGUN_UPGRADE_COPPER = 3;
 const int MELEE_UPGRADE_IRON = 5;
 
 // Weapon Unlock Constants
-const int HOMING_MISSLE_UNLOCK_IRON = 8;
-const int HOMING_MISSLE_UNLOCK_COPPER = 4;
+const int HOMING_MISSLE_UNLOCK_IRON = 0;
+const int HOMING_MISSLE_UNLOCK_COPPER = 0;
 
 const int SHOTGUN_UNLOCK_IRON = 10;
 const int SHOTGUN_UNLOCK_COPPER = 5;
