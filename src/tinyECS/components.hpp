@@ -53,6 +53,8 @@ struct Player
 
 	bool unlock_homing_missle_weapon = false;
 	bool unlock_shotgun_weapon = false;
+
+	int shotgun_stage = 0;
 };
 
 // Ship component

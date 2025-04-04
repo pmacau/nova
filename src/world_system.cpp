@@ -1152,6 +1152,9 @@ void WorldSystem::left_mouse_click() {
 					player_comp.shotgun_weapon_damage *= 1.2;
 					player_comp.shotgun_weapon_cooldown -= 0.2;
 
+					player_comp.shotgun_stage++;
+					std::cout << "shotgun_stage = " << player_comp.shotgun_stage << std::endl;
+
 					upgrade_inventory(SHOTGUN_UPGRADE_IRON, SHOTGUN_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE && !player_comp.unlock_shotgun_weapon) {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
@@ -1255,12 +1258,56 @@ void WorldSystem::left_mouse_click() {
 			player_comp.homing_missle_weapon_cooldown_dynamic = player_comp.homing_missle_weapon_cooldown;
 			MusicSystem::playSoundEffect(SFX::MISSILE);
 		}
-		else if (weapon.type == Item::Type::SHOTGUN && player_comp.shotgun_weapon_cooldown_dynamic <= 0) {
+		else if (weapon.type == Item::Type::SHOTGUN && player_comp.shotgun_weapon_cooldown_dynamic <= 0 && (player_comp.shotgun_stage == 0 || player_comp.shotgun_stage == 1)) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 - velocity.y * 0.259, velocity.y * 0.966 + velocity.x * 0.259), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 + velocity.y * 0.259, velocity.y * 0.966 - velocity.x * 0.259), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 - velocity.y * 0.5, velocity.y * 0.866 + velocity.x * 0.5), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 + velocity.y * 0.5, velocity.y * 0.866 - velocity.x * 0.5), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			player_comp.shotgun_weapon_cooldown_dynamic = player_comp.shotgun_weapon_cooldown;
+			MusicSystem::playSoundEffect(SFX::SHOTGUN);
+		}
+		else if (weapon.type == Item::Type::SHOTGUN && player_comp.shotgun_weapon_cooldown_dynamic <= 0 && (player_comp.shotgun_stage == 2)) {
+			// center bullet
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+    
+			// first pair - inside
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.989 - velocity.y * 0.15, velocity.y * 0.989 + velocity.x * 0.15), player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.989 + velocity.y * 0.15, velocity.y * 0.989 - velocity.x * 0.15), player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
+			// second pair
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 - velocity.y * 0.259, velocity.y * 0.966 + velocity.x * 0.259), player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 + velocity.y * 0.259, velocity.y * 0.966 - velocity.x * 0.259), player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
+			// shird pair - outside
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.924 - velocity.y * 0.383, velocity.y * 0.924 + velocity.x * 0.383), player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.924 + velocity.y * 0.383, velocity.y * 0.924 - velocity.x * 0.383), player_comp.shotgun_weapon_damage, 300, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
+			player_comp.shotgun_weapon_cooldown_dynamic = player_comp.shotgun_weapon_cooldown;
+			MusicSystem::playSoundEffect(SFX::SHOTGUN);
+		}
+		else if (weapon.type == Item::Type::SHOTGUN && player_comp.shotgun_weapon_cooldown_dynamic <= 0 && (player_comp.shotgun_stage == 3)) {
+			std::cout << "stage 3" << std::endl;
+
+			// center bullet
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+    
+			// first pair - inside
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.995 - velocity.y * 0.105, velocity.y * 0.995 + velocity.x * 0.105), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.995 + velocity.y * 0.105, velocity.y * 0.995 - velocity.x * 0.105), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
+			// second pair
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.978 - velocity.y * 0.208, velocity.y * 0.978 + velocity.x * 0.208), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.978 + velocity.y * 0.208, velocity.y * 0.978 - velocity.x * 0.208), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
+			// third pair
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.951 - velocity.y * 0.309, velocity.y * 0.951 + velocity.x * 0.309), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.951 + velocity.y * 0.309, velocity.y * 0.951 - velocity.x * 0.309), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
+			// fourth pair - outside
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.914 - velocity.y * 0.407, velocity.y * 0.914 + velocity.x * 0.407), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.914 + velocity.y * 0.407, velocity.y * 0.914 - velocity.x * 0.407), player_comp.shotgun_weapon_damage, 450, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			
 			player_comp.shotgun_weapon_cooldown_dynamic = player_comp.shotgun_weapon_cooldown;
 			MusicSystem::playSoundEffect(SFX::SHOTGUN);
 		}
