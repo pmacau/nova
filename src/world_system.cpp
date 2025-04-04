@@ -186,10 +186,13 @@ void WorldSystem::init() {
 	createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 - buttonWidth + h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Upgrade");
 
 	// unlock buttons
-	createUpgradeButton(registry, vec2(w/4 + 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PISTOL_UNLOCK, TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Unlocked");
-	createUpgradeButton(registry, vec2(w/4 + buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::HOMING_MISSLE_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
-	createUpgradeButton(registry, vec2(w/4 - buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHOTGUN_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
-	createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
+	entt::entity pistolUnlock = createUpgradeButton(registry, vec2(w/4 + 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PISTOL_UNLOCK, TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Unlocked");
+	createUpgradeButton(registry, vec2(w/4 + buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::HOMING_MISSLE_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
+	createUpgradeButton(registry, vec2(w/4 - buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHOTGUN_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
+	createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
+
+	auto& pistol_unlock_button = registry.get<WeaponUpgradeButton>(pistolUnlock);
+	pistol_unlock_button.maxUpgrade = true;
 
 	// ***********************************************************************************************
 	// ************************ init all of the text boxes for the tutorial **************************
@@ -399,7 +402,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// TODO: move attack cooldown system
 	auto& player_comp = registry.get<Player>(player_entity);
-	player_comp.weapon_cooldown = max(0.f, player_comp.weapon_cooldown - elapsed_s);
+	player_comp.default_weapon_cooldown_dynamic = max(0.f, player_comp.default_weapon_cooldown_dynamic - elapsed_s);
+	player_comp.homing_missle_weapon_cooldown_dynamic = max(0.f, player_comp.homing_missle_weapon_cooldown_dynamic - elapsed_s);
+	player_comp.shotgun_weapon_cooldown_dynamic = max(0.f, player_comp.shotgun_weapon_cooldown_dynamic - elapsed_s);
 
 	// TODO: move enemy attack cooldown system
 	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
@@ -409,7 +414,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
 
-	update_upgrade_buttons();
+	update_ship_upgrade_buttons();
+	update_weapon_upgrade_buttons();
 	
 	return true;
 }
@@ -798,7 +804,7 @@ void WorldSystem::left_mouse_click() {
 						MusicSystem::playSoundEffect(SFX::SELECT);
 						
 						// update inventory
-						ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
+						upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
 
 						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE) {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_DAMAGE;
@@ -842,7 +848,7 @@ void WorldSystem::left_mouse_click() {
 						MusicSystem::playSoundEffect(SFX::SELECT);
 						
 						// update inventory
-						ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
+						upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, SHIP_WEAPON_UPGRADE_COPPER);
 
 						if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_WEAPON) {
 							// change to missles
@@ -995,7 +1001,7 @@ void WorldSystem::left_mouse_click() {
 						MusicSystem::playSoundEffect(SFX::SELECT);
 
 						// update inventory
-						ship_upgrade_inventory(SHIP_FIRERATE_UPGRADE_IRON, SHIP_FIRERATE_UPGRADE_COPPER);
+						upgrade_inventory(SHIP_FIRERATE_UPGRADE_IRON, SHIP_FIRERATE_UPGRADE_COPPER);
 
 						if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SMG_ENGINE) {
 							// change to missles engine
@@ -1087,55 +1093,79 @@ void WorldSystem::left_mouse_click() {
 					MusicSystem::playSoundEffect(SFX::SELECT);
 					
 					// update inventory
-					ship_upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
+					upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
 
 					auto& ship = registry.get<Ship>(ship_entity);
 					ship.range += SHIP_RANGE_UPGRADE;
 				}
 				// upgrade_option.hover = false;
 			}
-			
 		}
 	} else if (screen_state.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		auto itemsInInv = registry.view<Item, FixedUI>();
+		int copperCount = 0;
+		int ironCount = 0;
+		for (auto entity : itemsInInv) {
+			auto& item = registry.get<Item>(entity);
+
+			if (item.type == Item::Type::COPPER) copperCount += item.no;
+			if (item.type == Item::Type::IRON) ironCount += item.no;
+		}
+
 		for (auto entity : registry.view<WeaponUpgradeButton>()) {
 			auto& upgrade_option = registry.get<ButtonOption>(entity);
 			auto& upgrade_render = registry.get<RenderRequest>(entity);
+			auto& upgrade_button = registry.get<WeaponUpgradeButton>(entity);
 
 			if (upgrade_option.hover) {
 				// weapon upgrades ------------------------------------------------------------------------------------
-				if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+				if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE && 
+					player_comp.default_weapon_damage <= PISTOL_MAX_DAMAGE && 
+					player_comp.default_weapon_cooldown > PISTOL_MAX_COOLDOWN &&
+					ironCount >= PISTOL_UPGRADE_IRON) {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					std::cout << "pistol upgrade" << std::endl;
+					player_comp.default_weapon_damage *= 1.2;
+					player_comp.default_weapon_cooldown -= 0.1;
+					std::cout << "pistol damage = " << player_comp.default_weapon_damage << std::endl;
+					std::cout << "pistol cooldown = " << player_comp.default_weapon_cooldown << std::endl;
 
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
-				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE) {
+					upgrade_inventory(PISTOL_UPGRADE_IRON, 0);
+				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && 
+							player_comp.homing_missle_weapon_damage <= HOMING_MISSLE_MAX_DAMAGE && 
+							player_comp.homing_missle_weapon_cooldown > HOMING_MISSLE_MAX_COOLDOWN &&
+							ironCount >= HOMING_MISSLE_UPGRADE_IRON && 
+							copperCount >= HOMING_MISSLE_UPGRADE_COPPER) {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					std::cout << "homing missle upgrade" << std::endl;
+					player_comp.homing_missle_weapon_damage *= 1.2;
+					player_comp.homing_missle_weapon_cooldown -= 0.4;
+					std::cout << "homing missle damage = " << player_comp.homing_missle_weapon_damage;
+					std::cout << "homing missle cooldown = " << player_comp.homing_missle_weapon_cooldown;
 
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
-				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE) {
+					upgrade_inventory(HOMING_MISSLE_UPGRADE_IRON, HOMING_MISSLE_UPGRADE_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UPGRADE && 
+							player_comp.shotgun_weapon_damage <= SHOTGUN_MAX_DAMAGE && 
+							player_comp.shotgun_weapon_cooldown > SHOTGUN_MAX_COOLDOWN &&
+							ironCount >= SHOTGUN_UPGRADE_IRON && 
+							copperCount >= SHOTGUN_UPGRADE_COPPER) {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					std::cout << "shotgun upgrade" << std::endl;
+					player_comp.shotgun_weapon_damage *= 1.2;
+					player_comp.shotgun_weapon_cooldown -= 0.2;
+					std::cout << "shotgun damage = " << player_comp.shotgun_weapon_damage;
+					std::cout << "shotgun cooldown = " << player_comp.shotgun_weapon_cooldown;
 
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
+					upgrade_inventory(SHOTGUN_UPGRADE_IRON, SHOTGUN_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
@@ -1150,45 +1180,38 @@ void WorldSystem::left_mouse_click() {
 				}
 
 				// unlock weapons ------------------------------------------------------------------------------------
-				if (upgrade_option.type == ButtonOption::Option::PISTOL_UNLOCK) {
+				if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UNLOCK && 
+							!upgrade_button.maxUpgrade && 
+							ironCount >= HOMING_MISSLE_UNLOCK_IRON && 
+							copperCount >= HOMING_MISSLE_UNLOCK_COPPER) {
 
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "pistol upgrade" << std::endl;
+					std::cout << "homing missle unlock" << std::endl;
+					upgrade_button.maxUpgrade = true;
+					createHomingMissleWeapon(registry);
 
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
-				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UNLOCK) {
+					upgrade_inventory(HOMING_MISSLE_UNLOCK_IRON, HOMING_MISSLE_UNLOCK_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UNLOCK && 
+							!upgrade_button.maxUpgrade && 
+							ironCount >= SHOTGUN_UNLOCK_IRON && 
+							copperCount >= SHOTGUN_UNLOCK_COPPER) {
 
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "homing missle upgrade" << std::endl;
+					std::cout << "shotgun unlock" << std::endl;
+					upgrade_button.maxUpgrade = true;
+					createShotgunWeapon(registry);
 
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
-				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UNLOCK) {
+					upgrade_inventory(SHOTGUN_UNLOCK_IRON, SHOTGUN_UNLOCK_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UNLOCK && !upgrade_button.maxUpgrade) {
 
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					std::cout << "shotgun upgrade" << std::endl;
-
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
-				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UNLOCK) {
-
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
-					MusicSystem::playSoundEffect(SFX::SELECT);
-
-					std::cout << "melee upgrade" << std::endl;
+					std::cout << "melee unlock" << std::endl;
 
 					for (auto ui_ship_entity : registry.view<UIShip>()) {
 						// update inventory
@@ -1214,31 +1237,30 @@ void WorldSystem::left_mouse_click() {
 		click_delay = 0.0f;
 	}
 	
-	if (player_comp.weapon_cooldown <= 0 && 
-		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
+	if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
 		click_delay > 0.3f) {
 		auto& weapon = registry.get<Item>(registry.get<InventorySlot>(*registry.view<ActiveSlot>().begin()).item);
-		if (weapon.type == Item::Type::DEFAULT_WEAPON) {
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
-			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
+		if (weapon.type == Item::Type::DEFAULT_WEAPON && player_comp.default_weapon_cooldown_dynamic <= 0) {
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.default_weapon_damage, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
+			player_comp.default_weapon_cooldown_dynamic = player_comp.default_weapon_cooldown;
 			MusicSystem::playSoundEffect(SFX::SHOOT);
 		}
-		else if (weapon.type == Item::Type::HOMING_MISSILE) {
-			auto missile_entity = createProjectile(registry, player_motion.position, 2.5f * vec2(PROJECTILE_SIZE / 2.8, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE * 2, PROJECTILE_TIMER, TEXTURE_ASSET_ID::MISSILE_PROJECTILE);
+		else if (weapon.type == Item::Type::HOMING_MISSILE && player_comp.homing_missle_weapon_cooldown_dynamic <= 0) {
+			auto missile_entity = createProjectile(registry, player_motion.position, 2.5f * vec2(PROJECTILE_SIZE / 2.8, PROJECTILE_SIZE), velocity, player_comp.homing_missle_weapon_damage, PROJECTILE_TIMER, TEXTURE_ASSET_ID::MISSILE_PROJECTILE);
 			auto& player_pos = registry.get<Motion>(*registry.view<Player>().begin()).position;
 			float x = mouse_pos_x - WINDOW_WIDTH_PX / 2 + player_pos.x;
 			float y = mouse_pos_y - WINDOW_HEIGHT_PX / 2 + player_pos.y;
 			findNearestTarget(registry, missile_entity, x, y);
-			player_comp.weapon_cooldown = WEAPON_COOLDOWN * 4;
+			player_comp.homing_missle_weapon_cooldown_dynamic = player_comp.homing_missle_weapon_cooldown;
 			MusicSystem::playSoundEffect(SFX::MISSILE);
 		}
-		else if (weapon.type == Item::Type::SHOTGUN) {
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 - velocity.y * 0.259, velocity.y * 0.966 + velocity.x * 0.259), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 + velocity.y * 0.259, velocity.y * 0.966 - velocity.x * 0.259), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 - velocity.y * 0.5, velocity.y * 0.866 + velocity.x * 0.5), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
-			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 + velocity.y * 0.5, velocity.y * 0.866 - velocity.x * 0.5), PROJECTILE_DAMAGE, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
-			player_comp.weapon_cooldown = WEAPON_COOLDOWN * 2;
+		else if (weapon.type == Item::Type::SHOTGUN && player_comp.shotgun_weapon_cooldown_dynamic <= 0) {
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 - velocity.y * 0.259, velocity.y * 0.966 + velocity.x * 0.259), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.966 + velocity.y * 0.259, velocity.y * 0.966 - velocity.x * 0.259), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 - velocity.y * 0.5, velocity.y * 0.866 + velocity.x * 0.5), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), vec2(velocity.x * 0.866 + velocity.y * 0.5, velocity.y * 0.866 - velocity.x * 0.5), player_comp.shotgun_weapon_damage, 250, TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE);
+			player_comp.shotgun_weapon_cooldown_dynamic = player_comp.shotgun_weapon_cooldown;
 			MusicSystem::playSoundEffect(SFX::SHOTGUN);
 		}
 	}
@@ -1253,14 +1275,15 @@ void WorldSystem::left_mouse_release() {
 			// if (upgrade_render.used_texture != TEXTURE_ASSET_ID::RED_BUTTON_PRESSED) {
 			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			// }
-			update_upgrade_buttons();
+			update_ship_upgrade_buttons();
         }
     } else if (screen_state.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
         for (auto entity : registry.view<WeaponUpgradeButton>()) {
             auto& upgrade_render = registry.get<RenderRequest>(entity);
-			if (upgrade_render.used_texture == TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED) {
-				upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE;
-			}
+			// if (upgrade_render.used_texture == TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED) {
+			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE;
+			// }
+			update_weapon_upgrade_buttons();
         }
     }
 }
@@ -1284,7 +1307,7 @@ void WorldSystem::on_mouse_button_pressed(int button, int action, int mods) {
 }
 
 // update inventory for ship upgrades
-void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
+void WorldSystem::upgrade_inventory(int ironCount, int copperCount) {
 	int numIronLeftToUse = ironCount;
 	int numCopperLeftToUse = copperCount;
 
@@ -1326,7 +1349,7 @@ void WorldSystem::ship_upgrade_inventory(int ironCount, int copperCount) {
 }
 
 
-void WorldSystem::update_upgrade_buttons() {
+void WorldSystem::update_ship_upgrade_buttons() {
 	// get num of each item needed for upgrades
 	auto itemsInInv = registry.view<Item, FixedUI>();
 	int copperCount = 0;
@@ -1395,4 +1418,89 @@ void WorldSystem::update_upgrade_buttons() {
 		}
 	}
 }
+
+void WorldSystem::update_weapon_upgrade_buttons() {
+	// get num of each item needed for upgrades
+	auto itemsInInv = registry.view<Item, FixedUI>();
+	int copperCount = 0;
+	int ironCount = 0;
+	for (auto entity : itemsInInv) {
+		auto& item = registry.get<Item>(entity);
+		
+		if (item.type == Item::Type::COPPER) copperCount += item.no;
+		if (item.type == Item::Type::IRON) ironCount += item.no;
+	}
+
+	// if have enough resources, change the buttons in the UI to green (upgradeable)
+	auto upgradeButtons = registry.view<WeaponUpgradeButton, ButtonOption>();
+	for (auto entity : upgradeButtons) {
+		auto& buttonOption = registry.get<ButtonOption>(entity);
+		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
+		auto& upgradeButton = registry.get<WeaponUpgradeButton>(entity);
+		
+		// upgrades --------------------------------------------------------------------------------------------------------------
+		if (buttonOption.type == ButtonOption::Option::PISTOL_UPGRADE && ironCount >= PISTOL_UPGRADE_IRON) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(PISTOL_UPGRADE_IRON) + " iron";
+		} else if (buttonOption.type == ButtonOption::Option::PISTOL_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(PISTOL_UPGRADE_IRON) + " iron";
+		}
+		
+		if (buttonOption.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && ironCount >= HOMING_MISSLE_UPGRADE_IRON && copperCount >= HOMING_MISSLE_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(HOMING_MISSLE_UPGRADE_IRON) + " iron, " + std::to_string(HOMING_MISSLE_UPGRADE_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(HOMING_MISSLE_UPGRADE_IRON) + " iron, " + std::to_string(HOMING_MISSLE_UPGRADE_COPPER) + " copper";
+		}
+		
+		if (buttonOption.type == ButtonOption::Option::SHOTGUN_UPGRADE && ironCount >= SHOTGUN_UPGRADE_IRON && copperCount >= SHOTGUN_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(SHOTGUN_UPGRADE_IRON) + " iron, " + std::to_string(SHOTGUN_UPGRADE_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::SHOTGUN_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(SHOTGUN_UPGRADE_IRON) + " iron, " + std::to_string(SHOTGUN_UPGRADE_COPPER) + " copper";
+		}
+		
+		// if (buttonOption.type == ButtonOption::Option::MELEE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
+		// 	buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+		// 	upgradeButton.missingResources = false;
+		// 	upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";
+		// } else if (buttonOption.type == ButtonOption::Option::MELEE_UPGRADE) {
+		// 	buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+		// 	upgradeButton.missingResources = true;
+		// 	upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";
+		// }
+
+
+		// unlock --------------------------------------------------------------------------------------------------------------
+		if (buttonOption.type == ButtonOption::Option::HOMING_MISSLE_UNLOCK && ironCount >= HOMING_MISSLE_UNLOCK_IRON && copperCount >= HOMING_MISSLE_UNLOCK_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(HOMING_MISSLE_UNLOCK_IRON) + " iron, " + std::to_string(HOMING_MISSLE_UNLOCK_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::HOMING_MISSLE_UNLOCK) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(HOMING_MISSLE_UNLOCK_IRON) + " iron, " + std::to_string(HOMING_MISSLE_UNLOCK_COPPER) + " copper";
+		}
+		
+		if (buttonOption.type == ButtonOption::Option::SHOTGUN_UNLOCK && ironCount >= SHOTGUN_UNLOCK_IRON && copperCount >= SHOTGUN_UNLOCK_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(SHOTGUN_UNLOCK_IRON) + " iron, " + std::to_string(SHOTGUN_UNLOCK_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::SHOTGUN_UNLOCK) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(SHOTGUN_UNLOCK_IRON) + " iron, " + std::to_string(SHOTGUN_UNLOCK_COPPER) + " copper";
+		}
+	}
+}
+
 

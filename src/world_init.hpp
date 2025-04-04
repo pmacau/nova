@@ -60,5 +60,7 @@ entt::entity createMinimap(entt::registry & registry);
 entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices);
 
 void createDefaultWeapon(entt::registry& registry);
+void createHomingMissleWeapon(entt::registry& registry);
+void createShotgunWeapon(entt::registry& registry);
 
 void findNearestTarget(entt::registry& registry, entt::entity& entity, float x, float y);

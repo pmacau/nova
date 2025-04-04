@@ -37,7 +37,16 @@ struct Obstacle {
 struct Player
 {
 	int health;
-	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	float default_weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	float default_weapon_cooldown_dynamic = WEAPON_COOLDOWN; 
+	float homing_missle_weapon_cooldown = WEAPON_COOLDOWN * 4;
+	float homing_missle_weapon_cooldown_dynamic = WEAPON_COOLDOWN * 4;
+	float shotgun_weapon_cooldown = WEAPON_COOLDOWN * 2;
+	float shotgun_weapon_cooldown_dynamic = WEAPON_COOLDOWN * 2;
+
+	float default_weapon_damage = PROJECTILE_DAMAGE;
+	float homing_missle_weapon_damage = PROJECTILE_DAMAGE * 2;
+	float shotgun_weapon_damage = PROJECTILE_DAMAGE;
 };
 
 // Ship component
@@ -181,6 +190,7 @@ struct WeaponUpgradeButton
 	std::string text;
 	bool missingResources = false;
 	std::string missingResourcesText;
+	bool maxUpgrade = false;
 };
 
 struct MobHealthBar

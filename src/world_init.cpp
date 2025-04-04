@@ -680,8 +680,9 @@ void createDefaultWeapon(entt::registry& registry) {
 	auto& render_request = registry.get<RenderRequest>(slot_entity);
 	render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT_ACTIVE;
 	// TODO the weapon upgrade should be available from ship
+}
 
-
+void createHomingMissleWeapon(entt::registry& registry) {
 	auto& slot_entity_2 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[1];
 	auto& inventory_slot_2 = registry.get<InventorySlot>(slot_entity_2);
 	auto homing_missile_entity = registry.create();
@@ -701,8 +702,9 @@ void createDefaultWeapon(entt::registry& registry) {
 	render_request_missile.used_texture = TEXTURE_ASSET_ID::HOMING_MISSILE;
 	render_request_missile.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_missile.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+}
 
-
+void createShotgunWeapon(entt::registry& registry) {
 	auto& slot_entity_3 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[2];
 	auto& inventory_slot_3 = registry.get<InventorySlot>(slot_entity_3);
 	auto shotgun_entity = registry.create();
