@@ -6,6 +6,7 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
+#include "ui_system.hpp"
 // stlib
 #include <cassert>
 #include <sstream>
@@ -1190,7 +1191,10 @@ void WorldSystem::left_mouse_click() {
 
 					std::cout << "homing missle unlock" << std::endl;
 					upgrade_button.maxUpgrade = true;
-					createHomingMissleWeapon(registry);
+					entt::entity homing_missle_entity = createHomingMissleWeapon(registry);
+					UISystem::addToInventory(registry, homing_missle_entity);
+					
+
 
 					upgrade_inventory(HOMING_MISSLE_UNLOCK_IRON, HOMING_MISSLE_UNLOCK_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::SHOTGUN_UNLOCK && 
@@ -1203,7 +1207,8 @@ void WorldSystem::left_mouse_click() {
 
 					std::cout << "shotgun unlock" << std::endl;
 					upgrade_button.maxUpgrade = true;
-					createShotgunWeapon(registry);
+					entt::entity shotgun_entity = createShotgunWeapon(registry);
+					UISystem::addToInventory(registry, shotgun_entity);
 
 					upgrade_inventory(SHOTGUN_UNLOCK_IRON, SHOTGUN_UNLOCK_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UNLOCK && !upgrade_button.maxUpgrade) {

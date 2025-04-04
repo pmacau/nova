@@ -651,7 +651,7 @@ void createInventory(entt::registry& registry) {
 	}
 }
 
-void createDefaultWeapon(entt::registry& registry) {
+entt::entity createDefaultWeapon(entt::registry& registry) {
 	auto& slot_entity = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[0];
 	auto& inventory_slot = registry.get<InventorySlot>(slot_entity);
 	auto default_weapon_entity = registry.create();
@@ -680,21 +680,23 @@ void createDefaultWeapon(entt::registry& registry) {
 	auto& render_request = registry.get<RenderRequest>(slot_entity);
 	render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT_ACTIVE;
 	// TODO the weapon upgrade should be available from ship
+
+	return default_weapon_entity;
 }
 
-void createHomingMissleWeapon(entt::registry& registry) {
-	auto& slot_entity_2 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[1];
-	auto& inventory_slot_2 = registry.get<InventorySlot>(slot_entity_2);
+entt::entity createHomingMissleWeapon(entt::registry& registry) {
+	// auto& slot_entity_2 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[1];
+	// auto& inventory_slot_2 = registry.get<InventorySlot>(slot_entity_2);
 	auto homing_missile_entity = registry.create();
-	registry.emplace<UI>(homing_missile_entity);
-	registry.emplace<FixedUI>(homing_missile_entity);
+	// registry.emplace<UI>(homing_missile_entity);
+	// registry.emplace<FixedUI>(homing_missile_entity);
 	auto& missile_motion = registry.emplace<Motion>(homing_missile_entity);
 	missile_motion.position = { 50.f + 45.f, 50.f };
 	missile_motion.scale = vec2(700.0f, 400.0f) / 21.0f;
 	auto& missile_item = registry.emplace<Item>(homing_missile_entity);
 	missile_item.type = Item::Type::HOMING_MISSILE;
-	inventory_slot_2.hasItem = true;
-	inventory_slot_2.item = homing_missile_entity;
+	// inventory_slot_2.hasItem = true;
+	// inventory_slot_2.item = homing_missile_entity;
 	auto& missile_sprite = registry.emplace<Sprite>(homing_missile_entity);
 	missile_sprite.dims = { 700.0f, 400.0f };
 	missile_sprite.sheet_dims = { 700.0f, 400.0f };
@@ -702,21 +704,23 @@ void createHomingMissleWeapon(entt::registry& registry) {
 	render_request_missile.used_texture = TEXTURE_ASSET_ID::HOMING_MISSILE;
 	render_request_missile.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_missile.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return homing_missile_entity;
 }
 
-void createShotgunWeapon(entt::registry& registry) {
-	auto& slot_entity_3 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[2];
-	auto& inventory_slot_3 = registry.get<InventorySlot>(slot_entity_3);
+entt::entity createShotgunWeapon(entt::registry& registry) {
+	// auto& slot_entity_3 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[2];
+	// auto& inventory_slot_3 = registry.get<InventorySlot>(slot_entity_3);
 	auto shotgun_entity = registry.create();
-	registry.emplace<UI>(shotgun_entity);
-	registry.emplace<FixedUI>(shotgun_entity);
+	// registry.emplace<UI>(shotgun_entity);
+	// registry.emplace<FixedUI>(shotgun_entity);
 	auto& shotgun_motion = registry.emplace<Motion>(shotgun_entity);
 	shotgun_motion.position = { 50.f + 45.f * 2, 50.f };
 	shotgun_motion.scale = vec2(512.f, 512.f) / 15.0f;
 	auto& shotgun_item = registry.emplace<Item>(shotgun_entity);
 	shotgun_item.type = Item::Type::SHOTGUN;
-	inventory_slot_3.hasItem = true;
-	inventory_slot_3.item = shotgun_entity;
+	// inventory_slot_3.hasItem = true;
+	// inventory_slot_3.item = shotgun_entity;
 	auto& shotgun_sprite = registry.emplace<Sprite>(shotgun_entity);
 	shotgun_sprite.dims = { 512.f, 512.f };
 	shotgun_sprite.sheet_dims = { 512.f, 512.f };
@@ -724,6 +728,8 @@ void createShotgunWeapon(entt::registry& registry) {
 	render_request_shotgun.used_texture = TEXTURE_ASSET_ID::SHOTGUN;
 	render_request_shotgun.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_shotgun.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return shotgun_entity;
 }
 
 void findNearestTarget(entt::registry& registry, entt::entity& entity, float x, float y) {
