@@ -872,11 +872,14 @@ entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 s
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
 
-	if (screenType == ScreenState::ScreenType::UPGRADE_UI) {
+	if (screenType == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		auto& upgradeButton = registry.emplace<ShipUpgradeButton>(entity);
 		upgradeButton.text = text;
 	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
 		auto& upgradeButton = registry.emplace<WeaponUpgradeButton>(entity);
+		upgradeButton.text = text;
+	} else if (screenType == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+		auto& upgradeButton = registry.emplace<PlayerUpgradeButton>(entity);
 		upgradeButton.text = text;
 	}
 	
@@ -915,6 +918,8 @@ entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, TEX
 		registry.emplace<UIIcon>(entity);
 	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
 		registry.emplace<WeaponUIIcon>(entity);
+	} else if (screenType == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+		registry.emplace<PlayerUIIcon>(entity);
 	}
 
 	auto& motion = registry.emplace<Motion>(entity);

@@ -153,13 +153,13 @@ void WorldSystem::init() {
 	// smg engine
 	createUIShipEngine(registry, vec2(w/4, h/4 + h/2*0.01f), vec2(w/6 - w/2*0.15f, w/6 - w/2*0.15f), 12);
 	// health
-	createUpgradeButton(registry, vec2(w/4 - w/2*0.27f, h/4 - h/2*0.11f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_HEALTH_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::UPGRADE_UI, "Upgrade");
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.27f, h/4 - h/2*0.11f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_HEALTH_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::SHIP_UPGRADE_UI, "Upgrade");
 	// blaster
-	createUpgradeButton(registry, vec2(w/4 + w/2*0.3f, h/4 - h/2*0.07f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::UPGRADE_UI, "Upgrade");
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.3f, h/4 - h/2*0.07f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_BLASTER_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::SHIP_UPGRADE_UI, "Upgrade");
 	// range
-	createUpgradeButton(registry, vec2(w/4 - w/2*0.26f, h/4 + h/2*0.3f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::UPGRADE_UI, "Upgrade");
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.26f, h/4 + h/2*0.3f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_RANGE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::SHIP_UPGRADE_UI, "Upgrade");
 	// fire rate
-	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::UPGRADE_UI, "Upgrade");
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::SHIP_UPGRADE_UI, "Upgrade");
 
 
 	// ***********************************************************************************************
@@ -195,6 +195,17 @@ void WorldSystem::init() {
 	auto& pistol_unlock_button = registry.get<WeaponUpgradeButton>(pistolUnlock);
 	pistol_unlock_button.maxUpgrade = true;
 
+	// ***********************************************************************************************
+	// ******************************** init all the player ui stuff *********************************
+	createIcon(registry, vec2(w/4, h/4), PLAYER_SPRITESHEET.dims * vec2(7.0f, 7.0f), TEXTURE_ASSET_ID::PLAYER, PLAYER_SPRITESHEET.dims, PLAYER_SPRITESHEET.sheet_dims, ScreenState::ScreenType::PLAYER_UPGRADE_UI);
+
+	// health
+	createUpgradeButton(registry, vec2(w/4 - w/2*0.27f, h/4 - h/2*0.11f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PLAYER_HEALTH_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::PLAYER_UPGRADE_UI, "Upgrade");
+	// night vision
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.27f, h/4 - h/2*0.17f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PLAYER_VISION_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::PLAYER_UPGRADE_UI, "Upgrade");
+	// speed
+	createUpgradeButton(registry, vec2(w/4 + w/2*0.27f, h/4 + h/2*0.35f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PLAYER_SPEED_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED, ScreenState::ScreenType::PLAYER_UPGRADE_UI, "Upgrade");
+	
 	// ***********************************************************************************************
 	// ************************ init all of the text boxes for the tutorial **************************
 	textBoxEntities.resize(6);
@@ -737,6 +748,9 @@ void WorldSystem::left_mouse_click() {
 					return;
 				} else if (title_option.type == ButtonOption::Option::WEAPON) {
 					screen_state.current_screen = ScreenState::ScreenType::WEAPON_UPGRADE_UI;
+					return;
+				} else if (title_option.type == ButtonOption::Option::PLAYER) {
+					screen_state.current_screen = ScreenState::ScreenType::PLAYER_UPGRADE_UI;
 					return;
 				}
 				// else if (title_option.type == ButtonOption::Option::EXIT) {

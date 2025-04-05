@@ -172,6 +172,11 @@ struct WeaponUIIcon
 
 };
 
+struct PlayerUIIcon
+{
+
+};
+
 struct PlayerHealthBar
 {
 };
@@ -194,6 +199,14 @@ struct ShipUpgradeButton
 };
 
 struct WeaponUpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
+	bool maxUpgrade = false;
+};
+
+struct PlayerUpgradeButton
 {
 	std::string text;
 	bool missingResources = false;
@@ -287,6 +300,11 @@ struct ButtonOption
 		SHOTGUN_UNLOCK,
 		MELEE_UPGRADE,
 		MELEE_UNLOCK,
+
+		// for player upgrade screen
+		PLAYER_HEALTH_UPGRADE,
+		PLAYER_VISION_UPGRADE,
+		PLAYER_SPEED_UPGRADE
 	};
 	Option type;
 	std::string text;

@@ -112,6 +112,9 @@ const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
 
+// Player Upgrade Constants
+
+
 // Ship Upgrade Constants
 const int SHIP_HEALTH_UPGRADE_IRON = 7;
 
@@ -134,6 +137,7 @@ const int SHOTGUN_UPGRADE_IRON = 6;
 const int SHOTGUN_UPGRADE_COPPER = 3;
 
 const int MELEE_UPGRADE_IRON = 5;
+
 
 // Weapon Unlock Constants
 const int HOMING_MISSLE_UNLOCK_IRON = 8;
