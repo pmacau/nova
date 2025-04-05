@@ -247,6 +247,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		restart_game();
 	}
 
+
+	
+
 	InputState i; 
 	if (key_state[KeyboardState::UP]) i.up = true;
 	if (key_state[KeyboardState::DOWN]) i.down = true;
@@ -334,6 +337,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+
+
 	// TODO: freeze everything if in ship_ui
 	
 	MapSystem::update_location(registry, player_entity);
@@ -372,6 +377,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
 		mob.hit_time -= elapsed_s;
 	}	
+
+	auto slashView = registry.view<Slash, RenderRequest>();
+	for (auto entity : slashView) {
+		auto& slash = registry.get<Slash>(entity);
+		auto& renderRequest = registry.get<RenderRequest>(entity);
+
+		// Update total elapsed time
+		slash.time_elapsed += elapsed_s;
+		slash.frame_time += elapsed_s;
+
+		// Calculate frame duration (total lifetime divided by number of frames)
+		float frame_duration = slash.total_lifetime / 10.f;
+
+		// Check if it's time to advance to the next frame
+		if (slash.frame_time >= frame_duration) {
+			slash.frame_time = 0.f; // Reset frame timer
+			slash.current_frame++; // Move to next frame
+
+			// Update texture to the next frame
+			if (slash.current_frame <= 10) {
+				// Convert current_frame to the corresponding TEXTURE_ASSET_ID
+				TEXTURE_ASSET_ID newTexture = static_cast<TEXTURE_ASSET_ID>(
+					static_cast<int>(TEXTURE_ASSET_ID::SLASH_1) + slash.current_frame - 1
+					);
+				renderRequest.used_texture = newTexture;
+			}
+		}
+
+		// Remove slash after total lifetime
+		if (slash.time_elapsed >= slash.total_lifetime) {
+			registry.destroy(entity);
+		}
+	}
+
+	
+	float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+	cooldown = max(cooldown - elapsed_s, 0.f);
 
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
@@ -506,7 +548,7 @@ bool WorldSystem::is_over() const {
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-
+	
 	// title screen
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		//close_window();
@@ -523,13 +565,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
+	
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		// int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
 		// glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_V) {
+		float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+		if (cooldown == 0.f) {
+			cooldown = MELEE_COOLDOWN;
+			createSlash(registry);
+		}
 	}
 
 	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
@@ -552,10 +602,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_E && action == GLFW_RELEASE) {
-		std::cout << "slash " << std::endl; 
-		createSlash(registry); 
-	}
+	
 
 	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
 		physics_system.dash(); 

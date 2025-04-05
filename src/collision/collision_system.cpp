@@ -94,29 +94,17 @@ void CollisionSystem::step(float elapsed_ms) {
 			registry.destroy(entity);
 		}
 	}
-	for (auto slash : slashes) {
-		if (registry.valid(slash)) {
+	/*for (auto slash : slashes) {
+		if (!registry.valid(slash)) {
+			
+		}
+
+		Slash& s = registry.get<Slash>(slash); 
+		s.hit = true;
+		if (s.time_elapsed > 0.3f) {
 			registry.destroy(slash);
 		}
-	}
-
-
-	/*for (auto&& [e1, m1, h1] : registry.view<Motion, Hitbox>().each()) {
-		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
-			if (
-				e1 == e2 ||
-				processed.find(e1) != processed.end() ||
-				processed.find(e2) != processed.end() ||
-				!collides(h1, m1, h2, m2)
-			) continue;
-
-			resolve(e1, e2, elapsed_ms);
-
-			processHandler(e1, e2); 
-		}
-	}
-
-	 for (auto entity: destroy_entities) registry.destroy(entity);*/
+	}*/
 }
 
 void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {
@@ -235,6 +223,9 @@ void CollisionSystem::handle<Slash, Mob>(
 	auto& slash = registry.get<Slash>(slash_ent); 
 	auto& mob = registry.get<Mob>(mob_ent);
 
+	if (slash.hit) {
+		return; 
+	}
 
 	debug_printf(DebugType::COLLISION, "Slash-mob collision!\n");
 	mob.health -= slash.damage;
