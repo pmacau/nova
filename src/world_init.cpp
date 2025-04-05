@@ -32,6 +32,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
+	player.speed = PLAYER_SPEED;
 	 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;

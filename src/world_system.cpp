@@ -672,6 +672,12 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 			upgrade_option.hover = abs(mouse_pos_x - upgrade_option.position.x) <= upgrade_option.size.x / 2 &&
 				abs(mouse_pos_y - upgrade_option.position.y) <= upgrade_option.size.y / 2;
 		}
+	} else if (screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+		for (auto entity : registry.view<PlayerUpgradeButton>(entt::exclude<Title, Button>)) {
+			auto& upgrade_option = registry.get<ButtonOption>(entity);
+			upgrade_option.hover = abs(mouse_pos_x - upgrade_option.position.x) <= upgrade_option.size.x / 2 &&
+				abs(mouse_pos_y - upgrade_option.position.y) <= upgrade_option.size.y / 2;
+		}
 	}
 	if (!registry.view<Drag>().empty()) {
 		UISystem::updateDragItem(registry, mouse_pos_x, mouse_pos_y);
@@ -1234,6 +1240,91 @@ void WorldSystem::left_mouse_click() {
 				}
 			}
 		}
+	} else if (screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+		auto itemsInInv = registry.view<Item, FixedUI>();
+		int copperCount = 0;
+		int ironCount = 0;
+		for (auto entity : itemsInInv) {
+			auto& item = registry.get<Item>(entity);
+
+			if (item.type == Item::Type::COPPER) copperCount += item.no;
+			if (item.type == Item::Type::IRON) ironCount += item.no;
+		}
+
+		for (auto entity : registry.view<PlayerUpgradeButton>()) {
+			auto& upgrade_option = registry.get<ButtonOption>(entity);
+			auto& upgrade_render = registry.get<RenderRequest>(entity);
+			auto& upgrade_button = registry.get<PlayerUpgradeButton>(entity);
+
+			if (upgrade_option.hover) {
+				if (upgrade_option.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE && 
+					player_comp.health < PLAYER_MAX_HEALTH &&
+					ironCount >= PLAYER_HEALTH_UPGRADE_IRON && 
+					copperCount >= PLAYER_HEALTH_UPGRADE_COPPER &&
+					!upgrade_button.maxUpgrade) {
+
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
+
+					player_comp.health += 20;
+					std::cout << "player health = " << player_comp.health << std::endl;
+					std::cout << "max player health = " << PLAYER_MAX_HEALTH << std::endl;
+
+					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE && 
+					player_comp.health >= PLAYER_MAX_HEALTH) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+				}
+
+				/*
+				if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE && 
+					player_comp.default_weapon_damage <= PISTOL_MAX_DAMAGE && 
+					player_comp.default_weapon_cooldown > PISTOL_MAX_COOLDOWN &&
+					ironCount >= PISTOL_UPGRADE_IRON) {
+
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
+
+					player_comp.default_weapon_damage *= 1.2;
+					player_comp.default_weapon_cooldown -= 0.1;
+
+					upgrade_inventory(PISTOL_UPGRADE_IRON, 0);
+				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+				}
+				*/
+
+				if (upgrade_option.type == ButtonOption::Option::PLAYER_VISION_UPGRADE) {
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+				}
+
+				if (upgrade_option.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE &&
+					player_comp.speed < PLAYER_MAX_SPEED &&
+					ironCount >= PLAYER_SPEED_UPGRADE_IRON && 
+					copperCount >= PLAYER_SPEED_UPGRADE_COPPER &&
+					!upgrade_button.maxUpgrade) {
+					
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
+
+					player_comp.speed += 20;
+					std::cout << "player speed = " << player_comp.speed << std::endl;
+					std::cout << "max player speed = " << PLAYER_MAX_SPEED << std::endl;
+
+					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE && 
+					player_comp.speed >= PLAYER_MAX_SPEED) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+				}
+			}
+		}
+
 	}
 
 	bool itemUsed = false;
@@ -1340,6 +1431,14 @@ void WorldSystem::left_mouse_release() {
 			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE;
 			// }
 			update_weapon_upgrade_buttons();
+        }
+    } else if (screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+        for (auto entity : registry.view<PlayerUpgradeButton>()) {
+            auto& upgrade_render = registry.get<RenderRequest>(entity);
+			// if (upgrade_render.used_texture == TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED) {
+			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE;
+			// }
+			update_player_upgrade_buttons();
         }
     }
 }
@@ -1563,4 +1662,50 @@ void WorldSystem::update_weapon_upgrade_buttons() {
 	}
 }
 
+void WorldSystem::update_player_upgrade_buttons() {
+	// get num of each item needed for upgrades
+	auto itemsInInv = registry.view<Item, FixedUI>();
+	int copperCount = 0;
+	int ironCount = 0;
+	for (auto entity : itemsInInv) {
+		auto& item = registry.get<Item>(entity);
+		
+		if (item.type == Item::Type::COPPER) copperCount += item.no;
+		if (item.type == Item::Type::IRON) ironCount += item.no;
+	}
+
+	auto& player_comp = registry.get<Player>(player_entity);
+
+	// if have enough resources, change the buttons in the UI to green (upgradeable)
+	auto upgradeButtons = registry.view<PlayerUpgradeButton, ButtonOption>();
+	for (auto entity : upgradeButtons) {
+		auto& buttonOption = registry.get<ButtonOption>(entity);
+		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
+		auto& upgradeButton = registry.get<PlayerUpgradeButton>(entity);
+
+		if (upgradeButton.maxUpgrade) continue;
+		
+		// upgrades --------------------------------------------------------------------------------------------------------------
+		if (buttonOption.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE && ironCount >= PLAYER_HEALTH_UPGRADE_IRON && copperCount >= PLAYER_HEALTH_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(PLAYER_HEALTH_UPGRADE_IRON) + " iron, " + std::to_string(PLAYER_HEALTH_UPGRADE_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(PLAYER_HEALTH_UPGRADE_IRON) + " iron, " + std::to_string(PLAYER_HEALTH_UPGRADE_COPPER) + " copper";
+		}
+
+		if (buttonOption.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE && ironCount >= PLAYER_SPEED_UPGRADE_IRON && copperCount >= PLAYER_SPEED_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(PLAYER_SPEED_UPGRADE_IRON) + " iron, " + std::to_string(PLAYER_SPEED_UPGRADE_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(PLAYER_SPEED_UPGRADE_IRON) + " iron, " + std::to_string(PLAYER_SPEED_UPGRADE_COPPER) + " copper";
+		}
+		
+	}
+}
 

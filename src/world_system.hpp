@@ -87,6 +87,7 @@ private:
 
 	void update_ship_upgrade_buttons();
 	void update_weapon_upgrade_buttons();
+	void update_player_upgrade_buttons();
 
 	// OpenGL window handle
 	GLFWwindow* window;

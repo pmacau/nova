@@ -9,18 +9,19 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 
 void PhysicsSystem::updatePlayerVelocity(InputState i) {
     auto& motion = registry.get<Motion>(registry.view<Player>().front());
+    auto& player = registry.get<Player>(registry.view<Player>().front());
 	vec2 proposedVelocity = { 0.0f, 0.0f };
-    proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
-    proposedVelocity.x = (!i.left) ? (i.right ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
+    proposedVelocity.y = (!i.up) ? (i.down ? player.speed : 0.0f) : -player.speed;
+    proposedVelocity.x = (!i.left) ? (i.right ? player.speed : 0.0f) : -player.speed;
 
     if (i.up && i.down)  proposedVelocity.y = 0.0f;
     else if (i.left && i.right) proposedVelocity.x = 0.0f;
-    else if (i.left && i.up)    proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
-    else if (i.left && i.down)  proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
-    else if (i.right && i.up)    proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
-    else if (i.right && i.down)  proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+    else if (i.left && i.up)    proposedVelocity = player.speed * vec2(-0.7071f, -0.7071f);
+    else if (i.left && i.down)  proposedVelocity = player.speed * vec2(-0.7071f, 0.7071f);
+    else if (i.right && i.up)    proposedVelocity = player.speed * vec2(0.7071f, -0.7071f);
+    else if (i.right && i.down)  proposedVelocity = player.speed * vec2(0.7071f, 0.7071f);
 
-	if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
+	if (glm::length(proposedVelocity) <= player.speed) {
 		motion.velocity = proposedVelocity;
 	} 
 

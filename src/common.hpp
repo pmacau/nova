@@ -92,6 +92,11 @@ const float MOB_SPEED = 100.0f;
 const int MOB_DAMAGE = 25; 
 
 
+// player max stats
+const int PLAYER_MAX_HEALTH = 200;
+const float PLAYER_MAX_SPEED = 300.0f;
+
+
 const float GAME_SCALE = 2.f;
 
 
@@ -113,6 +118,13 @@ const float MOUSE_POLL_RATE = 100;
 
 
 // Player Upgrade Constants
+const int PLAYER_HEALTH_UPGRADE_IRON = 0; //5
+const int PLAYER_HEALTH_UPGRADE_COPPER = 0; //3
+
+const int PLAYER_VISION_UPGRADE_COPPER = 6; //6
+
+const int PLAYER_SPEED_UPGRADE_IRON = 0; //3
+const int PLAYER_SPEED_UPGRADE_COPPER = 0; //6
 
 
 // Ship Upgrade Constants
