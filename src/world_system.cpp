@@ -157,7 +157,7 @@ void WorldSystem::init() {
 	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 
 	// init all of the text boxes for the tutorial
-	textBoxEntities.resize(6);
+	textBoxEntities.resize(8);
     vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
 	int scale = 2;
 
@@ -180,18 +180,26 @@ void WorldSystem::init() {
     textBoxEntities[2] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_2, scale, vec3(1));
 
 	std::string tut_3 =
+		std::string("Nice, now if you want to {1melee} press {1V}!");
+	textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
+
+	std::string tut_4 =
+		std::string("If you want to dash press the {1space} {1bar}!"); 
+	textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_4, scale, vec3(1));
+
+	std::string tut_5 =
 		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
 		std::string("be careful though; our signals indicate the presence of a {1stronger alien} in each biome. ") +
 		std::string("taking those beasts down are sure to net you a hefty reward.");
-    textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
+    textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_5, scale, vec3(1));
 
-	std::string tut_4 =
+	std::string tut_6 =
 		std::string("oh, and one more thing. on {1Nova}, each day is only {15 minutes}, so you're only going to ") +
 		std::string("get around {1150 seconds} of daylight. it gets really dark, so you'll probably want to camp out ") +
 		std::string("by the ship for protection. or don't; it's your funeral...");
-	textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.f), size, tut_4, scale, vec3(1));
+	textBoxEntities[6] = createTextBox(registry, vec2(0.f, 200.f), size, tut_6, scale, vec3(1));
 
-    textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.0f), size, 
+    textBoxEntities[7] = createTextBox(registry, vec2(0.f, 200.0f), size, 
         "You defeated an enemy! Keep exploring.", scale, vec3(1));
     
     // make them all inactive initially
@@ -469,11 +477,17 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
         case FlagSystem::TutorialStep::Shot:
             activeIndex = 3;
             break;
-		case FlagSystem::TutorialStep::Biome_Read:
+		case FlagSystem::TutorialStep::Melee:
 			activeIndex = 4;
 			break;
+		case FlagSystem::TutorialStep::Dash:
+			activeIndex = 5;
+			break;
+		case FlagSystem::TutorialStep::Biome_Read:
+			activeIndex = 6;
+			break;
         case FlagSystem::TutorialStep::MobKilled:
-            activeIndex = 5;
+            activeIndex = 7;
             break;
 		default:
 			activeIndex = -1;
