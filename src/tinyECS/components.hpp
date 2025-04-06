@@ -19,7 +19,7 @@ struct Boss{
 
 // TODO: Tweak values
 struct Slash {
-	float damage = 10.f;
+	float damage = 5.f;
 	float force = 250.f;
 	float time_elapsed = 0.0f;
 	float total_lifetime = 0.35f; 
