@@ -286,6 +286,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	
 
 	auto player = registry.get<Player>(player_entity);
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
+
 	if (player.health <= 0) {
 		debug_printf(DebugType::WORLD, "Game over; restarting game now...\n");
 		if (!registry.view<Grave>().empty()) {
@@ -418,7 +420,7 @@ void WorldSystem::player_respawn() {
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
-	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 }
 
 void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
@@ -511,6 +513,10 @@ void WorldSystem::restart_game() {
 	// registry.destroy(motions.begin(), motions.end());
 	vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
+
+	Player& player = registry.get<Player>(player_entity);
+	player.health = player.currMaxHealth;
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 
 	// reset ui ship to default ---> not sure if we wanna do this?
 	// for (auto ui_ship_entity : registry.view<UIShip>()) {
@@ -1266,6 +1272,7 @@ void WorldSystem::left_mouse_click() {
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					player_comp.health += 20;
+					player_comp.currMaxHealth += 20;
 
 					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE && 

@@ -39,6 +39,8 @@ struct Obstacle {
 struct Player
 {
 	int health;
+	int currMaxHealth;
+	int maxHealth;
 	float speed;
 	float vision_radius;
 

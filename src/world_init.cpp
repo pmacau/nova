@@ -32,6 +32,8 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
+	player.currMaxHealth = PLAYER_HEALTH;
+	player.maxHealth = PLAYER_MAX_HEALTH;
 	player.speed = PLAYER_SPEED;
 	player.vision_radius = 0.25;
 	 

@@ -119,13 +119,13 @@ const float MOUSE_POLL_RATE = 100;
 
 
 // Player Upgrade Constants
-const int PLAYER_HEALTH_UPGRADE_IRON = 5; //5
-const int PLAYER_HEALTH_UPGRADE_COPPER = 3; //3
+const int PLAYER_HEALTH_UPGRADE_IRON = 0; //5
+const int PLAYER_HEALTH_UPGRADE_COPPER = 0; //3
 
-const int PLAYER_VISION_UPGRADE_COPPER = 6; //6
+const int PLAYER_VISION_UPGRADE_COPPER = 0; //6
 
-const int PLAYER_SPEED_UPGRADE_IRON = 3; //3
-const int PLAYER_SPEED_UPGRADE_COPPER = 6; //6
+const int PLAYER_SPEED_UPGRADE_IRON = 0; //3
+const int PLAYER_SPEED_UPGRADE_COPPER = 0; //6
 
 
 // Ship Upgrade Constants

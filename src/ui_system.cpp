@@ -7,11 +7,12 @@ float UISystem::equip_delay = 0.0f;
 std::mt19937 UISystem::rng(std::random_device{}());
 std::uniform_real_distribution<float> UISystem::uniform_dist(0.f, 1.f);
 
-void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
+void UISystem::updatePlayerHealthBar(entt::registry& registry, int currMaxHealth, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
 		auto& playerhealth_motion = registry.get<Motion>(entity);
 		float left = playerhealth_motion.position.x - playerhealth_motion.scale.x / 2.f;
-		playerhealth_motion.scale = vec2({ health * (250.f / PLAYER_HEALTH), 15.f });
+
+		playerhealth_motion.scale = vec2({ health * (250.f / currMaxHealth), 15.f });
 		playerhealth_motion.position.x = left + playerhealth_motion.scale.x / 2.f;
 		break;
 	}
@@ -46,7 +47,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 		player.health = min(player.health + potion.heal, PLAYER_HEALTH);
 		std::cout << "player health after: " << player.health << "\n";
 		MusicSystem::playSoundEffect(SFX::POTION);
-		updatePlayerHealthBar(registry, player.health);
+		updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 		auto screens = registry.view<ScreenState>();
 		auto& screen = registry.get<ScreenState>(screens.front());
 		if (screens.size() > 0) {
