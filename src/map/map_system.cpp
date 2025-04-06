@@ -46,10 +46,25 @@ Public methods
 void MapSystem::init(entt::registry& reg) {
     loadMap();
     createBackground(reg, map_width, map_height, TILE_SIZE);
+    initBossSpawnIndices();
 };
 
 void MapSystem::generate_new_map() {
     // TODO: port python map generator to cpp
+}
+
+void MapSystem::initBossSpawnIndices() {
+    bossSpawnIndices.clear();
+
+    for (int i = 0; i < map_height; i++) {
+        for (int j = 0; j < map_width; j++) {
+            vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
+
+            if (get_decoration(game_map[i][j]) == Decoration::BOSS) {
+                bossSpawnIndices.push_back(vec2(j, i));
+            }
+        }
+    }
 }
 
 vec2 MapSystem::populate_ecs(
@@ -65,7 +80,7 @@ vec2 MapSystem::populate_ecs(
 
             switch (get_decoration(game_map[i][j])) {
                 case Decoration::BOSS:
-                    bossSpawnIndices.push_back(vec2(j, i));
+                    // bossSpawnIndices.push_back(vec2(j, i));
                     break;
                 case Decoration::SPAWN:
                     p_pos = map_pos;

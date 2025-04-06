@@ -31,6 +31,8 @@ public:
 
     static Biome get_biome_by_indices(ivec2 tile_indices);
 
+    static void initBossSpawnIndices();
+
     static std::vector<vec2>& getBossSpawnIndices();
 
 private:

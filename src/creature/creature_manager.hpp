@@ -19,24 +19,11 @@ public:
     std::vector<const CreatureDefinitionData*> queryDefinitions(
         const std::function<bool(const CreatureDefinitionData&)>& predicate) const;
 
-    // TODO: hide this in future and provide a getter and setter
-    std::vector<BossSpawn> bossSpawnData;
-
-    void onRestartGame() {
-        // Reset boss spawn data: if not defeated, set to not spawned.
-        for (auto& spawnData : bossSpawnData) {
-            if (!spawnData.defeated) {
-                spawnData.spawned = false;
-            }
-        }
-    }
 
 private:
     CreatureManager();
     CreatureManager(const CreatureManager&) = delete;
     CreatureManager& operator=(const CreatureManager&) = delete;
-
-    void loadBossSpawnData();
 
     std::unordered_map<CreatureID, const CreatureDefinitionData*> definitions;
 };

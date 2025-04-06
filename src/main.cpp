@@ -57,7 +57,8 @@ int main()
 	AISystem ai_system(reg);
 	CollisionSystem collision_system(reg, world_system, physics_system, quadTree);
 	CameraSystem camera_system(reg);
-	SpawnSystem spawn_system(reg);
+
+	
 	// FlagSystem flag_system(reg); 
 	AnimationSystem animationSystem(reg);
 	PlayerSystem playerSystem(reg);
@@ -77,6 +78,11 @@ int main()
 
 	// initialize the main systems
 	MapSystem::init(reg);
+
+	// spawn system needs to be initialized after the map system
+	SpawnSystem::initialize(reg);
+	SpawnSystem& spawn_system = SpawnSystem::getInstance();
+
 	world_system.init();
 	renderer_system.init(window);
 	renderer_system.initFreetype();

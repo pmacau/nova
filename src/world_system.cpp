@@ -6,7 +6,7 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 #include "map/map_system.hpp"
-#include <creature/creature_manager.hpp>
+#include <spawn_system.hpp>
 // stlib
 #include <cassert>
 #include <sstream>
@@ -465,7 +465,7 @@ void WorldSystem::restart_game() {
 	// ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE;
 
 	MapSystem::populate_ecs(registry, p_pos, s_pos);
-	CreatureManager::getInstance().onRestartGame();
+	SpawnSystem::getInstance().onRestartGame();
 	
 	player_respawn();
 	/*createPlayerHealthBar(registry, p_pos);
