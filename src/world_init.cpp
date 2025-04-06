@@ -626,6 +626,62 @@ entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain
 	return entity;
 }
 
+entt::entity createHouse(entt::registry& registry, vec2 pos, Biome biome) {
+	auto entity = registry.create();
+
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
+
+	vec2 box_dims = {128.f, 256.f};
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.sheet_dims = {box_dims.x * 4, box_dims.y * 2};
+	sprite.dims = box_dims;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.scale = GAME_SCALE * box_dims;
+
+	bool normal = flip(rng) <= 0.7;
+	int sprite_row = 0;
+	float depth = 0.f, w = 0.f;
+
+	if (normal) {
+		motion.offset_to_ground = GAME_SCALE * vec2(0.f, 67.f);
+		sprite_row = 0;
+		w = 0.8 * motion.scale.x;
+		depth = motion.scale.y * 0.2f;
+	}
+	else {
+		motion.offset_to_ground = GAME_SCALE * vec2(0.f, 70.f);
+		sprite_row = 1;
+		w = 0.7 * motion.scale.x;
+		depth = 96.f;
+	}
+
+	motion.position = pos - motion.offset_to_ground;
+	motion.velocity = {0.f, 0.f};
+
+
+	if      (biome == Biome::B_ICE)     sprite.coord = {sprite_row, 0};
+	else if (biome == Biome::B_JUNGLE)  sprite.coord = {sprite_row, 1};
+	else if (biome == Biome::B_SAVANNA) sprite.coord = {sprite_row, 2};
+	else if (biome == Biome::B_BEACH)   sprite.coord = {sprite_row, 3};
+
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	float h = motion.scale.y, g = 0.f;
+	hitbox.pts = {
+		{w * -0.5f, g + h * -0.5f}, {w * 0.5f, g + h * -0.5f},
+		{w * 0.5f, g + h * 0.5f},   {w * -0.5f, g + h * 0.5f}
+	};
+	hitbox.depth = depth;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::HOUSE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
 void createInventory(entt::registry& registry) {
 	auto inventory_entity = registry.create();
 	auto& inventory = registry.emplace<Inventory>(inventory_entity);

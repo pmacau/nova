@@ -79,6 +79,9 @@ vec2 MapSystem::populate_ecs(
                 case Decoration::SHIP:
                     s_pos = map_pos;
                     break;
+                case Decoration::HOUSE:
+                    createHouse(reg, map_pos, get_biome(game_map[i][j]));
+                    break;
                 default:
                     break;
             }
@@ -216,10 +219,14 @@ vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
 }
 
 bool MapSystem::walkable_tile(Tile tile) {
-    return (
-        get_terrain(tile) != Terrain::WATER &&
-        get_decoration(tile) != Decoration::TREE
-    );
+        return (
+            get_terrain(tile) != Terrain::WATER &&
+            (
+                get_decoration(tile) == Decoration::NO_DECOR ||
+                get_decoration(tile) == Decoration::BOSS ||
+                get_decoration(tile) == Decoration::SPAWN
+            )
+        );
 };
 
 Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {

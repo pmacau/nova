@@ -197,13 +197,14 @@ entt::entity createGlyph(
 const std::unordered_map<char, vec3> color_codes = {
 	// Biome codes
 	{'I', {155.f/255.f, 226.f/255.f, 255.f/255.f}},
-	{'S', {120.f/255.f, 138.f/255.f, 50.f/255.f}},
+	{'S', {206.f/255.f, 250.f/255.f, 5.f/255.f}},
 	{'J', {17.f/255.f,  91.f/255.f,  40.f/255.f}},
 	{'B', {255.f/255.f, 220.f/255.f, 85.f/255.f}},
 	{'F', {62.f/255.f,  137.f/255.f, 72.f/255.f}},
 	{'W', {0.f/255.f,   149.f/255.f, 233.f/255.f}},
-
+	
 	{'0', {124.f/255.f, 109.f/255.f, 162.f/255.f}},
+	{'C', {200.f/255.f, 200.f/255.f, 200.f/255.f}},
 	{'1', {0, 0, 1}},
 	{'2', {1, 0, 0}},
 };
@@ -917,7 +918,7 @@ void RenderSystem::renderGamePlay()
 	vec2 offset = { WINDOW_WIDTH_PX - 175.f, 150.f };
 	vec2 marker_pos = vec2(scale.x * x_ratio, scale.y * y_ratio) + offset - scale / 2.f;
 
-	renderText("*", marker_pos.x, marker_pos.y, 1, vec3(0), ui_projection_2D);
+	renderText("*", marker_pos.x, marker_pos.y, 2, vec3(0), ui_projection_2D);
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
