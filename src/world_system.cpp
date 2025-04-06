@@ -634,9 +634,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_V) {
 		float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+		auto& player = registry.get<Player>(player_entity);
 		if (cooldown == 0.f) {
 			cooldown = MELEE_COOLDOWN;
-			createSlash(registry);
+			entt::entity slash_entity = createSlash(registry);
+			auto& slash = registry.get<Slash>(slash_entity);
+			slash.damage = player.melee_damage;
+			slash.force = player.melee_force;
 		}
 	}
 
@@ -1281,14 +1285,16 @@ void WorldSystem::left_mouse_click() {
 				}
 				
 				if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE &&
+					player_comp.melee_damage < MELEE_MAX_DAMAGE && 
+					player_comp.melee_force < MELEE_MAX_FORCE &&
 					ironCount >= MELEE_UPGRADE_IRON) {
-						// TODO: make sure to check its less than the MAX knockback and damage
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					// TODO: upgrade melee damage/knockback
-
+					player_comp.melee_damage += 5.0f;
+					player_comp.melee_force += 25.0f;
+					
 					upgrade_inventory(MELEE_UPGRADE_IRON, 0);
 				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
 					upgrade_button.maxUpgrade = true;

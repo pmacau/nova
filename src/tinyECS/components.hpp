@@ -21,8 +21,8 @@ struct Boss{
 
 // TODO: Tweak values
 struct Slash {
-	float damage = 5.f;
-	float force = 250.f;
+	float damage = MELEE_DAMAGE;
+	float force = MELEE_FORCE;
 	float time_elapsed = 0.0f;
 	float total_lifetime = 0.35f; 
 	glm::vec2 render_position; 
@@ -77,6 +77,8 @@ struct Player
 	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
 	InputState direction; 
 	float melee_cooldown = MELEE_COOLDOWN; 
+	float melee_damage = MELEE_DAMAGE;
+	float melee_force = MELEE_FORCE;
 };
 
 // Ship component

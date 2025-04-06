@@ -82,6 +82,9 @@ const float HOMING_MISSLE_MAX_COOLDOWN = 0.8;
 const int SHOTGUN_MAX_DAMAGE = 34;
 const float SHOTGUN_MAX_COOLDOWN = 0.4;
 
+const float MELEE_MAX_DAMAGE = 20.0f;
+const float MELEE_MAX_FORCE = 325.0f;
+
 
 // player/mob stats
 const int PLAYER_HEALTH = 100;
@@ -115,7 +118,11 @@ const int PROJECTILE_TIMER = 5000;
 const int MAX_INVENTORY_SLOTS = 5;
 
 
+// melee stats
+const float MELEE_DAMAGE = 5.0f;
+const float MELEE_FORCE = 250.0f;
 const float MELEE_COOLDOWN = 0.80;
+
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
@@ -151,7 +158,7 @@ const int HOMING_MISSLE_UPGRADE_COPPER = 2;
 const int SHOTGUN_UPGRADE_IRON = 6;
 const int SHOTGUN_UPGRADE_COPPER = 3;
 
-const int MELEE_UPGRADE_IRON = 5;
+const int MELEE_UPGRADE_IRON = 0; //5
 
 
 // Weapon Unlock Constants
