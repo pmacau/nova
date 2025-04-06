@@ -10,6 +10,7 @@ using namespace glm;
 struct BossSpawn {
     ivec2 spawnTile;
     bool spawned;
+    bool defeated;
 
     CreatureID creatureID;
 };
@@ -19,6 +20,6 @@ inline void initBossSpawnData(std::vector<BossSpawn>& bossSpawns) {
     auto& bossIndices = MapSystem::getBossSpawnIndices();
 
     for (auto& bossIndex : bossIndices) {
-        bossSpawns.push_back({bossIndex, false, CreatureID::BOSS}); // TODO: link to creature def
+        bossSpawns.push_back({bossIndex, false, false, CreatureID::BOSS}); // TODO: link to creature def
     }
 }

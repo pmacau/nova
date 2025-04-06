@@ -22,6 +22,15 @@ public:
     // TODO: hide this in future and provide a getter and setter
     std::vector<BossSpawn> bossSpawnData;
 
+    void onRestartGame() {
+        // Reset boss spawn data: if not defeated, set to not spawned.
+        for (auto& spawnData : bossSpawnData) {
+            if (!spawnData.defeated) {
+                spawnData.spawned = false;
+            }
+        }
+    }
+
 private:
     CreatureManager();
     CreatureManager(const CreatureManager&) = delete;
