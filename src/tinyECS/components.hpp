@@ -57,6 +57,11 @@ struct Ship
 	int range;
 	int health;
 	float timer;
+
+	bool maxHealth;
+	bool maxRange;
+	bool maxWeapon;
+	bool maxFireRate;
 };
 
 struct ShipWeapon

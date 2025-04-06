@@ -145,6 +145,8 @@ private:
 	void renderGamePlay();
 	void renderUpgradeUI();
 	void renderShipUI();
+
+	void renderEndScreen();
 	void drawDebugHitBoxes(const glm::mat3& projection);
 	void drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection);
 
@@ -175,6 +177,11 @@ private:
 	GLuint textVBO = 0;
 
 	mat3 shipUITransform = mat3(1.0f);
+
+
+	bool shipFullyUpgraded = false;
+	float shipUpgradeTime = -1.0f;
+	bool endScreenTriggered = false;
 	
 	// void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
 	int getTextWidth(const std::string& text, int scale);
