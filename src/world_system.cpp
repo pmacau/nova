@@ -1296,7 +1296,7 @@ void WorldSystem::left_mouse_click() {
 					player_comp.melee_force += 25.0f;
 					
 					upgrade_inventory(MELEE_UPGRADE_IRON, 0);
-				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
