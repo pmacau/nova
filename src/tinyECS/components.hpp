@@ -35,6 +35,8 @@ struct Obstacle {
 };
 
 
+
+
 // Player component
 struct Player
 {
@@ -59,6 +61,9 @@ struct Player
 	bool unlock_shotgun_weapon = false;
 
 	int shotgun_stage = 0;
+
+	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	InputState direction;
 };
 
 // Ship component
@@ -76,6 +81,12 @@ struct Ship
 	int range;
 	int health;
 	float timer;
+};
+
+struct Dash {
+	float cooldown = -1.f;
+	float remainingDuration = 0.15f; 
+	bool inUse = false; 
 };
 
 struct ShipWeapon
