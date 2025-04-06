@@ -94,17 +94,13 @@ void CollisionSystem::step(float elapsed_ms) {
 			registry.destroy(entity);
 		}
 	}
-	/*for (auto slash : slashes) {
+	for (auto slash : slashes) {
 		if (!registry.valid(slash)) {
 			
 		}
-
 		Slash& s = registry.get<Slash>(slash); 
 		s.hit = true;
-		if (s.time_elapsed > 0.3f) {
-			registry.destroy(slash);
-		}
-	}*/
+	}
 }
 
 void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {
