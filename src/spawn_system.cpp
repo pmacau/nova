@@ -67,7 +67,7 @@ void SpawnSystem::update(float deltaTime)
     {
         // std::cout << "Spawn cap reached (" << currentMobCount << " mobs). Skipping spawn." << std::endl;
     }
-    else if (spawnTimer >= spawnRate)
+    else if (spawnTimer >= spawnTimeInterval)
     {
         spawnTimer = 0.0f;
         processNaturalSpawning();
