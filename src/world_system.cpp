@@ -165,7 +165,7 @@ void WorldSystem::init() {
 		std::string("... wait...? it looks like you survived the crash... holy s#%t! ") +
 		std::string("can you hear us astronaut? welcome to C#42A, AKA planet {1Nova}, the universe's biggest hellhole. ") +
 		std::string("it looks like the ship is pretty banged up. you're going to have to repair it to get out of here. ") +
-		std::string("can you walk? try using {1'W', 'A', 'S', 'D'} to move. Press {1Enter} to advance dialogue");
+		std::string("can you walk? try using {1'W', 'A', 'S', 'D'} to move. {CEnter to continue...}");
     textBoxEntities[0] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_0, scale, vec3(1));
 
 	std::string tut_1 = 
@@ -180,26 +180,26 @@ void WorldSystem::init() {
     textBoxEntities[2] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_2, scale, vec3(1));
 
 	std::string tut_3 =
-		std::string("Nice, now if you want to {1melee} press {1V}, and you can dash by pressing {1space bar}!");
+		std::string("Nice, now if you want to {1melee} press {1V}, and you can dash by pressing {1space bar}! {CEnter to continue...}");
 	textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
 
 	std::string tut_4 =
 		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
 		std::string("be careful though; our signals indicate the presence of a {1stronger alien} in each biome. ") +
-		std::string("taking those beasts down are sure to net you a hefty reward.");
+		std::string("taking those beasts down are sure to net you a hefty reward. {CEnter to continue...}");
     textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_4, scale, vec3(1));
 
 	std::string tut_5 =
 		std::string("oh, and one more thing. on {1Nova}, each day is only {15 minutes}, so you're only going to ") +
 		std::string("get around {1150 seconds} of daylight. it gets really dark, so you'll probably want to camp out ") +
-		std::string("by the ship for protection. or don't; it's your funeral...");
+		std::string("by the ship for protection. or don't; it's your funeral... {CEnter to continue...}");
 	textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.f), size, tut_5, scale, vec3(1));
 
 	std::string tut_6 =
 		std::string("it looks like you found some resources, nice work astronaut! Open your inventory with {1Tab}. ") + 
 		std::string("In the inventory, you can pick up your items with {1Right Click} and place them with {1Left Click}. ") +
 		std::string("also, try using {1CTRL}, {1Shift}, and {1Alt} with {1Right Click} to pick up different quantities! ") +
-		std::string("Press {1Left Click} to interact with an item in the hotbar.");
+		std::string("Press {1Left Click} to interact with an item in the hotbar. {CEnter to continue...}");
     textBoxEntities[6] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_6, scale, vec3(1));
     
     // make them all inactive initially
