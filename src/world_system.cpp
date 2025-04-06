@@ -467,6 +467,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	update_ship_upgrade_buttons();
 	update_weapon_upgrade_buttons();
+	update_player_upgrade_buttons();
 	
 	return true;
 }
