@@ -10,6 +10,9 @@
 #include "creature/creature_defs/yellow_torch_goblin.hpp"
 #include "creature/creature_defs/purple_reaper.hpp"
 #include "creature/creature_defs/small_blue_archer.hpp"
+#include "creature/creature_defs/small_purple_archer.hpp"
+#include "creature/creature_defs/small_red_archer.hpp"
+#include "creature/creature_defs/small_yellow_archer.hpp"
 
 CreatureManager& CreatureManager::getInstance() {
     static CreatureManager instance;
@@ -62,4 +65,7 @@ void CreatureManager::loadDefinitions() {
     registerDefinition(&YellowTorchGoblinDefData::getInstance());
     registerDefinition(&PurpleReaperData::getInstance());
     registerDefinition(&SmallBlueArcher::getInstance());
+    registerDefinition(&SmallPurpleArcher::getInstance());
+    registerDefinition(&SmallRedArcher::getInstance());
+    registerDefinition(&SmallYellowArcher::getInstance());
 }

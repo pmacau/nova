@@ -15,14 +15,14 @@
 #include <creature/creature_defs/small_blue_archer.hpp>
 #include <animation/animation_manager.hpp>
 
-class SmallRedArcher : public SmallBlueArcher {
+class SmallPurpleArcher : public SmallBlueArcher {
 public:
-SmallRedArcher() {
-        creatureID = CreatureID::SMALL_RED_ARCHER;
+SmallPurpleArcher() {
+        creatureID = CreatureID::SMALL_PURPLE_ARCHER;
         creatureType = CreatureType::Mob;
         initialize();
     }
-    virtual ~SmallRedArcher() = default;
+    virtual ~SmallPurpleArcher() = default;
 
     // Explicit initialize method that calls all the initialization functions.
     virtual void initialize() override {
@@ -37,8 +37,8 @@ SmallRedArcher() {
         initializeUIInfo();
     }
 
-    static const SmallRedArcher& getInstance() {
-        static SmallRedArcher instance;
+    static const SmallPurpleArcher& getInstance() {
+        static SmallPurpleArcher instance;
         return instance;
     }
 
@@ -46,13 +46,13 @@ protected:
     virtual void initializeSpawnInfo() override {
         SmallBlueArcher::initializeSpawnInfo();
 
-        spawnInfo.biomes = {Biome::B_SAVANNA};
+        spawnInfo.biomes = {Biome::B_JUNGLE};
     }
 
     virtual void initializeRenderingInfo() override {
         SmallBlueArcher::initializeRenderingInfo();
 
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::SMALL_RED_ARCHER;
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::SMALL_PURPLE_ARCHER;
     }
 
 

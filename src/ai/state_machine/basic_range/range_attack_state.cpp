@@ -16,7 +16,7 @@ void RangeAttackState::onEnter(entt::registry &registry, entt::entity entity)
         auto& animComp = registry.get<AnimationComponent>(entity);
         AnimationSystem::setAnimationAction(animComp, MotionAction::ATTACK);
     }
-    
+
     auto &aiComp = registry.get<AIComponent>(entity);
     // Assume the AI config is of type RangeAIConfig.
     const RangeAIConfig &config = static_cast<const RangeAIConfig &>(aiComp.stateMachine->getConfig());
@@ -72,8 +72,6 @@ void RangeAttackState::onExit(entt::registry &registry, entt::entity entity)
         auto& aiComp = registry.get<AIComponent>(entity);
         aiComp.attackCooldownTimer = 0.0f;
     }
-
-    auto& aiComp = registry.get<AIComponent>(entity);
 }
 
 void RangeAttackState::shootProjectile(entt::registry &registry, entt::entity entity, const RangeAIConfig &config)
@@ -93,11 +91,11 @@ void RangeAttackState::shootProjectile(entt::registry &registry, entt::entity en
     createProjectile(
             registry,
             motion.position,
-            vec2(PROJECTILE_SIZE, PROJECTILE_SIZE),
+            config.projectileSize,
             direction * config.projectileSpeed,
             1,
             PROJECTILE_TIMER,
-            TEXTURE_ASSET_ID::BLASTER_PROJECTILE,
+            config.projectileType,
             {ColliderType::PLAYER});
     MusicSystem::playSoundEffect(SFX::BOW_RELEASE);
 }

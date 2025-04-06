@@ -359,6 +359,8 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	debug_printf(DebugType::WORLD_INIT, "Projectile created: (%.1f, %.1f)\n", pos.x, pos.y);
 	auto entity = registry.create();
 
+	float anagle_offset = 0.f;
+
 	auto& sprite = registry.emplace<Sprite>(entity);
 	if (projectileType == TEXTURE_ASSET_ID::GOLD_PROJECTILE) {
 		sprite.dims = { 18.f, 18.f };
@@ -367,10 +369,22 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	else if (projectileType == TEXTURE_ASSET_ID::MISSILE_PROJECTILE) {
 		sprite.dims = { 56.f, 156.f };
 		sprite.sheet_dims = { 56.f, 156.f };
+
+		anagle_offset = 90.f;
 	}
 	else if (projectileType == TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE) {
 		sprite.dims = { 512.f, 512.f };
 		sprite.sheet_dims = { 512.f, 512.f };
+
+		anagle_offset = 90.f;
+	}
+	else if (projectileType == TEXTURE_ASSET_ID::WOOD_ARROW) {
+		sprite.sheet_dims = {64.f, 128.f};
+		sprite.dims = {sprite.sheet_dims.x, sprite.sheet_dims.y /2};
+
+		sprite.coord = {0, 0};
+
+		anagle_offset = 0.f;
 	}
 	else {
 		// SHOULD DO FOR EACH PROJECTILE TYPE
@@ -388,7 +402,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.position = pos;
 	motion.scale = size;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
-	motion.angle = atan2(velocity.y, velocity.x) * (180.0f / M_PI) + 90.0f;
+	motion.angle = atan2(velocity.y, velocity.x) * (180.0f / M_PI) + anagle_offset;
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;

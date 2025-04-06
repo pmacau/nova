@@ -43,7 +43,7 @@ SmallBlueArcher() {
 
 protected:
     virtual void initializeSpawnInfo() override {
-        spawnInfo.spawnProbability = 0.6f;
+        spawnInfo.spawnProbability = 0.5f;
         spawnInfo.group = {1, 2};
         spawnInfo.biomes = {Biome::B_ICE, Biome::B_FOREST};
     }
@@ -118,6 +118,8 @@ protected:
         config->shotCooldown = 300.0f;
 
         config->projectileSpeed = 500.0f;
+        config->projectileType = TEXTURE_ASSET_ID::WOOD_ARROW;
+        config->projectileSize = { 50.f, 50.f };
 
         aiInfo.transitionTable = &getBasicRangerTransitionTable();
         aiInfo.initialState = "patrol";
