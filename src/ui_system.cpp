@@ -413,7 +413,7 @@ void UISystem::removeActiveSlot(entt::registry& registry, entt::entity& inventor
 	}
 }
 
-void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
+void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity, FlagSystem& flag_system) {
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	auto& item = registry.get<Item>(item_entity);
 	if (registry.all_of<DeathItems>(item_entity)) {
@@ -434,6 +434,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 					pickup = true;
 					if (item.no == 0) {
 						MusicSystem::playSoundEffect(SFX::PICKUP);
+						flag_system.setMobKilled(true);
 						registry.destroy(item_entity);
 						return;
 					}
@@ -471,6 +472,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 		}
 		if (pickup) {
 			MusicSystem::playSoundEffect(SFX::PICKUP);
+			flag_system.setMobKilled(true);
 		}
 	}
 	else {
@@ -517,12 +519,12 @@ void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y)
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 }
 
-void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
+void UISystem::equipItem(entt::registry& registry, Motion& player_motion, FlagSystem& flag_system) {
 	if (equip_delay > 2.f) {
 		for (auto entity : registry.view<Motion, Item>()) {
 			auto& motion = registry.get<Motion>(entity);
 			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
-				addToInventory(registry, entity);
+				addToInventory(registry, entity, flag_system);
 			}
 		}
 	}

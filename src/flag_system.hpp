@@ -22,6 +22,8 @@ private:
     entt::registry& registry;
     TutorialStep tutorial_step;
 
+    bool used_inventory = false;
+
 public:
     FlagSystem(entt::registry& reg)
         : is_paused(false)
@@ -35,10 +37,6 @@ public:
 
         //if () screenstate no longer
         // set unpaused to false. 
-        
-        
-        //debug_printf(DebugType::FLAG, "time is now %f\n", time_spent_s);
-        
 
         if (tutorial_step != TutorialStep::Moved) {
             auto view = registry.view<ScreenState>();
@@ -57,77 +55,47 @@ public:
         if (tutorial_step == TutorialStep::Done) return;
 
         if (!is_paused) {
-            //time_spent_s = std::min(elapsed_ms / 1000.f + time_spent_s, 10.f);
             time_spent_s += (elapsed_ms / 1000.f);
-            //debug_printf(DebugType::FLAG, "time is now %f\n", time_spent_s);
         }
-        if (tutorial_step == TutorialStep::None) {
-            auto view = registry.view<Motion, Player>();
-            for (auto entity : view) {
-                auto& motion = view.get<Motion>(entity);
-                if ((motion.velocity.x != 0.0f || motion.velocity.y != 0.0f) && time_spent_s > 10.0f) {
-                    setMoved(true);
-                    break;
-                }
-            }
-        }
-        else if (tutorial_step == TutorialStep::Moved) {
+       
+        if (tutorial_step == TutorialStep::Moved) {
             auto view = registry.view<ScreenState>();
             for (auto entity : view) { 
                 auto& screen = registry.get<ScreenState>(entity);
                 if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::TITLE) { 
+                    screen.current_screen == ScreenState::ScreenType::UPGRADE_UI
+                ) { 
                     is_paused = true; 
                     setAccessed(true);
                     break;
                 }
-            }
-        }
-        else if (tutorial_step == TutorialStep::Accessed) {
-            auto proj_view = registry.view<Projectile>();
-            if (!proj_view.empty()) {
-                setShot(true); // just leave it at Shot and then display the text. 
-            }
-        }
-        else if (tutorial_step == TutorialStep::Shot) {
-            // timer for 20s to read the prompt
-            if (time_spent_s > 20.0f) {
-                setBiomeRead(true);
-            }
-        }
-        else if (tutorial_step == TutorialStep::Biome_Read) {
-            if (time_spent_s > 10.0f) {
-                setDone(true);
-            }
-        }
-        /*else if (tutorial_step == TutorialStep::Shot) { Don't really know a good way about going about this, we can leave this out since it should be enough. 
-        *  You can leave a message after shooting to tell the player to go explore... 
-            auto mob_view = registry.view<Mob>();  
-            for (auto entity : mob_view) {
-                auto& mob = registry.get<Mob>(entity);
-                if (mob.health <= 0) {
-                    setMobKilled(true);
-                    break;
+                if (screen.current_screen == ScreenState::ScreenType::TITLE) {
+                    is_paused = true;
                 }
             }
-        }*/
+        }
     }
-
   
     bool getIsPaused() const { return is_paused; }
-    bool isDone() const {return tutorial_step == TutorialStep::Done; };
+    bool isDone() const {
+        return (
+            tutorial_step == TutorialStep::Done ||
+            tutorial_step == TutorialStep::Shot ||
+            tutorial_step == TutorialStep::Biome_Read ||
+            tutorial_step == TutorialStep::MobKilled
+        );
+    };
 
     TutorialStep getTutorialStep() const { return tutorial_step; }
 
     void setMobKilled(bool value) {
-        if (value && tutorial_step == TutorialStep::Shot) {
+        if (value && tutorial_step == TutorialStep::Done && !used_inventory) {
             tutorial_step = TutorialStep::MobKilled;
             time_spent_s = 0;
+            used_inventory = true;
             debug_printf(DebugType::FLAG, "setMobKilled: stepped from accessed to mobKilled\n");
         }
     }
-
     
     void setMoved(bool value) {
         if (value && tutorial_step == TutorialStep::None) {

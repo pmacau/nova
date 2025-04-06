@@ -99,5 +99,4 @@ private:
 
 	// float currentFlag = 0.0f;
 	std::vector<entt::entity> textBoxEntities;
-	float mobKilledTextTimer = 0.0f;
 };

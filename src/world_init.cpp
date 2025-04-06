@@ -564,6 +564,8 @@ entt::entity createHouse(entt::registry& registry, vec2 pos, Biome biome) {
 	renderRequest.used_texture = TEXTURE_ASSET_ID::HOUSE;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
 }
 
 void createInventory(entt::registry& registry) {
