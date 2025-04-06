@@ -637,6 +637,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	auto& screen = registry.get<ScreenState>(screen_entity);
+	auto& player_entity = registry.get<Player>(registry.view<Player>().front());
 
 	Shader v = shaders.at("vignette");
 
@@ -651,6 +652,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	v.setFloat("time", vignette ? screen.time : (M_PI / 2 * 60.0));
 	v.setVec2("resolution", vec2(w, h));
 	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
+	v.setFloat("vision_radius", player_entity.vision_radius);
 		
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)

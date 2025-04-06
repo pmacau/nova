@@ -1267,8 +1267,6 @@ void WorldSystem::left_mouse_click() {
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					player_comp.health += 20;
-					std::cout << "player health = " << player_comp.health << std::endl;
-					std::cout << "max player health = " << PLAYER_MAX_HEALTH << std::endl;
 
 					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE && 
@@ -1278,28 +1276,22 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				}
 
-				/*
-				if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE && 
-					player_comp.default_weapon_damage <= PISTOL_MAX_DAMAGE && 
-					player_comp.default_weapon_cooldown > PISTOL_MAX_COOLDOWN &&
-					ironCount >= PISTOL_UPGRADE_IRON) {
-
+				if (upgrade_option.type == ButtonOption::Option::PLAYER_VISION_UPGRADE && 
+					player_comp.vision_radius < PLAYER_MAX_VISION_RADIUS &&
+					copperCount >= PLAYER_VISION_UPGRADE_COPPER && 
+					!upgrade_button.maxUpgrade) {
+					
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					player_comp.default_weapon_damage *= 1.2;
-					player_comp.default_weapon_cooldown -= 0.1;
+					player_comp.vision_radius += 0.2;
 
-					upgrade_inventory(PISTOL_UPGRADE_IRON, 0);
-				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+					upgrade_inventory(0, PLAYER_VISION_UPGRADE_COPPER);
+				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_VISION_UPGRADE && 
+					player_comp.vision_radius >= PLAYER_MAX_VISION_RADIUS) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
-				}
-				*/
-
-				if (upgrade_option.type == ButtonOption::Option::PLAYER_VISION_UPGRADE) {
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 				}
 
 				if (upgrade_option.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE &&
@@ -1694,6 +1686,16 @@ void WorldSystem::update_player_upgrade_buttons() {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 			upgradeButton.missingResources = true;
 			upgradeButton.missingResourcesText = std::to_string(PLAYER_HEALTH_UPGRADE_IRON) + " iron, " + std::to_string(PLAYER_HEALTH_UPGRADE_COPPER) + " copper";
+		}
+
+		if (buttonOption.type == ButtonOption::Option::PLAYER_VISION_UPGRADE && copperCount >= PLAYER_VISION_UPGRADE_COPPER) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(PLAYER_VISION_UPGRADE_COPPER) + " copper";
+		} else if (buttonOption.type == ButtonOption::Option::PLAYER_VISION_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(PLAYER_VISION_UPGRADE_COPPER) + " copper";
 		}
 
 		if (buttonOption.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE && ironCount >= PLAYER_SPEED_UPGRADE_IRON && copperCount >= PLAYER_SPEED_UPGRADE_COPPER) {
