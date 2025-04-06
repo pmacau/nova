@@ -1,8 +1,9 @@
 #include "physics_system.hpp"
 #include "ui_system.hpp"
 
-PhysicsSystem::PhysicsSystem(entt::registry& reg):
-	registry(reg)
+PhysicsSystem::PhysicsSystem(entt::registry& reg, FlagSystem& flag_system):
+	registry(reg),
+    flag_system(flag_system)
 {
 }
 
@@ -182,7 +183,7 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
         } 
         motion.position += motion.velocity * elapsed_s;
         if (registry.all_of<Player>(entity)) {
-            UISystem::equipItem(registry, motion);
+            UISystem::equipItem(registry, motion, flag_system);
         }
         if (registry.all_of<Mob>(entity)) {
             UISystem::updateMobHealthBar(registry, entity, false);

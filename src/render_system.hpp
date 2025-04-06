@@ -81,7 +81,8 @@ class RenderSystem {
 		textures_path("slashes/7.png"),
 		textures_path("slashes/8.png"),
 		textures_path("slashes/9.png"),
-		textures_path("slashes/10.png")
+		textures_path("slashes/10.png"),
+		textures_path("structures/houses.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

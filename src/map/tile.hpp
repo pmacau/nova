@@ -11,7 +11,7 @@ const uint8_t DECOR_MASK   = 0b00011100;
 const uint8_t BIOME_MASK   = 0b11100000; 
 
 enum Terrain    {WATER, SAND, GRASS};
-enum Decoration {NO_DECOR, SPAWN, BOSS, SHIP, TREE, SHRUB, ROCK};
+enum Decoration {NO_DECOR, SPAWN, BOSS, SHIP, TREE, BARRIER, HOUSE};
 enum Biome      {B_OCEAN, B_FOREST, B_BEACH, B_ICE, B_SAVANNA, B_JUNGLE};
 
 inline Terrain    get_terrain(Tile tile)    { return static_cast<Terrain>   ((tile & TERRAIN_MASK) >> 0);};

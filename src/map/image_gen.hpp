@@ -19,3 +19,4 @@ void paste_subimage(Image& src, Image& dst, Box& imgBounds);
 void create_background(GameMap& game_map);
 void create_biome_map(GameMap& game_map);
 void create_terrain_map(GameMap& game_map);
+void create_decoration_map(GameMap& game_map);
