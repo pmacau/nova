@@ -20,7 +20,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	flag_system(flag_system)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
-	player_entity = createPlayer(registry, {0, 0});
+	player_spawn = {0, 0};
+	player_entity = createPlayer(registry, player_spawn);
 	ship_entity = createShip(registry, {0, 0});
 	main_camera_entity = createCamera(registry, player_entity);
 
@@ -34,7 +35,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createInventory(registry);
 	createMinimap(registry);
 	createDefaultWeapon(registry);
-
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -244,7 +244,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		auto& motion = registry.get<Motion>(player_entity);
 		UISystem::clearInventoryAndDrop(registry, motion.position.x, motion.position.y);
-		restart_game();
+		player_respawn();
 	}
 
 	InputState i; 
@@ -355,12 +355,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 }
 
 void WorldSystem::player_respawn() {
+	auto& screen_state = registry.get<ScreenState>(registry.view<ScreenState>().front());
+	screen_state.darken_screen_factor = 0;
+
 	Player& player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
+	player_motion.position = player_spawn;
+
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
@@ -452,7 +457,7 @@ void WorldSystem::restart_game() {
 	}
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave, ShipWeapon>);
 	// registry.destroy(motions.begin(), motions.end());
-	vec2& p_pos = registry.get<Motion>(player_entity).position;
+	// vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	// reset ui ship to default ---> not sure if we wanna do this?
@@ -463,7 +468,7 @@ void WorldSystem::restart_game() {
 	// auto& ship_render = registry.get<RenderRequest>(ship_entity);
 	// ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE;
 
-	MapSystem::populate_ecs(registry, p_pos, s_pos);
+	MapSystem::populate_ecs(registry, player_spawn, s_pos);
 	
 	player_respawn();
 	/*createPlayerHealthBar(registry, p_pos);

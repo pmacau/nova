@@ -71,7 +71,8 @@ class RenderSystem {
 		textures_path("ui/red-btn-active.png"),
 		textures_path("ui/red-btn-pressed.png"),
 		map_path("biome_map.png"),
-		textures_path("text/text.png")
+		textures_path("text/text.png"),
+		textures_path("structures/houses.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

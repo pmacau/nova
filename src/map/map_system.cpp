@@ -79,6 +79,9 @@ vec2 MapSystem::populate_ecs(
                 case Decoration::SHIP:
                     s_pos = map_pos;
                     break;
+                case Decoration::HOUSE:
+                    createHouse(reg, map_pos, get_biome(game_map[i][j]));
+                    break;
                 default:
                     break;
             }

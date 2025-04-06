@@ -53,6 +53,8 @@ private:
 	PhysicsSystem& physics_system;
 	FlagSystem& flag_system;
 
+	vec2 player_spawn;
+
 	entt::entity ship_entity;
 	entt::entity main_camera_entity;
 	entt::entity screen_entity;
