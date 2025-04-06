@@ -16,7 +16,7 @@ public:
     static void generate_new_map();
     static vec2 populate_ecs(entt::registry& reg, vec2& p_pos, vec2& s_pos);
 
-    static void update_location(entt::registry& reg, entt::entity ent);
+    static void update_location(entt::registry& reg, entt::entity ent, bool is_player);
     static void update_background_music(entt::registry& reg, entt::entity ent);
     static void update_weather(entt::registry& reg, entt::entity ent);
 
@@ -27,7 +27,8 @@ public:
     static Tile get_tile_type_by_indices(int x, int y);
     static vec2 get_tile_indices(vec2 pos);
     static vec2 get_tile_center_pos(vec2 tile_indices);
-    static bool walkable_tile(Tile tile);
+
+    static bool walkable_tile(Tile tile, bool is_player = false);
 
     static Biome get_biome_by_indices(ivec2 tile_indices);
 
