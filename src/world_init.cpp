@@ -46,6 +46,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	dash.cooldown = 3.0f;
 	dash.remainingDuration = 0.0f;
 
+	
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
@@ -99,6 +100,105 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	render_request.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 	return entity;
+}
+
+
+//Motion& slashOffSetHelper(entt::registry& registry) {
+//	auto player = registry.view<Player>().front(); 
+//	auto& direction = registry.get<InputState>(player); 
+//	std::cout << direction.down << " " << direction.up << " " << direction.left << " " << direction.right << std::endl; 
+//	auto& motion = registry.get<Motion>(player); 
+//	return motion; 
+//}
+
+entt::entity createSlash(entt::registry& registry) {  
+   auto entity = registry.create();  
+
+   Slash& slash = registry.emplace<Slash>(entity);  
+   auto player = registry.view<Player>().front();
+
+   auto motion_player = registry.get<Motion>(player); 
+   auto player_d = registry.get<Player>(player).direction;
+   auto& motion = registry.emplace<Motion>(entity);  
+   motion.angle = 0.f;  
+   motion.velocity = {0, 0};  
+   motion.position = motion_player.position;  
+   slash.render_position = motion.position;
+   motion.scale = motion.scale * 15.f;  // change later to a more acceptable value 
+   motion.offset_to_ground = { 0, motion.scale.y / 2};
+   float w = motion.scale.x;
+   float h = motion.scale.y;
+
+   float radius = motion.scale.x / 2.5f;
+   float offset = 40.f;
+   motion.angle = 0.f;
+   
+   if (player_d.up && player_d.right) {
+	   motion.position.y -= offset * 0.7f;
+	   motion.position.x += offset * 0.7f;
+	   motion.angle = 225.f;
+	  //  std::cout << "entered " << std::endl; 
+   }
+   else if (player_d.up && player_d.left) {
+	   motion.position.y -= offset * 0.7f;
+	   motion.position.x -= offset * 0.7f;
+	   motion.angle = 135.f;
+   }
+   else if (player_d.down && player_d.right) {
+	   motion.position.y += offset * 0.7f;
+	   motion.position.x += offset * 0.7f;
+	   motion.angle = -45.f;
+   }
+   else if (player_d.down && player_d.left) {
+	   motion.position.y += offset * 0.7f;
+	   motion.position.x -= offset * 0.7f;
+	   motion.angle = 45.f;
+   }
+   else if (player_d.up) {
+	   motion.position.y -= offset;
+	   motion.angle = 180.f;
+   }
+   else if (player_d.down) {
+	   motion.position.y += offset;
+	   motion.angle = 0.f;
+   }
+   else if (player_d.left) {
+	   motion.position.x -= offset;
+	   motion.angle = 90.f;
+   }
+   else if (player_d.right) {
+	   motion.position.x += offset;
+	   motion.angle = 270.f;
+   }
+
+   auto& hitbox = registry.emplace<Hitbox>(entity);
+
+   
+   const int numPoints = 16; 
+   hitbox.pts.clear();
+
+   for (int i = 0; i < numPoints; i++) {
+	   float angle = 2.0f * M_PI * i / numPoints;
+	   float x = radius * cos(angle);
+	   float y = radius * sin(angle);
+	   hitbox.pts.push_back({ x, y });
+   }
+   hitbox.depth = 100;
+   
+  /* hitbox.pts = {
+	   {w * -0.5f, h * -0.5f * 10}, {w * 0.5f, h * -0.5f * 10},
+	   {w * 0.5f, h * 0.5f * 10},   {w * -0.5f, h * 0.5f * 10}
+   };*/
+   auto& sprite = registry.emplace<Sprite>(entity);
+   sprite.dims = { 496.f, 496.f };
+   sprite.sheet_dims = { 496.f, 496.f };
+
+   auto& renderRequest = registry.emplace<RenderRequest>(entity);  
+   renderRequest.used_texture = TEXTURE_ASSET_ID::SLASH_1;  
+   renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;  
+   renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;  
+
+   return entity;  
 }
 
 entt::entity createCamera(entt::registry& registry, entt::entity target)

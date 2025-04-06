@@ -88,6 +88,8 @@ const int PROJECTILE_TIMER = 5000;
 
 const int MAX_INVENTORY_SLOTS = 5;
 
+
+const float MELEE_COOLDOWN = 0.80;
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 

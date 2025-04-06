@@ -12,6 +12,8 @@ public:
         Moved,
         Accessed,
         Shot,
+        Melee,
+        Dash, 
         Biome_Read,
         MobKilled,
         Done
@@ -94,6 +96,18 @@ public:
         }
         else if (tutorial_step == TutorialStep::Shot) {
             // timer for 20s to read the prompt
+            if (time_spent_s > 4.0f) {
+                setMelee(true);
+            }
+        }
+        else if (tutorial_step == TutorialStep::Melee) {
+            if (time_spent_s > 4.0f) {
+                
+                setDash(true);
+            }
+        }
+        else if (tutorial_step == TutorialStep::Dash) {
+			auto view = registry.view<Motion, Player>();
             if (time_spent_s > 20.0f) {
                 setBiomeRead(true);
             }
@@ -156,11 +170,27 @@ public:
         }
     }
 
-    void setBiomeRead(bool value) {
+    void setMelee(bool value) {
         if (value && tutorial_step == TutorialStep::Shot) {
+            tutorial_step = TutorialStep::Melee;
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setMelee: stepped from shot to melee\n");
+        }
+    }
+
+    void setDash(bool value) {
+        if (value && tutorial_step == TutorialStep::Melee) {
+            tutorial_step = TutorialStep::Dash;
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setDash: stepped from Melee to Dash\n");
+        }
+    }
+
+    void setBiomeRead(bool value) {
+        if (value && tutorial_step == TutorialStep::Dash) {
             tutorial_step = TutorialStep::Biome_Read;
             time_spent_s = 0;
-            debug_printf(DebugType::FLAG, "setBiomeRead: stepped from shot to biomeRead\n");
+            debug_printf(DebugType::FLAG, "setBiomeRead: stepped from Melee to biomeRead\n");
         }
     }
 
