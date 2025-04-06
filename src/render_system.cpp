@@ -496,6 +496,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 
 
 	vec2 centre_position = motion.position;
+	if (registry.any_of<Slash>(entity)) {
+		auto player = registry.view<Player>().front(); 
+		centre_position = registry.get<Motion>(player).position; 
+	}
 	Transform model_transform;
 	model_transform.translate(centre_position);
 	model_transform.rotate(radians(motion.angle));
@@ -737,6 +741,11 @@ void RenderSystem::renderGamePlay()
 	for (auto projectile : projectiles) {
 		nearbyEntities.push_back(projectile);
 	}
+	auto slashes = registry.view<Slash>(); 
+	for (auto slash : slashes) {
+		nearbyEntities.push_back(slash); 
+	}
+
 
 	// render all the ship weapons/engine
 	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
