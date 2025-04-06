@@ -157,7 +157,7 @@ void WorldSystem::init() {
 	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 
 	// init all of the text boxes for the tutorial
-	textBoxEntities.resize(6);
+	textBoxEntities.resize(7);
     vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
 	int scale = 2;
 
@@ -180,23 +180,27 @@ void WorldSystem::init() {
     textBoxEntities[2] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_2, scale, vec3(1));
 
 	std::string tut_3 =
+		std::string("Nice, now if you want to {1melee} press {1V}, and you can dash by pressing {1space bar}!");
+	textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
+
+	std::string tut_4 =
 		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
 		std::string("be careful though; our signals indicate the presence of a {1stronger alien} in each biome. ") +
 		std::string("taking those beasts down are sure to net you a hefty reward.");
-    textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
+    textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_4, scale, vec3(1));
 
-	std::string tut_4 =
+	std::string tut_5 =
 		std::string("oh, and one more thing. on {1Nova}, each day is only {15 minutes}, so you're only going to ") +
 		std::string("get around {1150 seconds} of daylight. it gets really dark, so you'll probably want to camp out ") +
 		std::string("by the ship for protection. or don't; it's your funeral...");
-	textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.f), size, tut_4, scale, vec3(1));
+	textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.f), size, tut_5, scale, vec3(1));
 
-	std::string tut_5 =
+	std::string tut_6 =
 		std::string("it looks like you found some resources, nice work astronaut! Open your inventory with {1Tab}. ") + 
 		std::string("In the inventory, you can pick up your items with {1Right Click} and place them with {1Left Click}. ") +
 		std::string("also, try using {1CTRL}, {1Shift}, and {1Alt} with {1Right Click} to pick up different quantities! ") +
 		std::string("Press {1Left Click} to interact with an item in the hotbar.");
-    textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_5, scale, vec3(1));
+    textBoxEntities[6] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_6, scale, vec3(1));
     
     // make them all inactive initially
     for (auto entity : textBoxEntities) {
@@ -247,6 +251,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		UISystem::clearInventoryAndDrop(registry, motion.position.x, motion.position.y);
 		player_respawn();
 	}
+
+
+	
 
 	InputState i; 
 	if (key_state[KeyboardState::UP]) i.up = true;
@@ -311,6 +318,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+
+
 	// TODO: freeze everything if in ship_ui
 	
 	MapSystem::update_location(registry, player_entity);
@@ -346,6 +355,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (auto&& [entity, mob] : registry.view<Mob>().each()) {
 		mob.hit_time -= elapsed_s;
 	}	
+
+	auto slashView = registry.view<Slash, RenderRequest>();
+	for (auto entity : slashView) {
+		auto& slash = registry.get<Slash>(entity);
+		auto& renderRequest = registry.get<RenderRequest>(entity);
+
+		// Update total elapsed time
+		slash.time_elapsed += elapsed_s;
+		slash.frame_time += elapsed_s;
+
+		// Calculate frame duration (total lifetime divided by number of frames)
+		float frame_duration = slash.total_lifetime / 10.f;
+
+		// Check if it's time to advance to the next frame
+		if (slash.frame_time >= frame_duration) {
+			slash.frame_time = 0.f; // Reset frame timer
+			slash.current_frame++; // Move to next frame
+
+			// Update texture to the next frame
+			if (slash.current_frame <= 10) {
+				// Convert current_frame to the corresponding TEXTURE_ASSET_ID
+				TEXTURE_ASSET_ID newTexture = static_cast<TEXTURE_ASSET_ID>(
+					static_cast<int>(TEXTURE_ASSET_ID::SLASH_1) + slash.current_frame - 1
+					);
+				renderRequest.used_texture = newTexture;
+			}
+		}
+
+		// Remove slash after total lifetime
+		if (slash.time_elapsed >= slash.total_lifetime) {
+			registry.destroy(entity);
+		}
+	}
+
+	
+	float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+	cooldown = max(cooldown - elapsed_s, 0.f);
 
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
@@ -394,11 +440,14 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
         case FlagSystem::TutorialStep::Shot:
             activeIndex = 3;
             break;
-		case FlagSystem::TutorialStep::Biome_Read:
+		case FlagSystem::TutorialStep::Melee_Dash:
 			activeIndex = 4;
 			break;
+		case FlagSystem::TutorialStep::Biome_Read:
+			activeIndex = 5;
+			break;
         case FlagSystem::TutorialStep::MobKilled:
-            activeIndex = 5;
+            activeIndex = 6;
             break;
 		default:
 			activeIndex = -1;
@@ -473,7 +522,7 @@ bool WorldSystem::is_over() const {
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-
+	
 	// title screen
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		//close_window();
@@ -490,13 +539,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
+	
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		// int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
 		// glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_V) {
+		float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+		if (cooldown == 0.f) {
+			cooldown = MELEE_COOLDOWN;
+			createSlash(registry);
+		}
 	}
 
 	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
@@ -519,12 +576,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
+		physics_system.dash(); 
+	}
+
 	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
 		FlagSystem::TutorialStep ts = flag_system.getTutorialStep();
 		if      (ts == FlagSystem::TutorialStep::None)       flag_system.setMoved(true);
 		else if (ts == FlagSystem::TutorialStep::Moved)      flag_system.setAccessed(true);
 		else if (ts == FlagSystem::TutorialStep::Accessed)   flag_system.setShot(true);
-		else if (ts == FlagSystem::TutorialStep::Shot)       flag_system.setBiomeRead(true);
+		else if (ts == FlagSystem::TutorialStep::Shot)       flag_system.setMeleeDash(true);
+		else if (ts == FlagSystem::TutorialStep::Melee_Dash) flag_system.setBiomeRead(true);
 		else if (ts == FlagSystem::TutorialStep::Biome_Read) flag_system.setDone(true);
 		else if (ts == FlagSystem::TutorialStep::MobKilled)  flag_system.setDone(true);
 	}

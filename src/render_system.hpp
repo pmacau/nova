@@ -71,7 +71,17 @@ class RenderSystem {
 		textures_path("ui/red-btn-active.png"),
 		textures_path("ui/red-btn-pressed.png"),
 		map_path("biome_map.png"),
-		textures_path("text/text.png"),
+		textures_path("text/text.png"), 
+		textures_path("slashes/1.png"), 
+		textures_path("slashes/2.png"),
+		textures_path("slashes/3.png"),
+		textures_path("slashes/4.png"),
+		textures_path("slashes/5.png"),
+		textures_path("slashes/6.png"),
+		textures_path("slashes/7.png"),
+		textures_path("slashes/8.png"),
+		textures_path("slashes/9.png"),
+		textures_path("slashes/10.png"),
 		textures_path("structures/houses.png")
 	};
 

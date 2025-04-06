@@ -29,6 +29,7 @@ entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_enti
 // projectile
 entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, int timer, TEXTURE_ASSET_ID projectileType);
 
+entt::entity createSlash(entt::registry& registry); 
 
 // entt::entity createBoss(entt::registry& registry, vec2 pos);
 entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain terrain);

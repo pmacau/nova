@@ -12,6 +12,7 @@ public:
         Moved,
         Accessed,
         Shot,
+        Melee_Dash,
         Biome_Read,
         MobKilled,
         Done
@@ -122,11 +123,19 @@ public:
         }
     }
 
-    void setBiomeRead(bool value) {
+    void setMeleeDash(bool value) {
         if (value && tutorial_step == TutorialStep::Shot) {
+            tutorial_step = TutorialStep::Melee_Dash;
+            time_spent_s = 0;
+            debug_printf(DebugType::FLAG, "setMeleeDash: stepped from shot to melee-dash\n");
+        }
+    }
+
+    void setBiomeRead(bool value) {
+        if (value && tutorial_step == TutorialStep::Melee_Dash) {
             tutorial_step = TutorialStep::Biome_Read;
             time_spent_s = 0;
-            debug_printf(DebugType::FLAG, "setBiomeRead: stepped from shot to biomeRead\n");
+            debug_printf(DebugType::FLAG, "setBiomeRead: stepped from Melee to biomeRead\n");
         }
     }
 
