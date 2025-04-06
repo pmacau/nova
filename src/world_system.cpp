@@ -313,7 +313,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// TODO: freeze everything if in ship_ui
 	
-	MapSystem::update_location(registry, player_entity, true);
+	MapSystem::update_location(registry, player_entity);
 	if (screen_state.time > (2.0 * M_PI * 60.0)) {
 		screen_state.time -= (2.0 * M_PI * 60.0);
 	}

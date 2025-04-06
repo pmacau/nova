@@ -422,7 +422,7 @@ GameMap create_map(int width, int height) {
     );
     for (auto const& tree: trees) {
         int r = tree.first, c = tree.second;
-        int min_row = max(0, r - 2), max_row = min(height, r + 2 + 1);
+        int min_row = max(0, r - 1), max_row = min(height, r + 2 + 1);
         int min_col = max(0, c - 2), max_col = min(width,  c + 2 + 1);
 
         for (int i = min_row; i < max_row; i++) {

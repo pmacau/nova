@@ -90,7 +90,7 @@ vec2 MapSystem::populate_ecs(
     return spawn_pos;
 };
 
-void MapSystem::update_location(entt::registry& reg, entt::entity ent, bool is_player) {
+void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
 
     auto& motion = reg.get<Motion>(ent);
@@ -101,11 +101,11 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent, bool is_p
     Tile newX = get_tile(vec2(pos.x, formerPos.y) + motion.offset_to_ground);
     Tile newY = get_tile(vec2(formerPos.x, pos.y) + motion.offset_to_ground);
 
-    if (!walkable_tile(curr, is_player)) {
-        if (walkable_tile(newX, is_player)) {
+    if (!walkable_tile(curr)) {
+        if (walkable_tile(newX)) {
             motion.position = {pos.x, formerPos.y};
         }
-        else if (walkable_tile(newY, is_player)) {
+        else if (walkable_tile(newY)) {
             motion.position = {formerPos.x, pos.y};
         }
         else {
@@ -218,15 +218,15 @@ vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
     return tile_size * (tile_indices + vec2(0.5f));
 }
 
-bool MapSystem::walkable_tile(Tile tile, bool is_player) {
-    if (is_player) {
-        return get_terrain(tile) != Terrain::WATER;
-    } else {
+bool MapSystem::walkable_tile(Tile tile) {
         return (
             get_terrain(tile) != Terrain::WATER &&
-            get_decoration(tile) == Decoration::NO_DECOR
+            (
+                get_decoration(tile) == Decoration::NO_DECOR ||
+                get_decoration(tile) == Decoration::BOSS ||
+                get_decoration(tile) == Decoration::SPAWN
+            )
         );
-    }
 };
 
 Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
