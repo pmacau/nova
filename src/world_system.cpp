@@ -223,11 +223,16 @@ void WorldSystem::init() {
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	auto& ship = registry.get<Ship>(ship_entity);
+
 	MusicSystem::updateSoundTimers(elapsed_ms_since_last_update);
 
 	click_delay += elapsed_ms_since_last_update / 1000.f;
 	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+		return true;
+	}
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
@@ -274,7 +279,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
-	auto &ship = registry.get<Ship>(ship_entity);
+	// auto &ship = registry.get<Ship>(ship_entity);
 	auto mobs = registry.view<Mob>();
 
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
@@ -627,7 +632,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
             // screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 			screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
-        }
+        } else if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+			debug_printf(DebugType::USER_INPUT, "END SCREEN\n");
+			close_window();
+		}
     }
 
 	if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
@@ -823,6 +831,8 @@ void WorldSystem::left_mouse_click() {
 						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 							ship.health += SHIP_HEALTH_UPGRADE;
+
+							ship.maxHealth = true;
 						} else {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 						}
@@ -837,6 +847,7 @@ void WorldSystem::left_mouse_click() {
 						auto& ui_ship_weapon = registry.get<UIShipWeapon>(ui_ship_weapon_entity);
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_weapon_entity);
 						vec2& ship_pos = registry.get<Motion>(ship_entity).position;
+						auto& ship = registry.get<Ship>(ship_entity);
 
 						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_RAILGUN_WEAPON) break;
 
@@ -945,6 +956,8 @@ void WorldSystem::left_mouse_click() {
 							
 							// change the bullet type
 							bulletType = BulletType::RAILGUN_PROJECTILE;
+
+							ship.maxWeapon = true;
 
 						} else if (!ui_ship_weapon.active) {
 							// create a new weapon (start as smg)
@@ -1059,6 +1072,8 @@ void WorldSystem::left_mouse_click() {
 							createShipEngine(registry, vec2(ship_pos.x - 10.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 11);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
+
+							ship.maxFireRate = true;
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
 							if (registry.valid(ui_ship_engine_entity)) {
@@ -1083,16 +1098,18 @@ void WorldSystem::left_mouse_click() {
 					}
 				}
 
+				auto& ship = registry.get<Ship>(ship_entity);
 				// UPGRADE RANGE ---------------------------------------------------------------------------
-				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON) {
+				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 					
 					// update inventory
 					ship_upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
-
-					auto& ship = registry.get<Ship>(ship_entity);
+					
 					ship.range += SHIP_RANGE_UPGRADE;
+				} else if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ship.range >= SHIP_MAX_RANGE) {
+					ship.maxRange = true;
 				}
 				// upgrade_option.hover = false;
 			}

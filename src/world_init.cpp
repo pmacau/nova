@@ -252,6 +252,10 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	ship.range = SHIP_RANGE;
 	ship.timer = SHIP_TIMER_S;
 	ship.bulletType = Ship::BulletType::GOLD_PROJ;
+	ship.maxHealth = false;
+	ship.maxRange = false;
+	ship.maxFireRate = false;
+	ship.maxWeapon = false;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 90.0f;
