@@ -7,8 +7,6 @@ PhysicsSystem::PhysicsSystem(entt::registry& reg):
 }
 
 
-
-
 void PhysicsSystem::updatePlayerVelocity(InputState i) {
 	if (registry.view<Player>().empty()) return;
     auto player_entity = registry.view<Player>().front(); 
