@@ -26,20 +26,18 @@ void AIStateMachine::update(float deltaTime)
         {
             for (const auto &transition : it->second)
             {
-                if (transition.condition(registry, entity, config))
+                if (transition.condition(registry, entity, config, currentState))
                 {
-                    if (transition.condition(registry, entity, config))
+
+                    // Use the StateFactory to create a new state instance
+                    // TODO: refactor state factory to be a singleton
+                    std::unique_ptr<AIState> newState = g_stateFactory.createState(transition.targetStateId);
+                    if (newState)
                     {
-                        // Use the StateFactory to create a new state instance
-                        // TODO: refactor state factory to be a singleton
-                        std::unique_ptr<AIState> newState = g_stateFactory.createState(transition.targetStateId);
-                        if (newState)
-                        {
-                            changeState(newState.release());
-                        }
-                        // only transition to the first matching state (TODO: could change later for a probabilistic transition)
-                        break;
+                        changeState(newState.release());
                     }
+                    // only transition to the first matching state (TODO: could change later for a probabilistic transition)
+                    break;
                 }
             }
         }

@@ -530,6 +530,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
+		physics_system.dash(); 
+	}
+
 	if (key == GLFW_KEY_ENTER) {
 		flag_system.setDone(true);
 	}

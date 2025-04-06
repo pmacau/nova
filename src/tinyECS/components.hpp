@@ -35,11 +35,14 @@ struct Obstacle {
 };
 
 
+
+
 // Player component
 struct Player
 {
 	int health;
 	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	InputState direction;
 };
 
 // Ship component
@@ -62,6 +65,12 @@ struct Ship
 	bool maxRange;
 	bool maxWeapon;
 	bool maxFireRate;
+};
+
+struct Dash {
+	float cooldown = -1.f;
+	float remainingDuration = 0.15f; 
+	bool inUse = false; 
 };
 
 struct ShipWeapon
@@ -402,6 +411,9 @@ enum class TEXTURE_ASSET_ID {
 	INVENTORY_SLOT_ACTIVE,
 	TREE,
 	GOBLIN_TORCH_BLUE,
+	GOBLIN_TORCH_RED,
+	GOBLIN_TORCH_PURPLE,
+	GOBLIN_TORCH_YELLOW,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
 	SELECTION_BUTTON,
