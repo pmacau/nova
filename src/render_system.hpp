@@ -76,7 +76,17 @@ class RenderSystem {
 		textures_path("ui/weapon-upgrade-btn.png"),
 		textures_path("ui/purple-button.png"),
 		map_path("biome_map.png"),
-		textures_path("text/text.png")
+		textures_path("text/text.png"), 
+		textures_path("slashes/1.png"), 
+		textures_path("slashes/2.png"),
+		textures_path("slashes/3.png"),
+		textures_path("slashes/4.png"),
+		textures_path("slashes/5.png"),
+		textures_path("slashes/6.png"),
+		textures_path("slashes/7.png"),
+		textures_path("slashes/8.png"),
+		textures_path("slashes/9.png"),
+		textures_path("slashes/10.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -155,6 +165,8 @@ private:
 	void renderShipUI();
 	void renderWeaponUI();
 	void renderPlayerUI();
+
+	void renderEndScreen();
 	void drawDebugHitBoxes(const glm::mat3& projection);
 	void drawLine(vec2 start, vec2 end, vec3 color, float thickness, const mat3& projection);
 
@@ -185,6 +197,11 @@ private:
 	GLuint textVBO = 0;
 
 	mat3 shipUITransform = mat3(1.0f);
+
+
+	bool shipFullyUpgraded = false;
+	float shipUpgradeTime = -1.0f;
+	bool endScreenTriggered = false;
 	
 	// void renderText(const std::string& text, float x, float y, float scale, glm::vec3 color, const mat3& projection);
 	int getTextWidth(const std::string& text, int scale);

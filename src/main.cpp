@@ -120,6 +120,7 @@ int main()
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		if (!flag_system.is_paused) {
+			time_exe<int>("AI  ", [&]() {ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
 			time_exe<int>("PHYS", [&](){physics_system.step(elapsed_ms); return 0;});
 			time_exe<int>("WORL", [&](){world_system.step(elapsed_ms); return 0;});
 			time_exe<int>("PLAY", [&](){playerSystem.update(elapsed_ms); return 0;});
@@ -129,7 +130,7 @@ int main()
 			}
 			time_exe<int>("COLL", [&](){collision_system.step(elapsed_ms); return 0;});
 			time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
-			time_exe<int>("AI  ", [&](){ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
+			
 		}
 
 		time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});

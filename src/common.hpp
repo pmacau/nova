@@ -114,6 +114,8 @@ const int PROJECTILE_TIMER = 5000;
 
 const int MAX_INVENTORY_SLOTS = 5;
 
+
+const float MELEE_COOLDOWN = 0.80;
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
@@ -129,15 +131,15 @@ const int PLAYER_SPEED_UPGRADE_COPPER = 6; //6
 
 
 // Ship Upgrade Constants
-const int SHIP_HEALTH_UPGRADE_IRON = 7;
+const int SHIP_HEALTH_UPGRADE_IRON = 0; // 7
 
-const int SHIP_WEAPON_UPGRADE_IRON = 3;
-const int SHIP_WEAPON_UPGRADE_COPPER = 3;
+const int SHIP_WEAPON_UPGRADE_IRON = 0; // 3
+const int SHIP_WEAPON_UPGRADE_COPPER = 0; // 3
 
-const int SHIP_FIRERATE_UPGRADE_IRON = 2;
-const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
+const int SHIP_FIRERATE_UPGRADE_IRON = 0; // 2
+const int SHIP_FIRERATE_UPGRADE_COPPER = 0; // 4
 
-const int SHIP_RANGE_UPGRADE_IRON = 5;
+const int SHIP_RANGE_UPGRADE_IRON = 0; // 5
 
 
 // Weapon Upgrade Constants
@@ -161,7 +163,7 @@ const int SHOTGUN_UNLOCK_COPPER = 5;
 
 
 // Weather
-const bool ENABLE_WEATHER = false;
+const bool ENABLE_WEATHER = true;
 
 // Camera system
 const float CAMERA_SPEED = 0.2f;
