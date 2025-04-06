@@ -222,15 +222,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	click_delay += elapsed_ms_since_last_update / 1000.f;
 	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+		return true;
+	}
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 		click_delay = 0;
 		return true; 
-	}
-	if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
-		return true;
 	}
 
 	screen_state.time += elapsed_ms_since_last_update / 1000.f;
@@ -564,6 +564,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
             // screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 			screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
         } else if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+			debug_printf(DebugType::USER_INPUT, "END SCREEN\n");
 			close_window();
 		}
     }

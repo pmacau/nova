@@ -44,7 +44,8 @@ public:
             auto view = registry.view<ScreenState>();
             for (auto entity : view) {
                 auto& screen_state = registry.get<ScreenState>(entity);
-                if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+                if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN ||
+                    screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::TITLE) {
                     is_paused = true;
@@ -75,7 +76,8 @@ public:
             auto view = registry.view<ScreenState>();
             for (auto entity : view) { 
                 auto& screen = registry.get<ScreenState>(entity);
-                if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+                if (screen.current_screen == ScreenState::ScreenType::END_SCREEN ||
+                    screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
                     screen.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
                     screen.current_screen == ScreenState::ScreenType::TITLE) { 
                     is_paused = true; 
