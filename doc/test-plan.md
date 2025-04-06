@@ -7,9 +7,11 @@ With each milestone, we will add additional controls as necessary
   - Move down: press "s" or down-arrow
   - Move left: press "a" or left-arrow
   - Move right: press "d" or right-arrow
+  - Dash: press "space" to dash in the current direction
 - Combat:
   - Aim with the mouse
   - Shoot projectiles at the enemy with left-mouse click
+  - Melee: press "v" to issue a melee attack
 - Gameplay:
   - When near the ship, press "f" to toggle the ship UI
   - Left click items in the inventory to consume them
@@ -20,7 +22,7 @@ With each milestone, we will add additional controls as necessary
 - Utility:
   - Press "r" to restart the game
   - Press "esc" to pause the game and view the title screeen
-  - Press "enter" to skip the tutorial
+  - Press "enter" to skip through tutorial dialogue
 
 # Milestone 3
 

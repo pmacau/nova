@@ -1340,6 +1340,8 @@ void RenderSystem::draw()
 		case ScreenState::ScreenType::GAMEPLAY:
 			renderGamePlay();
 			break;
+		default:
+			break;
 	}
 
 	auto glyphs = registry.view<Glyph>();

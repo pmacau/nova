@@ -106,13 +106,21 @@ GLFWwindow* WorldSystem::create_window() {
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	auto mouse_button_pressed_redirect = [](GLFWwindow* wnd, int _button, int _action, int _mods) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_button_pressed(_button, _action, _mods); };
+	auto window_pos_callback = [](GLFWwindow* wnd, int xpos, int ypos) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_window_move(); };
 	
+	glfwSetWindowPosCallback(window, window_pos_callback);
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 	glfwSetMouseButtonCallback(window, mouse_button_pressed_redirect);
 
 	return window;
 }
+
+void WorldSystem::on_window_move() {
+	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
+}
+
+
 
 void WorldSystem::init() {
 	// start playing background music indefinitely
