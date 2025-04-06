@@ -57,20 +57,20 @@ protected:
     }
 
     virtual void initializeRenderingInfo() override {
-        renderingInfo.scale = { 43.f, 55.f };
+        renderingInfo.scale = { 80.f, 80.f };
         renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB;
-        renderingInfo.spriteSheet.sheetDimensions = {43.f, 55.f};
+        renderingInfo.spriteSheet.sheetDimensions = {240.f, 320.f};
     }
 
     virtual void initializePhysicsInfo() override {
-        physicsInfo.scale = vec2(100, 120);
+        physicsInfo.scale = vec2(100, 100) * 1.5f;
 
         physicsInfo.offset_to_ground = {0, physicsInfo.scale.y / 2.f};;
         float w = physicsInfo.scale.x;
 	    float h = physicsInfo.scale.y;
         physicsInfo.hitbox.pts = {
-            {w * -0.5f, h * -0.5f}, {w * 0.5f, h * -0.5f},
-            {w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
+            {w * -0.5f * 0.5, h * -0.5f}, {w * 0.5f* 0.5, h * -0.5f},
+            {w * 0.5f * 0.5, h * 0.5f},   {w * -0.5f * 0.5, h * 0.5f}
         };
         physicsInfo.hitbox.depth = 50;
     }
@@ -106,44 +106,48 @@ protected:
         aiInfo.initialState = "patrol";
     }
 
-    virtual void initializeAnimations() override {
 
+
+    virtual void initializeAnimations() override {
         float frameWidth = renderingInfo.scale.x;
         float frameHeight = renderingInfo.scale.y;
 
         std::string animationHeader = AnimationManager::getInstance().creatureAnimationHeader(creatureID);
 
+       
         AnimationDefinition idle_right;
         idle_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::IDLE, MotionDirection::RIGHT);
-        idle_right.loop = false; // a single image for now
+        idle_right.loop = true; 
         idle_right.frameWidth = frameWidth;
-        idle_right.frameHeight = frameHeight;   
+        idle_right.frameHeight = frameHeight;
         idle_right.spriteSheet = renderingInfo.spriteSheet;
 
-        idle_right.frames.push_back({0, 0});
-        idle_right.frameDurations.push_back(1000.f);
+       
+        idle_right.frames.clear();
+        idle_right.frameDurations.clear();
+
+       
+        idle_right.frames.push_back({ 2, 0 }); // Third row, second column
+        idle_right.frames.push_back({ 2, 1 }); // Third row, third column
+        idle_right.frames.push_back({ 2, 2 }); // Third row, fourth column
+        idle_right.frames.push_back({ 3, 0 }); // Fourth row, first column
+
+        // Set duration for each frame (in milliseconds)
+        float frameDuration = 150.0f; 
+        idle_right.frameDurations.push_back(frameDuration);
+        idle_right.frameDurations.push_back(frameDuration);
+        idle_right.frameDurations.push_back(frameDuration);
+        idle_right.frameDurations.push_back(frameDuration);
 
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::IDLE, MotionDirection::RIGHT, idle_right);
 
-        
-        // Create BlueTorch Goblin-specific walk animation.
-        AnimationDefinition walk_right;
+       
+        AnimationDefinition walk_right = idle_right; 
         walk_right.id = AnimationManager::getInstance().buildAnimationKey(animationHeader, MotionAction::WALK, MotionDirection::RIGHT);
-        walk_right.loop = false;
-        walk_right.frameWidth = frameWidth;
-        walk_right.frameHeight = frameHeight;
-        walk_right.spriteSheet = renderingInfo.spriteSheet;
-        walk_right.frames.push_back({0, 0});
-        walk_right.frameDurations.push_back(1000.f);
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::WALK, MotionDirection::RIGHT, walk_right);
 
         renderingInfo.initAction = MotionAction::IDLE;
         renderingInfo.initDirection = MotionDirection::RIGHT;
-        
-        // Set up the animation mapping and default animation in rendering info.
-        // renderingInfo.animationMapping.clear();
-        // renderingInfo.animationMapping["idle"] = "blue_torch_goblin_idle";
-        // renderingInfo.initialAnimationId = "idle";
     }
 
     virtual void initializeUIInfo() override {

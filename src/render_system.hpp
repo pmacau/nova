@@ -37,7 +37,7 @@ class RenderSystem {
 		textures_path("ship/engine/ship-missle-engine.png"),
 		textures_path("ship/engine/ship-railgun-engine.png"),
 		textures_path("ship/engine/ship-smg-engine.png"),
-        textures_path("mob/demoMob.png"),
+        textures_path("mob/wizard_actual.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png"),
