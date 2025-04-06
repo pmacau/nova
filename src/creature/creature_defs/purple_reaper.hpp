@@ -147,7 +147,7 @@ protected:
     virtual void initializeSpawnInfo() override {
         spawnInfo.spawnProbability = 0.6f;
         spawnInfo.group = { 1, 1 };
-        spawnInfo.biomes = { Biome::B_FOREST };
+        spawnInfo.biomes = { Biome::B_JUNGLE };
     }
 
     virtual void initializeRenderingInfo() override {
@@ -203,7 +203,7 @@ protected:
     virtual void initializeSpawnInfo() override {
         spawnInfo.spawnProbability = 0.6f;
         spawnInfo.group = { 1, 1 };
-        spawnInfo.biomes = { Biome::B_JUNGLE, Biome::B_SAVANNA };
+        spawnInfo.biomes = { Biome::B_SAVANNA };
     }
 
     virtual void initializeRenderingInfo() override {
