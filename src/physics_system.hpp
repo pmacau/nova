@@ -10,6 +10,7 @@
 
 
 class CollisionSystem;
+const float MAX_SPEED = 800.f;
 
 class PhysicsSystem {
 public:
@@ -19,10 +20,13 @@ public:
     void knockback(entt::entity& e1, entt::entity& e2, float force);
     void updatePlayerVelocity(InputState i);
     void block(Motion& motion);
+    void dash(); 
 private:
+   
     entt::registry& registry;
     void updateVelocity(float elapsed_s); 
     void stepAcceleration(float elapsed_s);
+    void updatePlayerState(float elapsed_s);
     vec2 getDirection(entt::entity e1, entt::entity e2); 
 
 };
