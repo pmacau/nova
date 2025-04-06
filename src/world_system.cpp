@@ -216,10 +216,6 @@ void WorldSystem::init() {
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	auto& ship = registry.get<Ship>(ship_entity);
-	std::cout << "ship max health = " << ship.maxHealth << std::endl;
-	std::cout << "ship max range = " << ship.maxRange << std::endl;
-	std::cout << "ship max weapon = " << ship.maxWeapon << std::endl;
-	std::cout << "ship max rate = " << ship.maxFireRate << std::endl;
 
 	MusicSystem::updateSoundTimers(elapsed_ms_since_last_update);
 
@@ -232,6 +228,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (screen_state.current_screen == ScreenState::ScreenType::TITLE) {
 		click_delay = 0;
 		return true; 
+	}
+	if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+		return true;
 	}
 
 	screen_state.time += elapsed_ms_since_last_update / 1000.f;
@@ -560,7 +559,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
             // screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 			screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
-        }
+        } else if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+			close_window();
+		}
     }
 
 	if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {

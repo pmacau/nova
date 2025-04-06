@@ -483,7 +483,8 @@ struct ScreenState
         SHIP_UPGRADE_UI,
 		PLAYER_UPGRADE_UI,
 		WEAPON_UPGRADE_UI,
-		TITLE
+		TITLE,
+		END_SCREEN
     };
 
     ScreenType current_screen;

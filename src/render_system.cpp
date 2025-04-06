@@ -1254,7 +1254,7 @@ void RenderSystem::renderEndScreen() {
 	std::string end_1 = std::string("honestly? we didnt think you had it in you, but here we are. ");
 
 	std::string end_2 = std::string("systems are online, engines are humming. all thats left is to press {1'F'} one last time and launch. ");
-	std::string end_3 = std::string("say goodbye to planet {1Nova}—and good riddance.");
+	std::string end_3 = std::string("say goodbye to planet {1Nova} and good riddance.");
 
 	std::string end_4 = std::string("whats waiting for you back home? maybe a cold beer. maybe a debrief with some grumpy admiral. ");
 	std::string end_5 = std::string("maybe just some damn peace and quiet for once.");
@@ -1296,7 +1296,7 @@ void RenderSystem::draw()
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 	auto& ship = registry.get<Ship>(registry.view<Ship>().front());
 
-	if (ship.maxHealth /*&& ship.maxFireRate && ship.maxRange && ship.maxWeapon*/) {
+	if (ship.maxHealth && ship.maxFireRate && ship.maxRange && ship.maxWeapon) {
 		if (!shipFullyUpgraded) {
 			shipFullyUpgraded = true;
 			shipUpgradeTime = (float)glfwGetTime(); // mark the time of upgrade
@@ -1305,6 +1305,7 @@ void RenderSystem::draw()
 		if (timeSinceUpgrade >= 5.0f) {
 			renderEndScreen();
 			endScreenTriggered = true;
+			screen_state.current_screen = ScreenState::ScreenType::END_SCREEN;
 		}
 	}
 
