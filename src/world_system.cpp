@@ -179,21 +179,24 @@ void WorldSystem::init() {
 	createIcon(registry, vec2(w/4 + 3 * buttonWidth * 1.3, h/4), 0.8f * vec2((w/6 - w/2*0.23f) * 0.65f, (w/12 - w/4*0.23f) * 0.50f), TEXTURE_ASSET_ID::DEFAULT_WEAPON, vec2(100.0f, 100.0f), vec2(100.0f, 100.0f), ScreenState::ScreenType::WEAPON_UPGRADE_UI);
 	createIcon(registry, vec2(w/4 + buttonWidth * 1.3, h/4), 0.8f * vec2((w/6 - w/2*0.23f) * 0.75f, (w/12 - w/4*0.23f) * 0.66f), TEXTURE_ASSET_ID::HOMING_MISSILE, vec2(100.0f, 100.0f), vec2(100.0f, 100.0f), ScreenState::ScreenType::WEAPON_UPGRADE_UI);
 	createIcon(registry, vec2(w/4 - buttonWidth * 1.3, h/4), 0.8f * vec2((w/6 - w/2*0.23f) * 0.75f, (w/12 - w/4*0.23f)), TEXTURE_ASSET_ID::SHOTGUN, vec2(100.0f, 100.0f), vec2(100.0f, 100.0f), ScreenState::ScreenType::WEAPON_UPGRADE_UI);
+	createIcon(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4), 0.4f * vec2((w/6 - w/2*0.23f), (w/6 - w/2*0.23f)), TEXTURE_ASSET_ID::SWORD, vec2(100.0f, 100.0f), vec2(100.0f, 100.0f), ScreenState::ScreenType::WEAPON_UPGRADE_UI);
 
 	// upgrade buttons
 	createUpgradeButton(registry, vec2(w/4 + 3 * buttonWidth * 1.3, h/4 - buttonWidth + h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PISTOL_UPGRADE, TEXTURE_ASSET_ID::BLUE_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Upgrade");
 	createUpgradeButton(registry, vec2(w/4 + buttonWidth * 1.3, h/4 - buttonWidth + h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::HOMING_MISSLE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Upgrade");
 	createUpgradeButton(registry, vec2(w/4 - buttonWidth * 1.3, h/4 - buttonWidth + h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHOTGUN_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Upgrade");
-	createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 - buttonWidth + h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Upgrade");
+	createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 - buttonWidth + h/2*0.04f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UPGRADE, TEXTURE_ASSET_ID::BLUE_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Upgrade");
 
 	// unlock buttons
 	entt::entity pistolUnlock = createUpgradeButton(registry, vec2(w/4 + 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::PISTOL_UNLOCK, TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Unlocked");
 	createUpgradeButton(registry, vec2(w/4 + buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::HOMING_MISSLE_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
 	createUpgradeButton(registry, vec2(w/4 - buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHOTGUN_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
-	createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UNLOCK, TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Locked");
+	entt::entity meleeUnlock = createUpgradeButton(registry, vec2(w/4 - 3 * buttonWidth * 1.3, h/4 + buttonWidth - h/2*0.06f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::MELEE_UNLOCK, TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED, ScreenState::ScreenType::WEAPON_UPGRADE_UI, "Unlocked");
 
 	auto& pistol_unlock_button = registry.get<WeaponUpgradeButton>(pistolUnlock);
 	pistol_unlock_button.maxUpgrade = true;
+	auto& melee_unlock_button = registry.get<WeaponUpgradeButton>(meleeUnlock);
+	melee_unlock_button.maxUpgrade = true;
 
 	// ***********************************************************************************************
 	// ******************************** init all the player ui stuff *********************************
@@ -1180,15 +1183,20 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				}
 				
-				if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {
+				if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE &&
+					ironCount >= MELEE_UPGRADE_IRON) {
+						// TODO: make sure to check its less than the MAX knockback and damage
 
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
+					// TODO: upgrade melee damage/knockback
+
+					upgrade_inventory(MELEE_UPGRADE_IRON, 0);
+				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				}
 
 				// unlock weapons ------------------------------------------------------------------------------------
@@ -1228,15 +1236,6 @@ void WorldSystem::left_mouse_click() {
 					player_comp.unlock_shotgun_weapon = true;
 
 					upgrade_inventory(SHOTGUN_UNLOCK_IRON, SHOTGUN_UNLOCK_COPPER);
-				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UNLOCK && !upgrade_button.maxUpgrade) {
-
-					upgrade_render.used_texture = TEXTURE_ASSET_ID::BLUE_BUTTON_PRESSED;
-					MusicSystem::playSoundEffect(SFX::SELECT);
-
-					for (auto ui_ship_entity : registry.view<UIShip>()) {
-						// update inventory
-						// ship_upgrade_inventory(SHIP_HEALTH_UPGRADE_IRON, 0);
-					}
 				}
 			}
 		}
@@ -1303,9 +1302,7 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					player_comp.speed += 20;
-					std::cout << "player speed = " << player_comp.speed << std::endl;
-					std::cout << "max player speed = " << PLAYER_MAX_SPEED << std::endl;
+					player_comp.speed += 15;
 
 					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE && 
@@ -1620,15 +1617,15 @@ void WorldSystem::update_weapon_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(SHOTGUN_UPGRADE_IRON) + " iron, " + std::to_string(SHOTGUN_UPGRADE_COPPER) + " copper";
 		}
 		
-		// if (buttonOption.type == ButtonOption::Option::MELEE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
-		// 	buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
-		// 	upgradeButton.missingResources = false;
-		// 	upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";
-		// } else if (buttonOption.type == ButtonOption::Option::MELEE_UPGRADE) {
-		// 	buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
-		// 	upgradeButton.missingResources = true;
-		// 	upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";
-		// }
+		if (buttonOption.type == ButtonOption::Option::MELEE_UPGRADE && ironCount >= MELEE_UPGRADE_IRON) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+			upgradeButton.missingResources = false;
+			upgradeButton.missingResourcesText = std::to_string(MELEE_UPGRADE_IRON) + " iron";
+		} else if (buttonOption.type == ButtonOption::Option::MELEE_UPGRADE) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(MELEE_UPGRADE_IRON) + " iron";
+		}
 
 
 		// unlock --------------------------------------------------------------------------------------------------------------

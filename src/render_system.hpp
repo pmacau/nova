@@ -49,6 +49,7 @@ class RenderSystem {
 		textures_path("weapons/default.png"),
 		textures_path("weapons/homing-missile.png"),
 		textures_path("weapons/shotgun.png"),
+		textures_path("weapons/sword.png"),
 		textures_path("healthbar/red.png"), 
 		textures_path("healthbar/player-health-inner.png"), 
 		textures_path("healthbar/player-health-outer.png"),

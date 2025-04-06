@@ -1438,6 +1438,15 @@ void RenderSystem::renderPlayerUI()
 		}
 	}
 
+	renderText(
+		"PLAYER UPGRADES", 
+		WINDOW_WIDTH_PX / 2 - 180, 
+		100.f,
+		4, 
+		vec3(1.0f, 1.0f, 1.0f), 
+		ui_projection_2D
+	);
+
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
 	glfwSwapBuffers(window);
