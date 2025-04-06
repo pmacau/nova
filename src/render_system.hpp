@@ -64,6 +64,7 @@ class RenderSystem {
 		textures_path("mob/goblin_torch_purple.png"), 
 		textures_path("mob/goblin_torch_yellow.png"), 
 		textures_path("mob/range/small_archer/Archer_Blue.png"), 
+		textures_path("mob/melee/orc_rider.png"), 
 		textures_path("title/screen.png"), 
 		textures_path("textBackground/textbox.png"),
 		textures_path("ui/selection_button.png"),
