@@ -1,38 +1,152 @@
 #include "physics_system.hpp"
 #include "ui_system.hpp"
 
-PhysicsSystem::PhysicsSystem(entt::registry& reg):
-	registry(reg)
+PhysicsSystem::PhysicsSystem(entt::registry& reg, FlagSystem& flag_system):
+	registry(reg),
+    flag_system(flag_system)
 {
 }
 
 
+
+
+
 void PhysicsSystem::updatePlayerVelocity(InputState i) {
+    if (registry.view<Player>().empty()) return;
+    auto player_entity = registry.view<Player>().front(); 
+	    auto dash = registry.get<Dash>(player_entity);
+    if (dash.inUse) {
+    return;
+    }
+    auto& player = registry.get<Player>(player_entity);
+    InputState& player_direction = player.direction;
+    if (i.up || i.down || i.left || i.right) {
+        player_direction.down = false;
+        player_direction.up = false;
+        player_direction.left = false;
+        player_direction.right = false;
+    }
+    
+    
+
     auto& motion = registry.get<Motion>(registry.view<Player>().front());
-	vec2 proposedVelocity = { 0.0f, 0.0f };
-    proposedVelocity.y = (!i.up) ? (i.down ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
-    proposedVelocity.x = (!i.left) ? (i.right ? PLAYER_SPEED : 0.0f) : -PLAYER_SPEED;
+	    vec2 proposedVelocity = { 0.0f, 0.0f };
+   
 
-    if (i.up && i.down)  proposedVelocity.y = 0.0f;
-    else if (i.left && i.right) proposedVelocity.x = 0.0f;
-    else if (i.left && i.up)    proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
-    else if (i.left && i.down)  proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
-    else if (i.right && i.up)    proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
-    else if (i.right && i.down)  proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+    if (i.up) {
+        proposedVelocity.y = -PLAYER_SPEED;
+        player_direction.up = true;
+    }
+    else if (i.down){
+        proposedVelocity.y = PLAYER_SPEED;
+        player_direction.down = true;
+    }
+    else if (i.right) {
+        proposedVelocity.x = PLAYER_SPEED; 
+        player_direction.right = true; 
+    }
+    else if (i.left) {
+        proposedVelocity.x = -PLAYER_SPEED;
+        player_direction.left = true;
+    }
 
-	if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
-		motion.velocity = proposedVelocity;
-	} 
+    if (i.up && i.down) {
+        proposedVelocity.y = 0.0f;
+        player_direction.up = true; 
+		player_direction.down = true;
+    }
+    else if (i.left && i.right) {
+        proposedVelocity.x = 0.0f;
+        player_direction.right = true; 
+        player_direction.left = true;
+    }
+    else if (i.left && i.up) {
+        proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
+        player_direction.left = true; 
+        player_direction.up = true;
+    }
+    else if (i.left && i.down) {
+        proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
+        player_direction.left = true; 
+        player_direction.down = true;
+    }
+    else if (i.right && i.up) {
+        proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
+        player_direction.right = true; 
+        player_direction.up = true;
+    }
+    else if (i.right && i.down) {
+        proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+        player_direction.right = true;
+        player_direction.down = true;
+    }
 
-	
+    if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
+        motion.velocity = proposedVelocity;
+    } 	
 }
 
+
 // dash  
+void PhysicsSystem::dash() {
+    auto player = registry.view<Player, Dash>().front();
+    auto& dash = registry.get<Dash>(player);
+	auto& player_direction = registry.get<Player>(player).direction;
+    if (dash.inUse) {
+        return;
+    }
+    else if (dash.cooldown < 0) {
+        dash.inUse = true;
+        dash.remainingDuration = 0.15f;
+
+        auto& motion = registry.get<Motion>(player);
+        if (glm::length(motion.velocity) < 1.f) {
+            if (player_direction.down) {
+                motion.velocity = { 0, 1200.f };
+            }
+            else if (player_direction.up) {
+                motion.velocity = { 0, -1200.f };
+            }
+            else if (player_direction.left) {
+                motion.velocity = { -1200.f, 0.f };
+            }
+            else if (player_direction.right) {
+                motion.velocity = { 1200.f, 0.f };
+            }
+
+        }
+        else {
+            motion.acceleration = { 0, 0 };
+            motion.velocity = 1200.f * glm::normalize(motion.velocity);
+        }
+    }
+   
+    
+	
+}
 
 void PhysicsSystem::step(float elapsed_ms) {
     float elapsed_s = elapsed_ms / 1000;
     updateVelocity(elapsed_s);
     stepAcceleration(elapsed_s); 
+    updatePlayerState(elapsed_s); 
+}
+
+void PhysicsSystem::updatePlayerState(float elapsed_s) {
+	auto player = registry.view<Player, Dash>().front();
+	auto& dash = registry.get<Dash>(player);
+	if (dash.inUse && dash.remainingDuration > 0.0f) {
+		dash.remainingDuration -= elapsed_s;
+	} 
+	if (dash.cooldown > 0.0f) {
+		dash.cooldown -= elapsed_s;
+	}
+	if (dash.remainingDuration < 0.0f) {
+		dash.inUse = false;
+		dash.remainingDuration = 0.0f;
+		dash.cooldown = 1.5f;
+	}
+
 }
 
 // always bring it back to 0, maybe change the way it reverts to 0. 
@@ -58,13 +172,18 @@ void PhysicsSystem::updateVelocity(float elapsed_s) {
     for (auto entity : players) {
         auto& motion = registry.get<Motion>(entity);
         motion.formerPosition = motion.position;
-        motion.velocity += motion.acceleration; // acceleration change
+        if (glm::length(motion.velocity + motion.acceleration) > MAX_SPEED) {
+            motion.velocity = glm::normalize(motion.velocity) * MAX_SPEED;
+        }
+        else {
+            motion.velocity += motion.acceleration; // acceleration change
+        }
         if (registry.all_of<MarkedCollision>(entity)) {
 			motion.velocity = registry.get<MarkedCollision>(entity).velocity;
         } 
         motion.position += motion.velocity * elapsed_s;
         if (registry.all_of<Player>(entity)) {
-            UISystem::equipItem(registry, motion);
+            UISystem::equipItem(registry, motion, flag_system);
         }
         if (registry.all_of<Mob>(entity)) {
             UISystem::updateMobHealthBar(registry, entity, false);
@@ -92,8 +211,13 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
     m1.acceleration += direction * repellentMagnitude; 
 }
 
-// knocks back e1 in respect to e2's position
+// knocks back e1 in respect to e2's position, E1 MUST BE PLAYER
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
+    auto player = registry.view<Player, Dash>().front(); 
+    auto dash = registry.get<Dash>(player); 
+    if (dash.inUse) {
+        return; 
+    }
     Motion& m1 = registry.get<Motion>(e1);
     vec2 direction = normalize(getDirection(e1, e2));
     m1.acceleration += direction * force;

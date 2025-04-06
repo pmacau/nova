@@ -41,6 +41,13 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
 
+
+	auto& dash = registry.emplace<Dash>(entity); 
+	dash.cooldown = 3.0f;
+	dash.remainingDuration = 0.0f;
+
+	
+
 	float w = motion.scale.x;
 	float h = motion.scale.y;
 	auto& hitbox = registry.emplace<Hitbox>(entity);
@@ -95,6 +102,105 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	return entity;
 }
 
+
+//Motion& slashOffSetHelper(entt::registry& registry) {
+//	auto player = registry.view<Player>().front(); 
+//	auto& direction = registry.get<InputState>(player); 
+//	std::cout << direction.down << " " << direction.up << " " << direction.left << " " << direction.right << std::endl; 
+//	auto& motion = registry.get<Motion>(player); 
+//	return motion; 
+//}
+
+entt::entity createSlash(entt::registry& registry) {  
+   auto entity = registry.create();  
+
+   Slash& slash = registry.emplace<Slash>(entity);  
+   auto player = registry.view<Player>().front();
+
+   auto motion_player = registry.get<Motion>(player); 
+   auto player_d = registry.get<Player>(player).direction;
+   auto& motion = registry.emplace<Motion>(entity);  
+   motion.angle = 0.f;  
+   motion.velocity = {0, 0};  
+   motion.position = motion_player.position;  
+   slash.render_position = motion.position;
+   motion.scale = motion.scale * 15.f;  // change later to a more acceptable value 
+   motion.offset_to_ground = { 0, motion.scale.y / 2};
+   float w = motion.scale.x;
+   float h = motion.scale.y;
+
+   float radius = motion.scale.x / 2.5f;
+   float offset = 40.f;
+   motion.angle = 0.f;
+   
+   if (player_d.up && player_d.right) {
+	   motion.position.y -= offset * 0.7f;
+	   motion.position.x += offset * 0.7f;
+	   motion.angle = 225.f;
+	  //  std::cout << "entered " << std::endl; 
+   }
+   else if (player_d.up && player_d.left) {
+	   motion.position.y -= offset * 0.7f;
+	   motion.position.x -= offset * 0.7f;
+	   motion.angle = 135.f;
+   }
+   else if (player_d.down && player_d.right) {
+	   motion.position.y += offset * 0.7f;
+	   motion.position.x += offset * 0.7f;
+	   motion.angle = -45.f;
+   }
+   else if (player_d.down && player_d.left) {
+	   motion.position.y += offset * 0.7f;
+	   motion.position.x -= offset * 0.7f;
+	   motion.angle = 45.f;
+   }
+   else if (player_d.up) {
+	   motion.position.y -= offset;
+	   motion.angle = 180.f;
+   }
+   else if (player_d.down) {
+	   motion.position.y += offset;
+	   motion.angle = 0.f;
+   }
+   else if (player_d.left) {
+	   motion.position.x -= offset;
+	   motion.angle = 90.f;
+   }
+   else if (player_d.right) {
+	   motion.position.x += offset;
+	   motion.angle = 270.f;
+   }
+
+   auto& hitbox = registry.emplace<Hitbox>(entity);
+
+   
+   const int numPoints = 16; 
+   hitbox.pts.clear();
+
+   for (int i = 0; i < numPoints; i++) {
+	   float angle = 2.0f * M_PI * i / numPoints;
+	   float x = radius * cos(angle);
+	   float y = radius * sin(angle);
+	   hitbox.pts.push_back({ x, y });
+   }
+   hitbox.depth = 100;
+   
+  /* hitbox.pts = {
+	   {w * -0.5f, h * -0.5f * 10}, {w * 0.5f, h * -0.5f * 10},
+	   {w * 0.5f, h * 0.5f * 10},   {w * -0.5f, h * 0.5f * 10}
+   };*/
+   auto& sprite = registry.emplace<Sprite>(entity);
+   sprite.dims = { 496.f, 496.f };
+   sprite.sheet_dims = { 496.f, 496.f };
+
+   auto& renderRequest = registry.emplace<RenderRequest>(entity);  
+   renderRequest.used_texture = TEXTURE_ASSET_ID::SLASH_1;  
+   renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;  
+   renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;  
+
+   return entity;  
+}
+
 entt::entity createCamera(entt::registry& registry, entt::entity target)
 {
 	auto entity = registry.create();
@@ -146,6 +252,10 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	ship.range = SHIP_RANGE;
 	ship.timer = SHIP_TIMER_S;
 	ship.bulletType = Ship::BulletType::GOLD_PROJ;
+	ship.maxHealth = false;
+	ship.maxRange = false;
+	ship.maxFireRate = false;
+	ship.maxWeapon = false;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 90.0f;
@@ -508,6 +618,62 @@ entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
 	setTreeType(registry, entity, pos, biome, terrain);
+
+	return entity;
+}
+
+entt::entity createHouse(entt::registry& registry, vec2 pos, Biome biome) {
+	auto entity = registry.create();
+
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
+
+	vec2 box_dims = {128.f, 256.f};
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.sheet_dims = {box_dims.x * 4, box_dims.y * 2};
+	sprite.dims = box_dims;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.scale = GAME_SCALE * box_dims;
+
+	bool normal = flip(rng) <= 0.7;
+	int sprite_row = 0;
+	float depth = 0.f, w = 0.f;
+
+	if (normal) {
+		motion.offset_to_ground = GAME_SCALE * vec2(0.f, 67.f);
+		sprite_row = 0;
+		w = 0.8 * motion.scale.x;
+		depth = motion.scale.y * 0.2f;
+	}
+	else {
+		motion.offset_to_ground = GAME_SCALE * vec2(0.f, 70.f);
+		sprite_row = 1;
+		w = 0.7 * motion.scale.x;
+		depth = 96.f;
+	}
+
+	motion.position = pos - motion.offset_to_ground;
+	motion.velocity = {0.f, 0.f};
+
+
+	if      (biome == Biome::B_ICE)     sprite.coord = {sprite_row, 0};
+	else if (biome == Biome::B_JUNGLE)  sprite.coord = {sprite_row, 1};
+	else if (biome == Biome::B_SAVANNA) sprite.coord = {sprite_row, 2};
+	else if (biome == Biome::B_BEACH)   sprite.coord = {sprite_row, 3};
+
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	float h = motion.scale.y, g = 0.f;
+	hitbox.pts = {
+		{w * -0.5f, g + h * -0.5f}, {w * 0.5f, g + h * -0.5f},
+		{w * 0.5f, g + h * 0.5f},   {w * -0.5f, g + h * 0.5f}
+	};
+	hitbox.depth = depth;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::HOUSE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
 	return entity;
 }

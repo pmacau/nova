@@ -250,3 +250,58 @@ void create_biome_map(GameMap& game_map) {
 
     delete[] out.data;
 }
+
+void create_decoration_map(GameMap& game_map) {
+    int h = game_map.size();
+    int w = game_map[0].size();
+
+    Image out = create_image(w, h, 3);
+    std::memset(out.data, 255, out.w * out.h * out.channels);
+
+    debug_printf(DebugType::WORLD_INIT, "Generating decoration map\n");
+    for (int row = 0; row < h; row++) {
+        for (int col = 0; col < w; col++) {
+            unsigned char r, g, b;
+            switch (get_decoration(game_map[row][col])) {
+                case NO_DECOR:
+                    r = 0; g=0; b=0;
+                    break;
+                case TREE:
+                    r=0; g=255; b=0;
+                    break;
+                case HOUSE:
+                    r=255; g=0; b=0;
+                    break;
+                case SPAWN:
+                case BOSS:
+                    r=0; g=0; b=255;
+                    break;
+                case SHIP:
+                    r=255; g=255; b=0;
+                    break;
+                case BARRIER:
+                    r=0; g=255; b=255;
+                    break;
+                default:
+                    r=0; g=0; b=0;
+            }
+            if (get_terrain(game_map[row][col]) == Terrain::WATER) {
+                r = 255; g=255; b=255;
+            }
+            int pixel_index = (row * w + col) * 3;
+            out.data[pixel_index] = r;
+            out.data[pixel_index + 1] = g;
+            out.data[pixel_index + 2] = b;
+        }
+    }
+
+    int success = stbi_write_png(
+        map_path("decor_map.png").c_str(),
+        out.w, out.h, out.channels, out.data, out.w * out.channels
+    );
+
+    if (success) debug_printf(DebugType::GAME_INIT, "Wrote decoration map file successfully.\n");
+    else         debug_printf(DebugType::GAME_INIT, "Error decoration map file.\n");
+
+    delete[] out.data;
+}

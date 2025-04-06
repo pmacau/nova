@@ -28,6 +28,9 @@ using namespace glm;
 #define M_PI 3.14159265358979323846f
 #endif
 
+// Switch between 0 and 1 to toggle weather effects
+#define WEATHER 0
+
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
 inline std::string textures_path(const std::string& name) {return data_path() + "/textures/" + std::string(name);};
@@ -85,19 +88,21 @@ const int PROJECTILE_TIMER = 5000;
 
 const int MAX_INVENTORY_SLOTS = 5;
 
+
+const float MELEE_COOLDOWN = 0.80;
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
 // Ship Upgrade Constants
-const int SHIP_HEALTH_UPGRADE_IRON = 7;
+const int SHIP_HEALTH_UPGRADE_IRON = 0; // 7
 
-const int SHIP_WEAPON_UPGRADE_IRON = 3;
-const int SHIP_WEAPON_UPGRADE_COPPER = 3;
+const int SHIP_WEAPON_UPGRADE_IRON = 0; // 3
+const int SHIP_WEAPON_UPGRADE_COPPER = 0; // 3
 
-const int SHIP_FIRERATE_UPGRADE_IRON = 2;
-const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
+const int SHIP_FIRERATE_UPGRADE_IRON = 0; // 2
+const int SHIP_FIRERATE_UPGRADE_COPPER = 0; // 4
 
-const int SHIP_RANGE_UPGRADE_IRON = 5;
+const int SHIP_RANGE_UPGRADE_IRON = 0; // 5
 
 // Weather
 const bool ENABLE_WEATHER = true;

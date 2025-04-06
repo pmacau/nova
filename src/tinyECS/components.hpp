@@ -19,6 +19,18 @@ struct Boss{
 	float damage;
 };
 
+// TODO: Tweak values
+struct Slash {
+	float damage = 5.f;
+	float force = 250.f;
+	float time_elapsed = 0.0f;
+	float total_lifetime = 0.35f; 
+	glm::vec2 render_position; 
+	int current_frame = 1; 
+	float frame_time = 0.0f; 
+	bool hit = false;
+};
+
 struct InputState {
 	bool up = false;
 	bool down = false;
@@ -35,11 +47,15 @@ struct Obstacle {
 };
 
 
+
+
 // Player component
 struct Player
 {
 	int health;
 	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	InputState direction; 
+	float melee_cooldown = MELEE_COOLDOWN; 
 };
 
 // Ship component
@@ -57,6 +73,17 @@ struct Ship
 	int range;
 	int health;
 	float timer;
+
+	bool maxHealth;
+	bool maxRange;
+	bool maxWeapon;
+	bool maxFireRate;
+};
+
+struct Dash {
+	float cooldown = -1.f;
+	float remainingDuration = 0.15f; 
+	bool inUse = false; 
 };
 
 struct ShipWeapon
@@ -409,6 +436,17 @@ enum class TEXTURE_ASSET_ID {
 	RED_BUTTON_PRESSED,
 	MINIMAP,
 	TEXT,
+	SLASH_1, 
+	SLASH_2, 
+	SLASH_3, 
+	SLASH_4, 
+	SLASH_5, 
+	SLASH_6,
+	SLASH_7,
+	SLASH_8,
+	SLASH_9,
+	SLASH_10,
+	HOUSE,
 	TEXTURE_COUNT
 };
 
@@ -481,7 +519,8 @@ struct ScreenState
         SHIP_UPGRADE_UI,
 		PLAYER_UPGRADE_UI,
 		WEAPON_UPGRADE_UI,
-		TITLE
+		TITLE,
+		END_SCREEN
     };
 
     ScreenType current_screen;
