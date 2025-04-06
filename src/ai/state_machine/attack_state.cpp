@@ -60,8 +60,11 @@ void AttackState::onUpdate(entt::registry& registry, entt::entity entity, float 
 }
 
 void AttackState::onExit(entt::registry& registry, entt::entity entity) {
-    // debug_printf(DebugType::AI, "AttackState: onExit\n");
+    if (registry.any_of<AIComponent>(entity)) {
+        auto& aiComp = registry.get<AIComponent>(entity);
+        aiComp.attackCooldownTimer = 0.0f;
+    }
 
-    // std::cout << "AttackState: onEnter\n";
+    auto& aiComp = registry.get<AIComponent>(entity);
 
 }

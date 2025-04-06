@@ -11,6 +11,9 @@ public:
 
     void update(float deltaTime);
 
+    void setSpawnRate(float rate) { spawnRate = rate; }
+    void setSpawnCap(size_t cap) { spawnCap = cap; }
+
 private:
     entt::registry& registry;
     std::default_random_engine rng;

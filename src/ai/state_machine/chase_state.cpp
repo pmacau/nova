@@ -14,10 +14,8 @@
 #include <animation_system.hpp>
 
 
-static Pathfinder g_pathFinder;
-
 void ChaseState::regeneratePath(entt::registry& registry, ivec2 startTile, ivec2 targetTile) {
-    currentPath = g_pathFinder.findPath(startTile, targetTile);
+    currentPath = Pathfinder::findPath(startTile, targetTile);
     // remove the first tile since it is the current tile
     if (!currentPath.empty()) {
         currentPath.erase(currentPath.begin());

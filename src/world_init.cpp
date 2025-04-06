@@ -49,6 +49,7 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 		{w * 0.5f, h * 0.5f},   {w * -0.5f, h * 0.5f}
 	};
 	hitbox.depth = 50; // TODO: change this back to unset (epsilon)
+	hitbox.type = ColliderType::PLAYER;
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = TEXTURE_ASSET_ID::PLAYER;
@@ -162,6 +163,7 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 		{w * 0.45f, h * 0.15f},   {w * -0.45f, h * 0.15f}
 	};
 	hitbox.depth = 130;
+	hitbox.type = ColliderType::OBSTACLE;
 
 	auto& obstacle = registry.emplace<Obstacle>(entity);
 	obstacle.isPassable = false;
@@ -352,7 +354,7 @@ entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, s
 	return entity;
 }
 
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, int timer, TEXTURE_ASSET_ID projectileType)
+entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, int timer, TEXTURE_ASSET_ID projectileType, std::vector<ColliderType> targetTypes)
 {
 	debug_printf(DebugType::WORLD_INIT, "Projectile created: (%.1f, %.1f)\n", pos.x, pos.y);
 	auto entity = registry.create();
@@ -379,6 +381,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	auto& projectile = registry.emplace<Projectile>(entity);
 	projectile.damage = damage;
 	projectile.timer = timer;
+	projectile.targetTypes = targetTypes;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.velocity = velocity;
@@ -396,6 +399,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 		{w *  0.25f, h *  0.50f}, {w * -0.25f, h *  0.50f}, // Bot pts
 		{w * -0.50f, h *  0.25f}, {w * -0.50f, h * -0.25f}, // Left pts
 	};
+	hitbox.type = ColliderType::PROJECTILE;
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = projectileType;
@@ -442,6 +446,8 @@ void setTreeType(
 
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	float w = 18.f, h = 16.f, g = 100.f;
+
+	hitbox.type = ColliderType::OBSTACLE;
 
 	bool normal = flip(rng) <= 0.7;
 	int t = variation(rng);
@@ -682,10 +688,10 @@ entt::entity createCreature(entt::registry& registry, vec2 position, const Creat
 	auto& hitbox = registry.emplace<Hitbox>(entity);
 	hitbox.pts = def.getPhysicsInfo().hitbox.pts;
 	hitbox.depth = def.getPhysicsInfo().hitbox.depth;
+	hitbox.type = ColliderType::CREATURE;
 
 	UISystem::creatureDropForMob(registry, entity, def.getDropInfo());
 	
-
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
 	renderRequest.used_texture = def.getRenderingInfo().spriteSheet.textureAssetID;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
@@ -694,6 +700,7 @@ entt::entity createCreature(entt::registry& registry, vec2 position, const Creat
 	// TODO: create a generic enemy creation
 	// set up ai for goblin
 	auto& aiComp = registry.emplace<AIComponent>(entity);
+	aiComp.attackCooldownTimer = 0.f;
 	aiComp.stateMachine = std::make_unique<AIStateMachine>(registry, entity, def.getAIInfo().aiConfig, *def.getAIInfo().transitionTable);
    
 	aiComp.stateMachine->changeState(g_stateFactory.createState(def.getAIInfo().initialState).release());

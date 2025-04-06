@@ -71,7 +71,7 @@ const int RAILGUN_PROJ_DAMAGE = 50;
 
 const int PLAYER_HEALTH = 100;
 const int MOB_HEALTH = 50; 
-const float PLAYER_SPEED = 200.0f;
+const float PLAYER_SPEED = 180.0f;
 const float MOB_SPEED = 100.0f; 
 
 const float GAME_SCALE = 2.f;
