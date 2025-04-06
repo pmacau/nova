@@ -1,11 +1,14 @@
 #pragma once
 #include "common.hpp"
+#include <tinyECS/components.hpp>
 #include <vector>
 #include <string>
 
-struct FrameIndex {
-    int row;
-    int col;
+#include "animation_common.hpp"
+
+struct SpriteSheet {
+    TEXTURE_ASSET_ID textureAssetID;
+    glm::vec2 sheetDimensions;
 };
 
 struct AnimationDefinition {
@@ -14,5 +17,9 @@ struct AnimationDefinition {
     std::vector<float> frameDurations;  // Duration for each frame (ms). Can be a constant value too.
     bool loop;   
     float frameWidth;                   
-    float frameHeight;                       
+    float frameHeight;
+    
+    SpriteSheet spriteSheet;
+
+    bool flipForLeft = false;
 };

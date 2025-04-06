@@ -113,7 +113,6 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
 
 void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
-    auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
 
     auto& motion = reg.get<Motion>(ent);
     Biome currB = get_biome(get_tile(motion.position + motion.offset_to_ground));

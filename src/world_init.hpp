@@ -5,6 +5,7 @@
 #include "render_system.hpp"
 #include "ai/ai_common.hpp"
 #include <creature/creature_common.hpp>
+#include <creature/creature_defs/creature_definition_data.hpp>
 
 
 entt::entity createPlayer(entt::registry& registry, vec2 position);
@@ -20,8 +21,8 @@ entt::entity createUIShipWeapon(entt::registry& registry, vec2 position, vec2 si
 entt::entity createUIShipEngine(entt::registry& registry, vec2 position, vec2 size, int engineNum);
 
 // invaders
-entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
-entt::entity createMob2(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
+// entt::entity createMob(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
+// entt::entity createMob2(entt::registry& registry, vec2 position, int health = MOB_HEALTH);
 
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
@@ -30,8 +31,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 
 entt::entity createSlash(entt::registry& registry); 
 
-entt::entity createBoss(entt::registry& registry, vec2 pos);
-
+// entt::entity createBoss(entt::registry& registry, vec2 pos);
 entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain terrain);
 
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor);
@@ -52,7 +52,7 @@ void createInventory(entt::registry& registry);
 
 void destroy_creature(entt::registry& registry, entt::entity creature);
 
-entt::entity createCreature(entt::registry& registry, vec2 position, CreatureDefinition def, int health);
+entt::entity createCreature(entt::registry& registry, vec2 position, const CreatureDefinitionData& def, int health);
 
 entt::entity createTitleScreen(entt::registry & registry);
 

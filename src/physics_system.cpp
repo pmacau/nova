@@ -90,17 +90,36 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
 void PhysicsSystem::dash() {
     auto player = registry.view<Player, Dash>().front();
     auto& dash = registry.get<Dash>(player);
+	auto& player_direction = registry.get<Player>(player).direction;
     if (dash.inUse) {
         return;
     }
-    else if (dash.cooldown < 0){
-        dash.inUse = true; 
-		dash.remainingDuration = 0.15f;
+    else if (dash.cooldown < 0) {
+        dash.inUse = true;
+        dash.remainingDuration = 0.15f;
+
+        auto& motion = registry.get<Motion>(player);
+        if (glm::length(motion.velocity) < 1.f) {
+            if (player_direction.down) {
+                motion.velocity = { 0, 1200.f };
+            }
+            else if (player_direction.up) {
+                motion.velocity = { 0, -1200.f };
+            }
+            else if (player_direction.left) {
+                motion.velocity = { -1200.f, 0.f };
+            }
+            else if (player_direction.right) {
+                motion.velocity = { 1200.f, 0.f };
+            }
+
+        }
+        else {
+            motion.acceleration = { 0, 0 };
+            motion.velocity = 1200.f * glm::normalize(motion.velocity);
+        }
     }
-	auto& motion = registry.get<Motion>(player);
-	// motion.acceleration = 2.0f * motion.velocity;
-    motion.acceleration = { 0, 0 };
-    motion.velocity = 1200.f * glm::normalize(motion.velocity);
+   
     
 	
 }
@@ -193,11 +212,11 @@ void PhysicsSystem::suppress(entt::entity& e1, entt::entity& e2) {
 
 // knocks back e1 in respect to e2's position, E1 MUST BE PLAYER
 void PhysicsSystem::knockback(entt::entity& e1, entt::entity& e2, float force) {
-    /*auto player = registry.view<Player, Dash>().front(); 
+    auto player = registry.view<Player, Dash>().front(); 
     auto dash = registry.get<Dash>(player); 
     if (dash.inUse) {
         return; 
-    }*/
+    }
     Motion& m1 = registry.get<Motion>(e1);
     vec2 direction = normalize(getDirection(e1, e2));
     m1.acceleration += direction * force;

@@ -29,7 +29,7 @@ using namespace glm;
 #endif
 
 // Switch between 0 and 1 to toggle weather effects
-#define WEATHER 1
+#define WEATHER 0
 
 inline std::string data_path() { return std::string(PROJECT_SOURCE_DIR) + "data"; };
 inline std::string shader_path(const std::string& name) {return std::string(PROJECT_SOURCE_DIR) + "/shaders/" + name;};
