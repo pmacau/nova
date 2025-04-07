@@ -150,7 +150,7 @@ void CollisionSystem::handle<Player, Mob>(
 	player.health -= MOB_DAMAGE;
 	MusicSystem::playSoundEffect(SFX::HIT);
 
-	UISystem::updatePlayerHealthBar(registry, player.health);
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 	physics.knockback(play_ent, mob_ent, 300);
 	physics.suppress(play_ent, mob_ent);
 	
