@@ -4,14 +4,16 @@
 #include "util/debug.hpp"
 
 float UISystem::equip_delay = 0.0f;
+bool UISystem::log_inventory = true;
 std::mt19937 UISystem::rng(std::random_device{}());
 std::uniform_real_distribution<float> UISystem::uniform_dist(0.f, 1.f);
 
-void UISystem::updatePlayerHealthBar(entt::registry& registry, int health) {
+void UISystem::updatePlayerHealthBar(entt::registry& registry, int currMaxHealth, int health) {
 	for (auto entity : registry.view<PlayerHealthBar>()) {
 		auto& playerhealth_motion = registry.get<Motion>(entity);
 		float left = playerhealth_motion.position.x - playerhealth_motion.scale.x / 2.f;
-		playerhealth_motion.scale = vec2({ health * (250.f / PLAYER_HEALTH), 15.f });
+
+		playerhealth_motion.scale = vec2({ health * (250.f / currMaxHealth), 15.f });
 		playerhealth_motion.position.x = left + playerhealth_motion.scale.x / 2.f;
 		break;
 	}
@@ -46,7 +48,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 		player.health = min(player.health + potion.heal, PLAYER_HEALTH);
 		std::cout << "player health after: " << player.health << "\n";
 		MusicSystem::playSoundEffect(SFX::POTION);
-		updatePlayerHealthBar(registry, player.health);
+		updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 		auto screens = registry.view<ScreenState>();
 		auto& screen = registry.get<ScreenState>(screens.front());
 		if (screens.size() > 0) {
@@ -302,7 +304,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 						drag.slot = inventory_entity;
 						auto& item = registry.get<Item>(item_entity_on_mouse);
-						if (click == Click::CTRLRIGHT) {
+						if (click == Click::RIGHT) {
 							item.no = inventory_item.no;
 						}
 						else if (click == Click::SHIFTRIGHT) {
@@ -311,12 +313,15 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						else if (click == Click::ALTRIGHT) {
 							item.no = std::min(inventory_item.no, 5);
 						}
+						else if (click == Click::CTRLRIGHT) {
+							item.no = 1;
+						}
 					}
 					else {
 						auto& item_on_mouse = registry.get<Item>(*registry.view<Drag>().begin());
 						// increase the number of items currently being dragged if same type item is picked
 						if (item_on_mouse.type == registry.get<Item>(inventory_slot.item).type) {
-							if (click == Click::CTRLRIGHT) {
+							if (click == Click::RIGHT) {
 								item_on_mouse.no += inventory_item.no;
 							}
 							else if (click == Click::SHIFTRIGHT) {
@@ -325,7 +330,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							else if (click == Click::ALTRIGHT) {
 								item_on_mouse.no += std::min(inventory_item.no, 5);
 							}
-							else {
+							else if (click == Click::CTRLRIGHT) {
 								item_on_mouse.no += 1;
 							}
 						}
@@ -336,7 +341,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.slot = inventory_entity;
 							auto& item = registry.get<Item>(item_entity_on_mouse);
-							if (click == Click::CTRLRIGHT) {
+							if (click == Click::RIGHT) {
 								item.no = inventory_item.no;
 							}
 							else if (click == Click::SHIFTRIGHT) {
@@ -344,10 +349,13 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							}
 							else if (click == Click::ALTRIGHT) {
 								item.no = std::min(inventory_item.no, 5);
+							} 
+							else if (click == Click::CTRLRIGHT) {
+								item.no = 1;
 							}
 						}
 					}
-					if (click == Click::CTRLRIGHT) {
+					if (click == Click::RIGHT) {
 						inventory_item.no = 0;
 						inventory_slot.hasItem = false;
 						removeActiveSlot(registry, inventory_entity);
@@ -384,7 +392,7 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_item.no -= std::min(inventory_item.no, 5);
 						}
 					}
-					else {
+					else if (click == Click::CTRLRIGHT) {
 						if (inventory_item.no == 1) {
 							inventory_item.no = 0;
 							inventory_slot.hasItem = false;
@@ -436,6 +444,12 @@ void UISystem::removeActiveSlot(entt::registry& registry, entt::entity& inventor
 }
 
 void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity, FlagSystem& flag_system) {
+	if (log_inventory) {
+		std::cout << "Adding to inventory ";
+		logItem(registry, registry.get<Item>(item_entity));
+		std::cout << "Previous ";
+		logInventory(registry);
+	}
 	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
 	auto& item = registry.get<Item>(item_entity);
 	if (registry.all_of<DeathItems>(item_entity)) {
@@ -448,7 +462,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			auto& inventory_slot = registry.get<InventorySlot>(inventory.slots[i]);
 			if (inventory_slot.hasItem) {
 				auto& inventory_item = registry.get<Item>(inventory_slot.item);
-				if (inventory_item.no > inventory_slot.capacity) continue;
+				if (inventory_item.no >= inventory_slot.capacity) continue;
 				if (inventory_item.type == item.type) {
 					int before = inventory_item.no;
 					inventory_item.no = std::min(inventory_slot.capacity, inventory_item.no + item.no);
@@ -459,6 +473,10 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 						flag_system.setMobKilled(true);
 						if (registry.valid(item_entity)) {
 							registry.destroy(item_entity);
+						}
+						if (log_inventory) {
+							std::cout << "New ";
+							logInventory(registry);
 						}
 						return;
 					}
@@ -504,7 +522,37 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 			registry.destroy(item_entity);
 		}
 	}
+	if (log_inventory) {
+		std::cout << "New ";
+		logInventory(registry);
+	}
 }
+
+void UISystem::clearInventory(entt::registry& registry) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	for (auto entity : inventory.slots) {
+		auto& inventory_slot = registry.get<InventorySlot>(entity);
+		if (inventory_slot.hasItem) {
+			auto& inventory_item = registry.get<Item>(inventory_slot.item);
+			if (inventory_item.type == Item::Type::DEFAULT_WEAPON ||
+				inventory_item.type == Item::Type::HOMING_MISSILE ||
+				inventory_item.type == Item::Type::SHOTGUN) {
+				continue;
+			}
+			else {
+				inventory_slot.hasItem = false;
+				if (registry.valid(inventory_slot.item)) {
+					registry.destroy(inventory_slot.item);
+				}
+			}
+		}
+	}
+	if (log_inventory) {
+		std::cout << "New ";
+		logInventory(registry);
+	}
+}
+
 
 void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y) {
 	auto entity = registry.create();
@@ -552,6 +600,43 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion, FlagSy
 			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
 				addToInventory(registry, entity, flag_system);
 			}
+		}
+	}
+}
+
+void UISystem::logItem(entt::registry& registry, Item item) {
+	std::cout << item.no << " ";
+	if (item.type == Item::Type::POTION) {
+		std::cout << "potions\n";
+	}
+	else if (item.type == Item::Type::COPPER) {
+		std::cout << "coppers\n";
+	}
+	else if (item.type == Item::Type::IRON) {
+		std::cout << "irons\n";
+	}
+	else if (item.type == Item::Type::DEFAULT_WEAPON) {
+		std::cout << "default weapon\n";
+	}
+	else if (item.type == Item::Type::HOMING_MISSILE) {
+		std::cout << "homing missile\n";
+	}
+	else if (item.type == Item::Type::SHOTGUN) {
+		std::cout << "shotgun\n";
+	}
+}
+
+void UISystem::logInventory(entt::registry& registry) {
+	auto& inventory = registry.get<Inventory>(*registry.view<Inventory>().begin());
+	std::cout << "Inventory: \n";
+	for (auto inventory_slot_entity : inventory.slots) {
+		auto& inventory_slot = registry.get<InventorySlot>(inventory_slot_entity);
+		if (inventory_slot.hasItem && !registry.valid(inventory_slot.item)) {
+			std::cout << "ERROR: Inventory Slot " << inventory_slot.id << " has item which is invalid\n";
+		}
+		else if (inventory_slot.hasItem && registry.valid(inventory_slot.item)) {
+			std::cout << "Inventory Slot " << inventory_slot.id << " has ";
+			logItem(registry, registry.get<Item>(inventory_slot.item));
 		}
 	}
 }

@@ -21,7 +21,8 @@ class RenderSystem {
 	std::array<GLuint, texture_count> texture_gl_handles;
 	std::array<ivec2, texture_count>  texture_dimensions;
 
-	// Make sure these paths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
+
+	//ths remain in sync with the associated enumerators (see TEXTURE_ASSET_ID).
 	const std::array<std::string, texture_count> texture_paths = {
 		textures_path("player/astronaut-spritesheet.png"),
 		textures_path("ship/Ship-Full-HP.png"),
@@ -37,7 +38,10 @@ class RenderSystem {
 		textures_path("ship/engine/ship-missle-engine.png"),
 		textures_path("ship/engine/ship-railgun-engine.png"),
 		textures_path("ship/engine/ship-smg-engine.png"),
-        textures_path("mob/demoMob.png"),
+        textures_path("mob/wizard_blue.png"),
+		textures_path("mob/wizard_purple.png"),
+		textures_path("mob/wizard_red.png"),
+		textures_path("mob/wizard_yellow.png"),
 		textures_path("tile/tileset.png"),
 		map_path("textured_map.png"),
 		textures_path("projectiles/gold_bubble.png"),
@@ -49,6 +53,7 @@ class RenderSystem {
 		textures_path("weapons/default.png"),
 		textures_path("weapons/homing-missile.png"),
 		textures_path("weapons/shotgun.png"),
+		textures_path("weapons/sword.png"),
 		textures_path("healthbar/red.png"), 
 		textures_path("healthbar/player-health-inner.png"), 
 		textures_path("healthbar/player-health-outer.png"),
@@ -70,6 +75,10 @@ class RenderSystem {
 		textures_path("ui/green-btn-pressed.png"),
 		textures_path("ui/red-btn-active.png"),
 		textures_path("ui/red-btn-pressed.png"),
+		textures_path("ui/blue-btn-active.png"),
+		textures_path("ui/blue-btn-pressed.png"),
+		textures_path("ui/weapon-upgrade-btn.png"),
+		textures_path("ui/purple-button.png"),
 		map_path("biome_map.png"),
 		textures_path("text/text.png"), 
 		textures_path("slashes/1.png"), 
@@ -159,6 +168,8 @@ private:
 	void renderGamePlay();
 	void renderUpgradeUI();
 	void renderShipUI();
+	void renderWeaponUI();
+	void renderPlayerUI();
 
 	void renderEndScreen();
 	void drawDebugHitBoxes(const glm::mat3& projection);
