@@ -22,11 +22,11 @@ void SpawnSystem::loadBossSpawnData() {
     for (auto& bossIndex : bossIndices) {
 
 		if (MapSystem::get_biome_by_indices(bossIndex) == Biome::B_ICE) {
-			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_BEACH_RED }); 
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS }); 
 			//std::cout << "1Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
 		}
 		else if (MapSystem::get_biome_by_indices(bossIndex) == Biome::B_SAVANNA) {
-			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_JUNGLE_YELLOW }); 
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_BEACH_RED }); 
 			//std::cout << "2Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
 		}
 		else if (MapSystem::get_biome_by_indices(bossIndex) == Biome::B_JUNGLE) {
@@ -35,7 +35,7 @@ void SpawnSystem::loadBossSpawnData() {
 
 		}
 		else {
-			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS });
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_JUNGLE_YELLOW });
 			//std::cout << "4Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
 		}
     }

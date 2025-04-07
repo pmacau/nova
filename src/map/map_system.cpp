@@ -8,7 +8,7 @@ Helpers
 --------------------
 */
 
-std::vector<vec2> MapSystem::bossSpawnIndices;
+std::vector<ivec2> MapSystem::bossSpawnIndices;
 
 void createBackground(entt::registry& reg, int width, int height, int tile_size) {
     auto background_ents = reg.view<Background>();
@@ -61,7 +61,7 @@ void MapSystem::initBossSpawnIndices() {
             vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
 
             if (get_decoration(game_map[i][j]) == Decoration::BOSS) {
-                bossSpawnIndices.push_back(vec2(j, i));
+                bossSpawnIndices.push_back(ivec2(j, i));
             }
         }
     }
@@ -93,6 +93,9 @@ vec2 MapSystem::populate_ecs(
                     break;
                 case Decoration::SHIP:
                     s_pos = map_pos;
+                    break;
+                case Decoration::HOUSE:
+                    createHouse(reg, map_pos, get_biome(game_map[i][j]));
                     break;
                 default:
                     break;
@@ -231,10 +234,14 @@ vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
 }
 
 bool MapSystem::walkable_tile(Tile tile) {
-    return (
-        get_terrain(tile) != Terrain::WATER &&
-        get_decoration(tile) != Decoration::TREE
-    );
+        return (
+            get_terrain(tile) != Terrain::WATER &&
+            (
+                get_decoration(tile) == Decoration::NO_DECOR ||
+                get_decoration(tile) == Decoration::BOSS ||
+                get_decoration(tile) == Decoration::SPAWN
+            )
+        );
 };
 
 Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
@@ -242,6 +249,6 @@ Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
 };
 
 
-std::vector<vec2>& MapSystem::getBossSpawnIndices() {
+std::vector<ivec2>& MapSystem::getBossSpawnIndices() {
     return bossSpawnIndices;
 }

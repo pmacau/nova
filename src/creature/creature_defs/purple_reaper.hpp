@@ -161,7 +161,7 @@ protected:
 class BeachPurpleWizardData : public BaseData {
 public:
     BeachPurpleWizardData() {
-        creatureID = CreatureID::BOSS_BEACH_RED;
+        creatureID = CreatureID::BOSS;
         creatureType = CreatureType::Boss;
         initialize();
     }
@@ -180,7 +180,7 @@ protected:
 
     virtual void initializeRenderingInfo() override {
         renderingInfo.scale = { 35.f, 56.f };
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB_RED;
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB;
         renderingInfo.spriteSheet.sheetDimensions = { 350.f, 56.f };
     }
 };
@@ -189,7 +189,7 @@ protected:
 class JunglePurpleWizardData : public BaseData {
 public:
     JunglePurpleWizardData() {
-        creatureID = CreatureID::BOSS_JUNGLE_YELLOW;
+        creatureID = CreatureID::BOSS_BEACH_RED;
         creatureType = CreatureType::Boss;
         initialize();
     }
@@ -208,7 +208,7 @@ protected:
 
     virtual void initializeRenderingInfo() override {
         renderingInfo.scale = { 35.f, 56.f };
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB_YELLOW;
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB_RED;
         renderingInfo.spriteSheet.sheetDimensions = { 350.f, 56.f };
     }
 };
@@ -217,7 +217,7 @@ protected:
 class DefaultWizardData : public BaseData {
 public:
     DefaultWizardData() {
-        creatureID = CreatureID::BOSS;
+        creatureID = CreatureID::BOSS_JUNGLE_YELLOW;
         creatureType = CreatureType::Boss;
         initialize();
     }
@@ -236,7 +236,7 @@ protected:
 
     virtual void initializeRenderingInfo() override {
         renderingInfo.scale = { 35.f, 56.f };
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB;
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::MOB_YELLOW;
         renderingInfo.spriteSheet.sheetDimensions = { 350.f, 56.f };
     }
 };

@@ -39,6 +39,7 @@ int main()
 		create_background(generated_map);
 		create_biome_map(generated_map);
 		create_terrain_map(generated_map);
+		create_decoration_map(generated_map);
 
 		save_map(generated_map, map_path("map.bin").c_str());
 	}
@@ -50,8 +51,8 @@ int main()
 	// QuadTree
 	QuadTree quadTree((mapWidth / 2) * 16.f, (mapHeight / 2) * 16.f, mapWidth, mapHeight);
 	// global systems
-	PhysicsSystem physics_system(reg);
 	FlagSystem flag_system(reg); 
+	PhysicsSystem physics_system(reg, flag_system);
 	WorldSystem   world_system(reg, physics_system, flag_system, quadTree);
 	RenderSystem  renderer_system(reg, quadTree);
 	AISystem ai_system(reg);
@@ -126,6 +127,7 @@ int main()
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
 		if (!flag_system.is_paused) {
+			time_exe<int>("AI  ", [&]() {ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
 			time_exe<int>("PHYS", [&](){physics_system.step(elapsed_ms); return 0;});
 			time_exe<int>("WORL", [&](){world_system.step(elapsed_ms); return 0;});
 			time_exe<int>("PLAY", [&](){playerSystem.update(elapsed_ms); return 0;});
@@ -135,7 +137,7 @@ int main()
 			}
 			time_exe<int>("COLL", [&](){collision_system.step(elapsed_ms); return 0;});
 			time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
-			time_exe<int>("AI  ", [&](){ai_system.step(elapsed_ms); return 0;}); // AI system should be before physics system
+			
 		}
 
 		time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});
