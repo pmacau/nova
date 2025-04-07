@@ -32,6 +32,10 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 
 	auto& player = registry.emplace<Player>(entity);
 	player.health = PLAYER_HEALTH;
+	player.currMaxHealth = PLAYER_HEALTH;
+	player.maxHealth = PLAYER_MAX_HEALTH;
+	player.speed = PLAYER_SPEED;
+	player.vision_radius = 0.25;
 	 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -40,6 +44,13 @@ entt::entity createPlayer(entt::registry& registry, vec2 position)
 	motion.formerPosition = position;
 	motion.scale = GAME_SCALE * PLAYER_SPRITESHEET.dims;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
+
+
+	auto& dash = registry.emplace<Dash>(entity); 
+	dash.cooldown = 3.0f;
+	dash.remainingDuration = 0.0f;
+
+	
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
@@ -96,6 +107,105 @@ entt::entity createPlayerHealthBar(entt::registry& registry) {
 	return entity;
 }
 
+
+//Motion& slashOffSetHelper(entt::registry& registry) {
+//	auto player = registry.view<Player>().front(); 
+//	auto& direction = registry.get<InputState>(player); 
+//	std::cout << direction.down << " " << direction.up << " " << direction.left << " " << direction.right << std::endl; 
+//	auto& motion = registry.get<Motion>(player); 
+//	return motion; 
+//}
+
+entt::entity createSlash(entt::registry& registry) {  
+   auto entity = registry.create();  
+
+   Slash& slash = registry.emplace<Slash>(entity);  
+   auto player = registry.view<Player>().front();
+
+   auto motion_player = registry.get<Motion>(player); 
+   auto player_d = registry.get<Player>(player).direction;
+   auto& motion = registry.emplace<Motion>(entity);  
+   motion.angle = 0.f;  
+   motion.velocity = {0, 0};  
+   motion.position = motion_player.position;  
+   slash.render_position = motion.position;
+   motion.scale = motion.scale * 15.f;  // change later to a more acceptable value 
+   motion.offset_to_ground = { 0, motion.scale.y / 2};
+   float w = motion.scale.x;
+   float h = motion.scale.y;
+
+   float radius = motion.scale.x / 2.5f;
+   float offset = 40.f;
+   motion.angle = 0.f;
+   
+   if (player_d.up && player_d.right) {
+	   motion.position.y -= offset * 0.7f;
+	   motion.position.x += offset * 0.7f;
+	   motion.angle = 225.f;
+	  //  std::cout << "entered " << std::endl; 
+   }
+   else if (player_d.up && player_d.left) {
+	   motion.position.y -= offset * 0.7f;
+	   motion.position.x -= offset * 0.7f;
+	   motion.angle = 135.f;
+   }
+   else if (player_d.down && player_d.right) {
+	   motion.position.y += offset * 0.7f;
+	   motion.position.x += offset * 0.7f;
+	   motion.angle = -45.f;
+   }
+   else if (player_d.down && player_d.left) {
+	   motion.position.y += offset * 0.7f;
+	   motion.position.x -= offset * 0.7f;
+	   motion.angle = 45.f;
+   }
+   else if (player_d.up) {
+	   motion.position.y -= offset;
+	   motion.angle = 180.f;
+   }
+   else if (player_d.down) {
+	   motion.position.y += offset;
+	   motion.angle = 0.f;
+   }
+   else if (player_d.left) {
+	   motion.position.x -= offset;
+	   motion.angle = 90.f;
+   }
+   else if (player_d.right) {
+	   motion.position.x += offset;
+	   motion.angle = 270.f;
+   }
+
+   auto& hitbox = registry.emplace<Hitbox>(entity);
+
+   
+   const int numPoints = 16; 
+   hitbox.pts.clear();
+
+   for (int i = 0; i < numPoints; i++) {
+	   float angle = 2.0f * M_PI * i / numPoints;
+	   float x = radius * cos(angle);
+	   float y = radius * sin(angle);
+	   hitbox.pts.push_back({ x, y });
+   }
+   hitbox.depth = 100;
+   
+  /* hitbox.pts = {
+	   {w * -0.5f, h * -0.5f * 10}, {w * 0.5f, h * -0.5f * 10},
+	   {w * 0.5f, h * 0.5f * 10},   {w * -0.5f, h * 0.5f * 10}
+   };*/
+   auto& sprite = registry.emplace<Sprite>(entity);
+   sprite.dims = { 496.f, 496.f };
+   sprite.sheet_dims = { 496.f, 496.f };
+
+   auto& renderRequest = registry.emplace<RenderRequest>(entity);  
+   renderRequest.used_texture = TEXTURE_ASSET_ID::SLASH_1;  
+   renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;  
+   renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;  
+
+   return entity;  
+}
+
 entt::entity createCamera(entt::registry& registry, entt::entity target)
 {
 	auto entity = registry.create();
@@ -147,6 +257,10 @@ entt::entity createShip(entt::registry& registry, vec2 position)
 	ship.range = SHIP_RANGE;
 	ship.timer = SHIP_TIMER_S;
 	ship.bulletType = Ship::BulletType::GOLD_PROJ;
+	ship.maxHealth = false;
+	ship.maxRange = false;
+	ship.maxFireRate = false;
+	ship.maxWeapon = false;
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 90.0f;
@@ -359,6 +473,8 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	debug_printf(DebugType::WORLD_INIT, "Projectile created: (%.1f, %.1f)\n", pos.x, pos.y);
 	auto entity = registry.create();
 
+	float anagle_offset = 0.f;
+
 	auto& sprite = registry.emplace<Sprite>(entity);
 	if (projectileType == TEXTURE_ASSET_ID::GOLD_PROJECTILE) {
 		sprite.dims = { 18.f, 18.f };
@@ -367,10 +483,22 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	else if (projectileType == TEXTURE_ASSET_ID::MISSILE_PROJECTILE) {
 		sprite.dims = { 56.f, 156.f };
 		sprite.sheet_dims = { 56.f, 156.f };
+
+		anagle_offset = 90.f;
 	}
 	else if (projectileType == TEXTURE_ASSET_ID::SHOTGUN_PROJECTILE) {
 		sprite.dims = { 512.f, 512.f };
 		sprite.sheet_dims = { 512.f, 512.f };
+
+		anagle_offset = 90.f;
+	}
+	else if (projectileType == TEXTURE_ASSET_ID::WOOD_ARROW) {
+		sprite.sheet_dims = {64.f, 128.f};
+		sprite.dims = {sprite.sheet_dims.x, sprite.sheet_dims.y /2};
+
+		sprite.coord = {0, 0};
+
+		anagle_offset = 0.f;
 	}
 	else {
 		// SHOULD DO FOR EACH PROJECTILE TYPE
@@ -388,7 +516,7 @@ entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec
 	motion.position = pos;
 	motion.scale = size;
 	motion.offset_to_ground = {0, motion.scale.y / 2.f};
-	motion.angle = atan2(velocity.y, velocity.x) * (180.0f / M_PI) + 90.0f;
+	motion.angle = atan2(velocity.y, velocity.x) * (180.0f / M_PI) + anagle_offset;
 
 	float w = motion.scale.x;
 	float h = motion.scale.y;
@@ -518,6 +646,62 @@ entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain
 	return entity;
 }
 
+entt::entity createHouse(entt::registry& registry, vec2 pos, Biome biome) {
+	auto entity = registry.create();
+
+	auto& obstacle = registry.emplace<Obstacle>(entity);
+	obstacle.isPassable = false;
+
+	vec2 box_dims = {128.f, 256.f};
+	auto& sprite = registry.emplace<Sprite>(entity);
+	sprite.sheet_dims = {box_dims.x * 4, box_dims.y * 2};
+	sprite.dims = box_dims;
+
+	auto& motion = registry.emplace<Motion>(entity);
+	motion.scale = GAME_SCALE * box_dims;
+
+	bool normal = flip(rng) <= 0.7;
+	int sprite_row = 0;
+	float depth = 0.f, w = 0.f;
+
+	if (normal) {
+		motion.offset_to_ground = GAME_SCALE * vec2(0.f, 67.f);
+		sprite_row = 0;
+		w = 0.8 * motion.scale.x;
+		depth = motion.scale.y * 0.2f;
+	}
+	else {
+		motion.offset_to_ground = GAME_SCALE * vec2(0.f, 70.f);
+		sprite_row = 1;
+		w = 0.7 * motion.scale.x;
+		depth = 96.f;
+	}
+
+	motion.position = pos - motion.offset_to_ground;
+	motion.velocity = {0.f, 0.f};
+
+
+	if      (biome == Biome::B_ICE)     sprite.coord = {sprite_row, 0};
+	else if (biome == Biome::B_JUNGLE)  sprite.coord = {sprite_row, 1};
+	else if (biome == Biome::B_SAVANNA) sprite.coord = {sprite_row, 2};
+	else if (biome == Biome::B_BEACH)   sprite.coord = {sprite_row, 3};
+
+	auto& hitbox = registry.emplace<Hitbox>(entity);
+	float h = motion.scale.y, g = 0.f;
+	hitbox.pts = {
+		{w * -0.5f, g + h * -0.5f}, {w * 0.5f, g + h * -0.5f},
+		{w * 0.5f, g + h * 0.5f},   {w * -0.5f, g + h * 0.5f}
+	};
+	hitbox.depth = depth;
+
+	auto& renderRequest = registry.emplace<RenderRequest>(entity);
+	renderRequest.used_texture = TEXTURE_ASSET_ID::HOUSE;
+	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return entity;
+}
+
 void createInventory(entt::registry& registry) {
 	auto inventory_entity = registry.create();
 	auto& inventory = registry.emplace<Inventory>(inventory_entity);
@@ -547,42 +731,52 @@ void createInventory(entt::registry& registry) {
 	}
 }
 
-void createDefaultWeapon(entt::registry& registry) {
+entt::entity createDefaultWeapon(entt::registry& registry) {
 	auto& slot_entity = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[0];
 	auto& inventory_slot = registry.get<InventorySlot>(slot_entity);
 	auto default_weapon_entity = registry.create();
 	registry.emplace<UI>(default_weapon_entity);
 	registry.emplace<FixedUI>(default_weapon_entity);
+
 	auto& motion = registry.emplace<Motion>(default_weapon_entity);
 	motion.position = { 50.f, 50.f };
 	motion.scale = vec2(121.f, 54.f) / 4.0f;
+
 	auto& item = registry.emplace<Item>(default_weapon_entity);
 	item.type = Item::Type::DEFAULT_WEAPON;
 	inventory_slot.hasItem = true;
 	inventory_slot.item = default_weapon_entity;
+
 	auto& sprite = registry.emplace<Sprite>(default_weapon_entity);
 	sprite.dims = { 121.f, 54.f };
 	sprite.sheet_dims = { 121.f, 54.f };
+
 	auto& render_request_weapon = registry.emplace<RenderRequest>(default_weapon_entity);
 	render_request_weapon.used_texture = TEXTURE_ASSET_ID::DEFAULT_WEAPON;
 	render_request_weapon.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_weapon.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	
 	registry.emplace<ActiveSlot>(slot_entity);
 	auto& render_request = registry.get<RenderRequest>(slot_entity);
 	render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT_ACTIVE;
 	// TODO the weapon upgrade should be available from ship
-	auto& slot_entity_2 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[1];
-	auto& inventory_slot_2 = registry.get<InventorySlot>(slot_entity_2);
+
+	return default_weapon_entity;
+}
+
+entt::entity createHomingMissleWeapon(entt::registry& registry) {
+	// auto& slot_entity_2 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[1];
+	// auto& inventory_slot_2 = registry.get<InventorySlot>(slot_entity_2);
 	auto homing_missile_entity = registry.create();
-	registry.emplace<UI>(homing_missile_entity);
-	registry.emplace<FixedUI>(homing_missile_entity);
+	// registry.emplace<UI>(homing_missile_entity);
+	// registry.emplace<FixedUI>(homing_missile_entity);
 	auto& missile_motion = registry.emplace<Motion>(homing_missile_entity);
 	missile_motion.position = { 50.f + 45.f, 50.f };
 	missile_motion.scale = vec2(700.0f, 400.0f) / 21.0f;
 	auto& missile_item = registry.emplace<Item>(homing_missile_entity);
 	missile_item.type = Item::Type::HOMING_MISSILE;
-	inventory_slot_2.hasItem = true;
-	inventory_slot_2.item = homing_missile_entity;
+	// inventory_slot_2.hasItem = true;
+	// inventory_slot_2.item = homing_missile_entity;
 	auto& missile_sprite = registry.emplace<Sprite>(homing_missile_entity);
 	missile_sprite.dims = { 700.0f, 400.0f };
 	missile_sprite.sheet_dims = { 700.0f, 400.0f };
@@ -590,18 +784,23 @@ void createDefaultWeapon(entt::registry& registry) {
 	render_request_missile.used_texture = TEXTURE_ASSET_ID::HOMING_MISSILE;
 	render_request_missile.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_missile.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
-	auto& slot_entity_3 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[2];
-	auto& inventory_slot_3 = registry.get<InventorySlot>(slot_entity_3);
+
+	return homing_missile_entity;
+}
+
+entt::entity createShotgunWeapon(entt::registry& registry) {
+	// auto& slot_entity_3 = registry.get<Inventory>(*registry.view<Inventory>().begin()).slots[2];
+	// auto& inventory_slot_3 = registry.get<InventorySlot>(slot_entity_3);
 	auto shotgun_entity = registry.create();
-	registry.emplace<UI>(shotgun_entity);
-	registry.emplace<FixedUI>(shotgun_entity);
+	// registry.emplace<UI>(shotgun_entity);
+	// registry.emplace<FixedUI>(shotgun_entity);
 	auto& shotgun_motion = registry.emplace<Motion>(shotgun_entity);
 	shotgun_motion.position = { 50.f + 45.f * 2, 50.f };
 	shotgun_motion.scale = vec2(512.f, 512.f) / 15.0f;
 	auto& shotgun_item = registry.emplace<Item>(shotgun_entity);
 	shotgun_item.type = Item::Type::SHOTGUN;
-	inventory_slot_3.hasItem = true;
-	inventory_slot_3.item = shotgun_entity;
+	// inventory_slot_3.hasItem = true;
+	// inventory_slot_3.item = shotgun_entity;
 	auto& shotgun_sprite = registry.emplace<Sprite>(shotgun_entity);
 	shotgun_sprite.dims = { 512.f, 512.f };
 	shotgun_sprite.sheet_dims = { 512.f, 512.f };
@@ -609,6 +808,8 @@ void createDefaultWeapon(entt::registry& registry) {
 	render_request_shotgun.used_texture = TEXTURE_ASSET_ID::SHOTGUN;
 	render_request_shotgun.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	render_request_shotgun.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+
+	return shotgun_entity;
 }
 
 void findNearestTarget(entt::registry& registry, entt::entity& entity, float x, float y) {
@@ -670,7 +871,7 @@ entt::entity createCreature(entt::registry& registry, vec2 position, const Creat
 
 	const AnimationDefinition* animation_def = AnimationManager::getInstance().getCreatureAnimation(
 		def.getCreatureID(), def.getRenderingInfo().initAction, def.getRenderingInfo().initDirection);
-
+	
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = vec2(animation_def->frameWidth, animation_def->frameHeight);
 	sprite.sheet_dims = def.getRenderingInfo().spriteSheet.sheetDimensions;
@@ -817,12 +1018,17 @@ entt::entity createMinimap(entt::registry & registry) {
 	return entity;
 }
 
-entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text)
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text, TEXTURE_ASSET_ID buttonID, ScreenState::ScreenType screenType)
 {
 	auto entity = registry.create();
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
-	registry.emplace<Button>(entity);
+	
+	if (screenType == ScreenState::ScreenType::UPGRADE_UI) {
+		registry.emplace<Button>(entity);
+	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		registry.emplace<WeaponButton>(entity);
+	}
 
 	auto& current_option = registry.emplace<ButtonOption>(entity);
 	current_option.type = option;
@@ -844,21 +1050,30 @@ entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, Bu
     sprite.sheet_dims = {128.f, 128.f};
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	renderRequest.used_texture = TEXTURE_ASSET_ID::SELECTION_BUTTON;
+	renderRequest.used_texture = buttonID;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 
 	return entity;
 }
 
-entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID)
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID, ScreenState::ScreenType screenType, std::string text)
 {
 	auto entity = registry.create();
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
-	auto& upgradeButton = registry.emplace<UpgradeButton>(entity);
-	upgradeButton.text = "Upgrade";
 
+	if (screenType == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
+		auto& upgradeButton = registry.emplace<ShipUpgradeButton>(entity);
+		upgradeButton.text = text;
+	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		auto& upgradeButton = registry.emplace<WeaponUpgradeButton>(entity);
+		upgradeButton.text = text;
+	} else if (screenType == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+		auto& upgradeButton = registry.emplace<PlayerUpgradeButton>(entity);
+		upgradeButton.text = text;
+	}
+	
 	auto& current_option = registry.emplace<ButtonOption>(entity);
 	current_option.type = option;
 	// current_option.text = text;
@@ -884,12 +1099,19 @@ entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 s
 	return entity;
 }
 
-entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int iconNum, vec2 sprite_dims, vec2 sprite_sheet_dims)
+entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, TEXTURE_ASSET_ID icon, vec2 sprite_dims, vec2 sprite_sheet_dims, ScreenState::ScreenType screenType)
 {
 	auto entity = registry.create();
-	registry.emplace<UIIcon>(entity);
 	registry.emplace<UI>(entity);
 	registry.emplace<FixedUI>(entity);
+
+	if (screenType == ScreenState::ScreenType::UPGRADE_UI) {
+		registry.emplace<UIIcon>(entity);
+	} else if (screenType == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
+		registry.emplace<WeaponUIIcon>(entity);
+	} else if (screenType == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
+		registry.emplace<PlayerUIIcon>(entity);
+	}
 
 	auto& motion = registry.emplace<Motion>(entity);
 	motion.angle = 0.f;
@@ -903,9 +1125,9 @@ entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int
 	sprite.sheet_dims = sprite_sheet_dims;
 
 	auto& renderRequest = registry.emplace<RenderRequest>(entity);
-	iconNum = std::clamp(iconNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
+	// iconNum = std::clamp(iconNum, 0, static_cast<int>(TEXTURE_ASSET_ID::TEXTURE_COUNT) - 1);
 
-	renderRequest.used_texture = static_cast<TEXTURE_ASSET_ID>(iconNum);
+	renderRequest.used_texture = icon;
 	renderRequest.used_effect = EFFECT_ASSET_ID::TEXTURED;
 	renderRequest.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 

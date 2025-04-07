@@ -8,7 +8,7 @@
 
 class RetreatState : public AIState {
 public:
-    RetreatState() : stateComplete(false), currentWaypointIndex(0), pathRecalcTimer(0.0f) {
+    RetreatState() : currentWaypointIndex(0), pathRecalcTimer(0.0f), stateComplete(false) {
         id = "retreat";
     }
     virtual void onEnter(entt::registry& registry, entt::entity entity) override;

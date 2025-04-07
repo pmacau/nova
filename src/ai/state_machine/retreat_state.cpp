@@ -10,13 +10,14 @@
 #include <algorithm>
 #include <random>
 
+#include <animation/animation_component.hpp>
+#include <animation_system.hpp>
+
 ivec2 RetreatState::computeRetreatDestination(entt::registry& registry, entt::entity entity, float retreatDistance) {
-    // Get enemy and player positions.
     auto& motion = registry.get<Motion>(entity);
     vec2 enemyFootPos = motion.position + motion.offset_to_ground;
     
     auto playerView = registry.view<Player, Motion>();
-
     if (playerView.size_hint() == 0) {
         // Fallback: return enemy's current tile.
         return ivec2(MapSystem::get_tile_indices(enemyFootPos));
@@ -25,51 +26,47 @@ ivec2 RetreatState::computeRetreatDestination(entt::registry& registry, entt::en
     auto& playerMotion = registry.get<Motion>(playerEntity);
     vec2 playerFootPos = playerMotion.position + playerMotion.offset_to_ground;
     
-    // Compute the vector from player to enemy (opposite of player direction).
     vec2 retreatDir = normalize(enemyFootPos - playerFootPos);
-    // Extend the retreat direction by retreatDistance.
     vec2 candidatePos = enemyFootPos + retreatDir * retreatDistance;
     
-    // Convert candidate world position to tile indices.
     ivec2 candidateTile = ivec2(MapSystem::get_tile_indices(candidatePos));
+
+    // Use a ray-cast approach: move from candidateTile along the retreat direction until an obstacle is found.
+    ivec2 currentTile = candidateTile;
+    ivec2 step = ivec2(
+        (retreatDir.x > 0) ? 1 : ((retreatDir.x < 0) ? -1 : 0),
+        (retreatDir.y > 0) ? 1 : ((retreatDir.y < 0) ? -1 : 0)
+    );
     
-    // Check if candidate tile is walkable.
-    if (MapSystem::walkable_tile(MapSystem::get_tile(MapSystem::get_tile_center_pos(vec2(candidateTile.x, candidateTile.y))))) {
-        return candidateTile;
-    }
-    
-    // If not, search in a small radius around candidateTile.
-    const int searchRadius = 10;
-    for (int dy = -searchRadius; dy <= searchRadius; ++dy) {
-        for (int dx = -searchRadius; dx <= searchRadius; ++dx) {
-            ivec2 testTile = candidateTile + ivec2(dx, dy);
-            // Ensure testTile is within bounds.
-            if (testTile.x < 0 || testTile.x >= MapSystem::map_width ||
-                testTile.y < 0 || testTile.y >= MapSystem::map_height)
-                continue;
-            vec2 testCenter = MapSystem::get_tile_center_pos(vec2(testTile.x, testTile.y));
-            if (MapSystem::walkable_tile(MapSystem::get_tile(testCenter))) {
-                return testTile;
-            }
+    // Limit the number of steps to avoid infinite loops.
+    const int maxSteps = 20;
+    for (int i = 0; i < maxSteps; ++i) {
+        vec2 center = MapSystem::get_tile_center_pos(vec2(currentTile.x, currentTile.y));
+        if (!MapSystem::walkable_tile(MapSystem::get_tile(center))) {
+            // Step back one tile.
+            currentTile = currentTile - step;
+            break;
         }
+        currentTile = currentTile + step;
     }
-    // Fallback: if no valid tile found, return enemy's current tile.
-    return ivec2(MapSystem::get_tile_indices(enemyFootPos));
+    
+    return currentTile;
 }
 
 void RetreatState::regenerateRetreatPath(entt::registry& registry, entt::entity entity, ivec2 startTile, ivec2 targetTile) {
-    retreatPath = Pathfinder::findPath(startTile, targetTile);
+    retreatPath = Pathfinder::findPath(startTile, targetTile, true);
     if (!retreatPath.empty()) {
         // Optionally remove the first tile if it is the enemy's current tile.
         retreatPath.erase(retreatPath.begin());
     }
     currentWaypointIndex = 0;
     pathRecalcTimer = 0.0f;
-    // Debug: you could call createDebugTile(registry, tile) for each tile in retreatPath.
 }
 
 void RetreatState::onEnter(entt::registry& registry, entt::entity entity) {
-    std::cout << "Entering RetreatState\n";
+    debug_printf(DebugType::AI, "Entering RetreatState\n");
+
+    stateComplete = false;
     // Get the RangeAIConfig.
     auto& aiComp = registry.get<AIComponent>(entity);
     const AIConfig& config = static_cast<const AIConfig&>(aiComp.stateMachine->getConfig());
@@ -78,12 +75,18 @@ void RetreatState::onEnter(entt::registry& registry, entt::entity entity) {
     auto& motion = registry.get<Motion>(entity);
     vec2 footPos = motion.position + motion.offset_to_ground;
     ivec2 enemyTile = ivec2(MapSystem::get_tile_indices(footPos));
-    
+
     // Compute a retreat destination using the configured retreatDistance.
     ivec2 retreatTile = computeRetreatDestination(registry, entity, config.retreatDistance);
-    
+
     // Regenerate path from enemy tile to retreat tile.
     regenerateRetreatPath(registry, entity, enemyTile, retreatTile);
+
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::WALK);
+    }
+
 }
 
 void RetreatState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {
@@ -93,8 +96,10 @@ void RetreatState::onUpdate(entt::registry& registry, entt::entity entity, float
     
     // Update path recalculation timer.
     pathRecalcTimer += deltaTime;
-    const float pathRecalcInterval = 1000.0f; // Recalculate path every 1000ms.
+    const float pathRecalcInterval = 2000.0f; // Recalculate path every 2000ms.
     if (pathRecalcTimer >= pathRecalcInterval) {
+        stateComplete = true;
+
         pathRecalcTimer = 0.0f;
         // Recompute retreat destination and path.
         auto& aiComp = registry.get<AIComponent>(entity);
@@ -132,7 +137,7 @@ void RetreatState::onUpdate(entt::registry& registry, entt::entity entity, float
 }
 
 void RetreatState::onExit(entt::registry& registry, entt::entity entity) {
-    std::cout << "Exiting RetreatState\n";
+    debug_printf(DebugType::AI, "Exiting RetreatState\n");
     auto& motion = registry.get<Motion>(entity);
     motion.velocity = {0, 0};
     retreatPath.clear();

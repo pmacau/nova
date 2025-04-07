@@ -47,5 +47,5 @@ class Pathfinder {
 public:
     // Returns a vector of tile indices (ivec2) representing the path.
     // If no path is found, returns an empty vector.
-    static std::vector<ivec2> findPath(const ivec2& start, const ivec2& goal);
+    static std::vector<ivec2> findPath(const ivec2& start, const ivec2& goal, bool limitIterations = false);
 };

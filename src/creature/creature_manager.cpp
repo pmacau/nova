@@ -10,6 +10,9 @@
 #include "creature/creature_defs/yellow_torch_goblin.hpp"
 #include "creature/creature_defs/purple_reaper.hpp"
 #include "creature/creature_defs/small_blue_archer.hpp"
+#include "creature/creature_defs/small_purple_archer.hpp"
+#include "creature/creature_defs/small_red_archer.hpp"
+#include "creature/creature_defs/small_yellow_archer.hpp"
 #include "creature/creature_defs/orc_rider.hpp"
 
 CreatureManager& CreatureManager::getInstance() {
@@ -19,7 +22,6 @@ CreatureManager& CreatureManager::getInstance() {
 
 CreatureManager::CreatureManager() {
     // loadDefinitions();
-    loadBossSpawnData();
     loadDefinitions();
 }
 
@@ -38,11 +40,6 @@ const CreatureDefinitionData* CreatureManager::getDefinition(const CreatureID& i
 }
 
 
-void CreatureManager::loadBossSpawnData() {
-    bossSpawnData.clear();
-    initBossSpawnData(bossSpawnData);
-}
-
 
 std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
     const std::function<bool(const CreatureDefinitionData&)>& predicate) const
@@ -57,11 +54,19 @@ std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
 }
 
 void CreatureManager::loadDefinitions() {
-    // registerDefinition(&BlueTorchGoblinDefData::getInstance());
-    // registerDefinition(&RedTorchGoblinDefData::getInstance());
-    // registerDefinition(&PurpleTorchGoblinDefData::getInstance());
-    // registerDefinition(&YellowTorchGoblinDefData::getInstance());
-    // registerDefinition(&PurpleReaperData::getInstance());
-    // registerDefinition(&SmallBlueArcher::getInstance());
+    registerDefinition(&BlueTorchGoblinDefData::getInstance());
+    registerDefinition(&RedTorchGoblinDefData::getInstance());
+    registerDefinition(&PurpleTorchGoblinDefData::getInstance());
+    registerDefinition(&YellowTorchGoblinDefData::getInstance());
+    registerDefinition(&ForestPurpleWizardData::getInstance());
+    registerDefinition(&BeachPurpleWizardData::getInstance());
+    registerDefinition(&JunglePurpleWizardData::getInstance());
+    registerDefinition(&DefaultWizardData::getInstance());
+
+    registerDefinition(&SmallBlueArcher::getInstance());
+    registerDefinition(&SmallPurpleArcher::getInstance());
+    registerDefinition(&SmallRedArcher::getInstance());
+    registerDefinition(&SmallYellowArcher::getInstance());
+
     registerDefinition(&OrcRiderDefData::getInstance());
 }

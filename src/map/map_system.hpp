@@ -27,16 +27,19 @@ public:
     static Tile get_tile_type_by_indices(int x, int y);
     static vec2 get_tile_indices(vec2 pos);
     static vec2 get_tile_center_pos(vec2 tile_indices);
+
     static bool walkable_tile(Tile tile);
 
     static Biome get_biome_by_indices(ivec2 tile_indices);
 
-    static std::vector<vec2>& getBossSpawnIndices();
+    static void initBossSpawnIndices();
+
+    static std::vector<ivec2>& getBossSpawnIndices();
 
 private:
     static inline GameMap game_map;
 
     static void loadMap();
 
-    static std::vector<vec2> bossSpawnIndices;
+    static std::vector<ivec2> bossSpawnIndices;
 };

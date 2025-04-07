@@ -26,7 +26,7 @@ struct SoundTimer {
 };
 
 enum SFX {
-    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP, MISSILE, SHOTGUN,
+    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP, MISSILE, SHOTGUN, MELEE, DASH,
     BOW_RELEASE,
     SFX_COUNT
 };
@@ -65,10 +65,12 @@ public:
         }
 
 		static void playSoundEffect(SFX effect, int loops = 0, int channel = -1) {
+            std::cout << "doing check " << std::endl; 
             if (
                 sfx_map.find(effect) != sfx_map.end() &&
                 sfx_timers.find(effect) != sfx_timers.end()
             ) {
+				std::cout << "entered" << std::endl;
                 SoundTimer& timer = sfx_timers[effect];
                 SoundData<Mix_Chunk>& data = sfx_map[effect];
                 if (timer.curr >= timer.default_timer) {
@@ -101,6 +103,8 @@ private:
             {SELECT, {"sfx/select.wav"}},
             {MISSILE,{"sfx/missile.wav", SDL_MIX_MAXVOLUME / 2}},
             {SHOTGUN,{"sfx/shotgun.wav", SDL_MIX_MAXVOLUME / 3}},
+			{MELEE, {"sfx/space-slash.wav", SDL_MIX_MAXVOLUME / 6}},
+			{DASH,   {"sfx/dash.wav", SDL_MIX_MAXVOLUME / 4}},
             {BOW_RELEASE,{"sfx/bow_release.wav", SDL_MIX_MAXVOLUME}},
         };
         inline static std::unordered_map<Music, SoundData<Mix_Music>> music_map = {
@@ -121,7 +125,9 @@ private:
             {DROP,   {}},
             {SELECT, {}},
             {MISSILE, {}},
-            {SHOTGUN, {}},
+            {SHOTGUN, {}}, 
+			{MELEE, {}},
+            {DASH, {}},
             {BOW_RELEASE, {}},
         };
 

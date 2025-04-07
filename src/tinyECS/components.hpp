@@ -27,6 +27,18 @@ struct Boss{
 	float damage;
 };
 
+// TODO: Tweak values
+struct Slash {
+	float damage = MELEE_DAMAGE;
+	float force = MELEE_FORCE;
+	float time_elapsed = 0.0f;
+	float total_lifetime = 0.35f; 
+	glm::vec2 render_position; 
+	int current_frame = 1; 
+	float frame_time = 0.0f; 
+	bool hit = false;
+};
+
 struct InputState {
 	bool up = false;
 	bool down = false;
@@ -43,11 +55,38 @@ struct Obstacle {
 };
 
 
+
+
 // Player component
 struct Player
 {
 	int health;
+	int currMaxHealth;
+	int maxHealth;
+	float speed;
+	float vision_radius;
+
+	float default_weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	float default_weapon_cooldown_dynamic = WEAPON_COOLDOWN; 
+	float homing_missle_weapon_cooldown = WEAPON_COOLDOWN * 4;
+	float homing_missle_weapon_cooldown_dynamic = WEAPON_COOLDOWN * 4;
+	float shotgun_weapon_cooldown = WEAPON_COOLDOWN * 2;
+	float shotgun_weapon_cooldown_dynamic = WEAPON_COOLDOWN * 2;
+
+	float default_weapon_damage = PROJECTILE_DAMAGE;
+	float homing_missle_weapon_damage = PROJECTILE_DAMAGE * 2;
+	float shotgun_weapon_damage = PROJECTILE_DAMAGE;
+
+	bool unlock_homing_missle_weapon = false;
+	bool unlock_shotgun_weapon = false;
+
+	int shotgun_stage = 0;
+
 	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	InputState direction; 
+	float melee_cooldown = MELEE_COOLDOWN; 
+	float melee_damage = MELEE_DAMAGE;
+	float melee_force = MELEE_FORCE;
 };
 
 // Ship component
@@ -65,6 +104,17 @@ struct Ship
 	int range;
 	int health;
 	float timer;
+
+	bool maxHealth;
+	bool maxRange;
+	bool maxWeapon;
+	bool maxFireRate;
+};
+
+struct Dash {
+	float cooldown = -1.f;
+	float remainingDuration = 0.15f; 
+	bool inUse = false; 
 };
 
 struct ShipWeapon
@@ -161,6 +211,16 @@ struct UIIcon
 
 };
 
+struct WeaponUIIcon
+{
+
+};
+
+struct PlayerUIIcon
+{
+
+};
+
 struct PlayerHealthBar
 {
 };
@@ -170,11 +230,32 @@ struct Button
 
 };
 
-struct UpgradeButton
+struct WeaponButton
+{
+
+};
+
+struct ShipUpgradeButton
 {
 	std::string text;
 	bool missingResources = false;
 	std::string missingResourcesText;
+};
+
+struct WeaponUpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
+	bool maxUpgrade = false;
+};
+
+struct PlayerUpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
+	bool maxUpgrade = false;
 };
 
 struct MobHealthBar
@@ -253,6 +334,21 @@ struct ButtonOption
 		SHIP_BLASTER_UPGRADE,
 		SHIP_RANGE_UPGRADE,
 		SHIP_FIRERATE_UPGRADE,
+
+		// for weapon upgrade screen
+		PISTOL_UPGRADE,
+		PISTOL_UNLOCK,
+		HOMING_MISSLE_UPGRADE,
+		HOMING_MISSLE_UNLOCK,
+		SHOTGUN_UPGRADE,
+		SHOTGUN_UNLOCK,
+		MELEE_UPGRADE,
+		MELEE_UNLOCK,
+
+		// for player upgrade screen
+		PLAYER_HEALTH_UPGRADE,
+		PLAYER_VISION_UPGRADE,
+		PLAYER_SPEED_UPGRADE
 	};
 	Option type;
 	std::string text;
@@ -384,6 +480,9 @@ enum class TEXTURE_ASSET_ID {
 	SHIP_RAILGUN_ENGINE,
 	SHIP_SMG_ENGINE,
     MOB,
+	MOB_PURPLE,
+	MOB_RED,
+	MOB_YELLOW,
 	TILESET,
 	MAP_BACKGROUND,
 	GOLD_PROJECTILE, 
@@ -392,9 +491,11 @@ enum class TEXTURE_ASSET_ID {
 	RAILGUN_PROJECTILE,
 	SMG_PROJECTILE,
 	SHOTGUN_PROJECTILE,
+	WOOD_ARROW,
 	DEFAULT_WEAPON, 
 	HOMING_MISSILE, 
 	SHOTGUN,
+	SWORD,
 	HEALTHBAR_RED,
 	PLAYER_HEALTH_INNER, 
 	PLAYER_HEALTH_OUTER,
@@ -410,6 +511,9 @@ enum class TEXTURE_ASSET_ID {
 	GOBLIN_TORCH_PURPLE,
 	GOBLIN_TORCH_YELLOW,
 	SMALL_BLUE_ARCHER,
+	SMALL_PURPLE_ARCHER,
+	SMALL_RED_ARCHER,
+	SMALL_YELLOW_ARCHER,
 	ORC_RIDER,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
@@ -418,8 +522,23 @@ enum class TEXTURE_ASSET_ID {
 	GREEN_BUTTON_PRESSED,
 	RED_BUTTON_ACTIVE,
 	RED_BUTTON_PRESSED,
+	BLUE_BUTTON_ACTIVE,
+	BLUE_BUTTON_PRESSED,
+	WEAPON_UPGRADE_BUTTON,
+	PURPLE_BUTTON,
 	MINIMAP,
 	TEXT,
+	SLASH_1, 
+	SLASH_2, 
+	SLASH_3, 
+	SLASH_4, 
+	SLASH_5, 
+	SLASH_6,
+	SLASH_7,
+	SLASH_8,
+	SLASH_9,
+	SLASH_10,
+	HOUSE,
 	TEXTURE_COUNT
 };
 
@@ -492,7 +611,8 @@ struct ScreenState
         SHIP_UPGRADE_UI,
 		PLAYER_UPGRADE_UI,
 		WEAPON_UPGRADE_UI,
-		TITLE
+		TITLE,
+		END_SCREEN
     };
 
     ScreenType current_screen;

@@ -56,6 +56,10 @@ void CollisionSystem::step(float elapsed_ms) {
 	for (auto projectile : projectiles) {
 		nearbyEntities.push_back(projectile); 
 	}
+	auto slashes = registry.view<Slash>(); 
+	for (auto slash : slashes) {
+		nearbyEntities.push_back(slash); 
+	}
 	nearbyEntities.push_back(playerEntity); 
 	
 	//std::cout << nearbyEntities.size() << std::endl;
@@ -90,24 +94,13 @@ void CollisionSystem::step(float elapsed_ms) {
 			registry.destroy(entity);
 		}
 	}
-
-
-	/*for (auto&& [e1, m1, h1] : registry.view<Motion, Hitbox>().each()) {
-		for (auto &&[e2, m2, h2]: registry.view<Motion, Hitbox>().each()) {
-			if (
-				e1 == e2 ||
-				processed.find(e1) != processed.end() ||
-				processed.find(e2) != processed.end() ||
-				!collides(h1, m1, h2, m2)
-			) continue;
-
-			resolve(e1, e2, elapsed_ms);
-
-			processHandler(e1, e2); 
+	for (auto slash : slashes) {
+		if (!registry.valid(slash)) {
+			
 		}
+		Slash& s = registry.get<Slash>(slash); 
+		s.hit = true;
 	}
-
-	 for (auto entity: destroy_entities) registry.destroy(entity);*/
 }
 
 void CollisionSystem::processHandler(entt::entity& e1, entt::entity& e2) {
@@ -143,11 +136,12 @@ void CollisionSystem::handle<Player, Mob>(
 	player.health -= MOB_DAMAGE;
 	MusicSystem::playSoundEffect(SFX::HIT);
 
-	UISystem::updatePlayerHealthBar(registry, player.health);
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 	physics.knockback(play_ent, mob_ent, 300);
 	physics.suppress(play_ent, mob_ent);
 	
-	screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+	screen.darken_screen_factor = std::min(1.f - ((float) player.health) / ((float) player.currMaxHealth), 1.0f);
+	// screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
 }
 
 template<>
@@ -207,10 +201,10 @@ void CollisionSystem::handle<Projectile, Player>(
 	player.health -= projectile.damage;
 	MusicSystem::playSoundEffect(SFX::HIT);
 
-	UISystem::updatePlayerHealthBar(registry, player.health);
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 	physics.knockback(play_ent, proj_ent, 300);
 	
-	screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+	screen.darken_screen_factor = std::min(1.f - ((float) player.health) / ((float) player.currMaxHealth), 1.0f);
 
 	destroy_entities.insert(proj_ent);
 
@@ -239,15 +233,15 @@ void CollisionSystem::handle<Obstacle, Player>(
 	}
 }
 
-template<>
-void CollisionSystem::handle<Obstacle, Motion>(
-	entt::entity obs_ent, entt::entity e2, float elapsed_ms
-) {
-	auto& obstacle = registry.get<Obstacle>(obs_ent);
-	if (!obstacle.isPassable) {
-		MusicSystem::playSoundEffect(SFX::WOOD);
-	}
-}
+// template<>
+// void CollisionSystem::handle<Obstacle, Motion>(
+// 	entt::entity obs_ent, entt::entity e2, float elapsed_ms
+// ) {
+// 	auto& obstacle = registry.get<Obstacle>(obs_ent);
+// 	if (!obstacle.isPassable) {
+// 		MusicSystem::playSoundEffect(SFX::WOOD);
+// 	}
+// }
 
 template<>
 void CollisionSystem::handle<Projectile, Obstacle>(
@@ -258,12 +252,47 @@ void CollisionSystem::handle<Projectile, Obstacle>(
 	}
 }
 
+template<>
+void CollisionSystem::handle<Slash, Mob>(
+	entt::entity slash_ent, entt::entity mob_ent, float elapsed_ms
+) {
+	auto& slash = registry.get<Slash>(slash_ent); 
+	auto& mob = registry.get<Mob>(mob_ent);
+
+	if (slash.hit) {
+		return; 
+	}
+
+	debug_printf(DebugType::COLLISION, "Slash-mob collision!\n");
+	mob.health -= slash.damage;
+	MusicSystem::playSoundEffect(SFX::HIT);
+
+	UISystem::updateMobHealthBar(registry, mob_ent, true);
+	if (mob.health <= 0) {
+		for (auto&& [hb_ent, healthbar] : registry.view<MobHealthBar>().each()) {
+			if (healthbar.entity == mob_ent) {
+				destroy_entities.insert(hb_ent);
+				break;
+			}
+		}
+		if (registry.any_of<Drop>(mob_ent)) {
+			UISystem::mobDrop(registry, mob_ent);
+		}
+		destroy_entities.insert(mob_ent);
+	}
+	else {
+		auto player_ent = registry.view<Player>().front();
+		physics.knockback(mob_ent, player_ent, slash.force); 
+	}
+}
+
 void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms) {
-	if      (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
+	if (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Mob>(e1, e2))  handle<Projectile, Mob>(e1, e2, elapsed_ms);
-	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms); 
-	else if (collision_type<Projectile, Player>(e1, e2)) handle<Projectile, Player>(e1, e2, elapsed_ms); 
+	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms);
+	else if (collision_type<Projectile, Player>(e1, e2)) handle<Projectile, Player>(e1, e2, elapsed_ms);
+	else if (collision_type<Slash, Mob>(e1, e2)) handle<Slash, Mob>(e1, e2, elapsed_ms); 
 	// TODO: when AI gets improved, make all mobs unable to walk into obstacles
 	else if (collision_type<Obstacle, Player>(e1, e2)) handle<Obstacle, Player>(e1, e2, elapsed_ms);
-	else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);
+	// else if (collision_type<Obstacle, Motion>(e1, e2)) handle<Obstacle, Motion>(e1, e2, elapsed_ms);
 }
