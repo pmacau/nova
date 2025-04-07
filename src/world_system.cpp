@@ -1247,6 +1247,18 @@ void WorldSystem::left_mouse_click() {
 
 					player_comp.default_weapon_damage *= 1.2;
 					player_comp.default_weapon_cooldown -= 0.1;
+					
+					std::cout << player_comp.default_weapon_damage << std::endl;
+					std::cout << player_comp.default_weapon_cooldown << std::endl;
+					std::cout << PISTOL_MAX_DAMAGE << std::endl;
+					std::cout << PISTOL_MAX_COOLDOWN << std::endl;
+
+					const float EPSILON = 0.0001f;
+					if (player_comp.default_weapon_damage >= PISTOL_MAX_DAMAGE && (player_comp.default_weapon_cooldown - PISTOL_MAX_COOLDOWN) <= EPSILON) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
 
 					upgrade_inventory(PISTOL_UPGRADE_IRON, 0);
 				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
@@ -1267,6 +1279,18 @@ void WorldSystem::left_mouse_click() {
 
 					player_comp.homing_missle_weapon_damage *= 1.2;
 					player_comp.homing_missle_weapon_cooldown -= 0.4;
+
+					std::cout << player_comp.homing_missle_weapon_damage << std::endl;
+					std::cout << player_comp.homing_missle_weapon_cooldown << std::endl;
+					std::cout << HOMING_MISSLE_MAX_DAMAGE << std::endl;
+					std::cout << HOMING_MISSLE_MAX_COOLDOWN << std::endl;
+
+					const float EPSILON = 0.0001f;
+					if (player_comp.homing_missle_weapon_damage >= HOMING_MISSLE_MAX_DAMAGE && (player_comp.homing_missle_weapon_cooldown - HOMING_MISSLE_MAX_COOLDOWN) <= EPSILON) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
 
 					upgrade_inventory(HOMING_MISSLE_UPGRADE_IRON, HOMING_MISSLE_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::HOMING_MISSLE_UPGRADE && !player_comp.unlock_homing_missle_weapon) {
@@ -1290,6 +1314,18 @@ void WorldSystem::left_mouse_click() {
 					player_comp.shotgun_weapon_damage *= 1.2;
 					player_comp.shotgun_weapon_cooldown -= 0.2;
 
+					std::cout << player_comp.shotgun_weapon_damage << std::endl;
+					std::cout << player_comp.shotgun_weapon_cooldown << std::endl;
+					std::cout << SHOTGUN_MAX_DAMAGE << std::endl;
+					std::cout << SHOTGUN_MAX_COOLDOWN << std::endl;
+
+					const float EPSILON = 0.0001f;
+					if (player_comp.shotgun_weapon_damage >= SHOTGUN_MAX_DAMAGE && (player_comp.shotgun_weapon_cooldown - SHOTGUN_MAX_COOLDOWN) <= EPSILON) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
+
 					player_comp.shotgun_stage++;
 
 					upgrade_inventory(SHOTGUN_UPGRADE_IRON, SHOTGUN_UPGRADE_COPPER);
@@ -1311,6 +1347,18 @@ void WorldSystem::left_mouse_click() {
 
 					player_comp.melee_damage += 5.0f;
 					player_comp.melee_force += 25.0f;
+
+					std::cout << player_comp.melee_damage << std::endl;
+					std::cout << player_comp.melee_force << std::endl;
+					std::cout << MELEE_MAX_DAMAGE << std::endl;
+					std::cout << MELEE_MAX_FORCE << std::endl;
+
+					const float EPSILON = 0.0001f;
+					if (player_comp.melee_damage >= MELEE_MAX_DAMAGE && player_comp.melee_force >= MELEE_MAX_FORCE) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
 					
 					upgrade_inventory(MELEE_UPGRADE_IRON, 0);
 				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {

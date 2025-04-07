@@ -150,13 +150,13 @@ const int SHIP_RANGE_UPGRADE_IRON = 5;
 
 
 // Weapon Upgrade Constants
-const int PISTOL_UPGRADE_IRON = 5;
+const int PISTOL_UPGRADE_IRON = 5; //5
 
-const int HOMING_MISSLE_UPGRADE_IRON = 7;
-const int HOMING_MISSLE_UPGRADE_COPPER = 2;
+const int HOMING_MISSLE_UPGRADE_IRON = 7; //7
+const int HOMING_MISSLE_UPGRADE_COPPER = 2; //2
 
-const int SHOTGUN_UPGRADE_IRON = 6;
-const int SHOTGUN_UPGRADE_COPPER = 3;
+const int SHOTGUN_UPGRADE_IRON = 6; //6
+const int SHOTGUN_UPGRADE_COPPER = 3; //3
 
 const int MELEE_UPGRADE_IRON = 5; //5
 
