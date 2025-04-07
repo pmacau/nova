@@ -21,7 +21,7 @@ static glm::vec2 findValidPatrolTarget(const glm::vec2& currentPos, float patrol
         glm::vec2 direction = { std::cos(angle), std::sin(angle) };
 
         // Determine the maximum valid distance along that direction
-        const ivec2 currentPosTileIndices = MapSystem::get_tile_indices(currentPos);
+        // const ivec2 currentPosTileIndices = MapSystem::get_tile_indices(currentPos);
         const float stepSize = TILE_SIZE / 2.f; // TODO: make this a parameter?
         float maxValidDistance = 0.0f;
         for (float d = 0.0f; d <= patrolRadius; d += stepSize) {

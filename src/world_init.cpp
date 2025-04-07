@@ -126,8 +126,8 @@ entt::entity createSlash(entt::registry& registry) {
    slash.render_position = motion.position;
    motion.scale = motion.scale * 15.f;  // change later to a more acceptable value 
    motion.offset_to_ground = { 0, motion.scale.y / 2};
-   float w = motion.scale.x;
-   float h = motion.scale.y;
+//    float w = motion.scale.x;
+//    float h = motion.scale.y;
 
    float radius = motion.scale.x / 2.5f;
    float offset = 40.f;

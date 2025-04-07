@@ -1166,13 +1166,14 @@ void WorldSystem::left_mouse_release() {
     auto& screen_state = registry.get<ScreenState>(screen_entity);
 
     if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
-        for (auto entity : registry.view<UpgradeButton>()) {
-            auto& upgrade_render = registry.get<RenderRequest>(entity);
-			// if (upgrade_render.used_texture != TEXTURE_ASSET_ID::RED_BUTTON_PRESSED) {
-			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
-			// }
-			update_upgrade_buttons();
-        }
+		update_upgrade_buttons();
+        // for (auto entity : registry.view<UpgradeButton>()) {
+        //     // auto& upgrade_render = registry.get<RenderRequest>(entity);
+		// 	// if (upgrade_render.used_texture != TEXTURE_ASSET_ID::RED_BUTTON_PRESSED) {
+		// 	// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
+		// 	// }
+		// 	update_upgrade_buttons();
+        // }
     }
 }
 
