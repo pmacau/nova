@@ -212,7 +212,7 @@ void WorldSystem::init() {
 	
 	// ***********************************************************************************************
 	// ************************ init all of the text boxes for the tutorial **************************
-	textBoxEntities.resize(6);
+	textBoxEntities.resize(7);
     vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
 	int scale = 2;
 
