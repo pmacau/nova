@@ -20,6 +20,9 @@ enum class CreatureID {
     SMALL_YELLOW_ARCHER,
     SKELETON,
     BOSS,
+    BOSS_FOREST_PURPLE,
+    BOSS_BEACH_RED,
+    BOSS_JUNGLE_YELLOW,
 };
 
 

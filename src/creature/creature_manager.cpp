@@ -21,7 +21,6 @@ CreatureManager& CreatureManager::getInstance() {
 
 CreatureManager::CreatureManager() {
     // loadDefinitions();
-    loadBossSpawnData();
     loadDefinitions();
 }
 
@@ -39,11 +38,6 @@ const CreatureDefinitionData* CreatureManager::getDefinition(const CreatureID& i
     return nullptr;
 }
 
-
-void CreatureManager::loadBossSpawnData() {
-    bossSpawnData.clear();
-    initBossSpawnData(bossSpawnData);
-}
 
 
 std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(
@@ -63,7 +57,11 @@ void CreatureManager::loadDefinitions() {
     registerDefinition(&RedTorchGoblinDefData::getInstance());
     registerDefinition(&PurpleTorchGoblinDefData::getInstance());
     registerDefinition(&YellowTorchGoblinDefData::getInstance());
-    registerDefinition(&PurpleReaperData::getInstance());
+    registerDefinition(&ForestPurpleWizardData::getInstance());
+    registerDefinition(&BeachPurpleWizardData::getInstance());
+    registerDefinition(&JunglePurpleWizardData::getInstance());
+    registerDefinition(&DefaultWizardData::getInstance());
+
     registerDefinition(&SmallBlueArcher::getInstance());
     registerDefinition(&SmallPurpleArcher::getInstance());
     registerDefinition(&SmallRedArcher::getInstance());

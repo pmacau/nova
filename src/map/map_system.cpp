@@ -8,7 +8,7 @@ Helpers
 --------------------
 */
 
-std::vector<vec2> MapSystem::bossSpawnIndices;
+std::vector<ivec2> MapSystem::bossSpawnIndices;
 
 void createBackground(entt::registry& reg, int width, int height, int tile_size) {
     auto background_ents = reg.view<Background>();
@@ -46,10 +46,25 @@ Public methods
 void MapSystem::init(entt::registry& reg) {
     loadMap();
     createBackground(reg, map_width, map_height, TILE_SIZE);
+    initBossSpawnIndices();
 };
 
 void MapSystem::generate_new_map() {
     // TODO: port python map generator to cpp
+}
+
+void MapSystem::initBossSpawnIndices() {
+    bossSpawnIndices.clear();
+
+    for (int i = 0; i < map_height; i++) {
+        for (int j = 0; j < map_width; j++) {
+            vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
+
+            if (get_decoration(game_map[i][j]) == Decoration::BOSS) {
+                bossSpawnIndices.push_back(ivec2(j, i));
+            }
+        }
+    }
 }
 
 vec2 MapSystem::populate_ecs(
@@ -65,7 +80,7 @@ vec2 MapSystem::populate_ecs(
 
             switch (get_decoration(game_map[i][j])) {
                 case Decoration::BOSS:
-                    bossSpawnIndices.push_back(vec2(j, i));
+                    // bossSpawnIndices.push_back(vec2(j, i));
                     break;
                 case Decoration::SPAWN:
                     p_pos = map_pos;
@@ -78,6 +93,9 @@ vec2 MapSystem::populate_ecs(
                     break;
                 case Decoration::SHIP:
                     s_pos = map_pos;
+                    break;
+                case Decoration::HOUSE:
+                    createHouse(reg, map_pos, get_biome(game_map[i][j]));
                     break;
                 default:
                     break;
@@ -113,7 +131,6 @@ void MapSystem::update_location(entt::registry& reg, entt::entity ent) {
 
 void MapSystem::update_background_music(entt::registry& reg, entt::entity ent) {
     if (!reg.all_of<Motion>(ent)) return;
-    auto& screen = reg.get<ScreenState>(reg.view<ScreenState>().front());
 
     auto& motion = reg.get<Motion>(ent);
     Biome currB = get_biome(get_tile(motion.position + motion.offset_to_ground));
@@ -217,10 +234,14 @@ vec2 MapSystem::get_tile_center_pos(vec2 tile_indices) {
 }
 
 bool MapSystem::walkable_tile(Tile tile) {
-    return (
-        get_terrain(tile) != Terrain::WATER &&
-        get_decoration(tile) != Decoration::TREE
-    );
+        return (
+            get_terrain(tile) != Terrain::WATER &&
+            (
+                get_decoration(tile) == Decoration::NO_DECOR ||
+                get_decoration(tile) == Decoration::BOSS ||
+                get_decoration(tile) == Decoration::SPAWN
+            )
+        );
 };
 
 Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
@@ -228,6 +249,6 @@ Biome MapSystem::get_biome_by_indices(ivec2 tile_indices) {
 };
 
 
-std::vector<vec2>& MapSystem::getBossSpawnIndices() {
+std::vector<ivec2>& MapSystem::getBossSpawnIndices() {
     return bossSpawnIndices;
 }

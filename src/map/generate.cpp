@@ -295,24 +295,26 @@ void add_biomes(GameMap& terrain, std::vector<std::pair<int, int>> seeds) {
     }
 }
 
-std::vector<std::pair<int, int>> get_trees(const GameMap& terrain, int num_trees, int min_dist) {
+template<typename Func>
+std::vector<std::pair<int, int>> add_decoration(
+    GameMap& terrain, Decoration decor, int num,
+    int range, int min_dist,
+    Func valid_neigbor
+) {
     int height = terrain.size(), width = terrain[0].size();
-    
-    std::vector<std::pair<int, int>> land_positions;
-    std::vector<std::pair<int, int>> trees;
 
-    auto is_valid = [&terrain, width, height](int r, int c) {
+    std::vector<std::pair<int, int>> land_positions;
+    std::vector<std::pair<int, int>> decors;
+
+    auto is_valid = [&](int r, int c) {
         if (get_terrain(terrain[r][c]) == Terrain::WATER) return false;
 
-        int range = 10;
         int min_row = max(0, r - range), max_row = min(height, r + range);
         int min_col = max(0, c - range), max_col = min(width, c + range);
 
         for (int i = min_row; i < max_row; i++) {
             for (int j = min_col; j < max_col; j++) {
-                if (get_decoration(terrain[i][j]) != Decoration::NO_DECOR) {
-                    return false;
-                }
+                if (!valid_neigbor(terrain[i][j])) return false;
             }
         }
         return true;
@@ -326,9 +328,9 @@ std::vector<std::pair<int, int>> get_trees(const GameMap& terrain, int num_trees
         }
     }
 
-    auto valid_pos = [&trees, min_dist](int p_row, int p_col) {
-        for (const auto& tree : trees) {
-            if (manhattan_distance(p_row, p_col, tree.first, tree.second) < min_dist) {
+    auto valid_pos = [&](int p_row, int p_col) {
+        for (const auto& d : decors) {
+            if (manhattan_distance(p_row, p_col, d.first, d.second) < min_dist) {
                 return false;
             }
         }
@@ -340,14 +342,16 @@ std::vector<std::pair<int, int>> get_trees(const GameMap& terrain, int num_trees
     std::shuffle(land_positions.begin(), land_positions.end(), gen);
 
     for (const auto& pos : land_positions) {
-        if (trees.size() >= num_trees) break;
+        if (decors.size() >= num) break;
 
         if (valid_pos(pos.first, pos.second)) {
-            trees.push_back(pos);
+            decors.push_back(pos);
+            set_decoration(terrain[pos.first][pos.second], decor);
         }
     }
 
-    return trees;
+    debug_printf(DebugType::WORLD_INIT, "Added %d decorations\n", decors.size());
+    return decors;
 }
 
 /*
@@ -366,6 +370,13 @@ GameMap create_map(int width, int height) {
 
     auto ship = ship_spawn(terrain, spawn);
     set_decoration(terrain[ship.first][ship.second], Decoration::SHIP);
+    for (int i = ship.first - 3; i < ship.first + 3 + 1; i++) {
+        for (int j = ship.second - 3; j < ship.second + 3 + 1; j++) {
+            if (i == ship.first && j == ship.second) continue;
+            set_decoration(terrain[i][j], Decoration::BARRIER);
+        }
+    }
+
     debug_printf(DebugType::WORLD_INIT, "Setting ship spawn at: (%d, %d)\n", ship.first, ship.second);
 
     auto mainland = find_mainland(terrain, spawn);
@@ -377,11 +388,50 @@ GameMap create_map(int width, int height) {
     add_biomes(terrain, biome_seeds);
     debug_printf(DebugType::WORLD_INIT, "Planted biome seeds\n");
 
-    auto trees = get_trees(terrain, 1500, 15);
-    for (const auto& tree : trees) {
-        set_decoration(terrain[tree.first][tree.second], Decoration::TREE);
+    auto houses = add_decoration(
+        terrain, Decoration::HOUSE,
+        20, 10, 100, [](const Tile& tile) {
+            return (
+                get_decoration(tile) == Decoration::NO_DECOR &&
+                get_biome(tile) != Biome::B_FOREST &&
+                get_terrain(tile) != Terrain::WATER
+            );
+        }
+    );
+    for (auto const& house: houses) {
+        int r = house.first, c = house.second;
+        int min_row = max(0, r - 4), max_row = min(height, r + 2);
+        int min_col = max(0, c - 6), max_col = min(width, c + 6 + 1);
+
+        for (int i = min_row; i < max_row; i++) {
+            for (int j = min_col; j < max_col; j++) {
+                if (i == r && j == c) continue;
+                set_decoration(terrain[i][j], Decoration::BARRIER);
+            }
+        }
     }
-    debug_printf(DebugType::WORLD_INIT, "Planted %d trees\n", trees.size());
+
+    auto trees = add_decoration(
+        terrain, Decoration::TREE,
+        1500, 5, 15, [](const Tile& tile) {
+            return (
+                get_decoration(tile) == Decoration::NO_DECOR &&
+                get_terrain(tile) != Terrain::WATER
+            );
+        }
+    );
+    for (auto const& tree: trees) {
+        int r = tree.first, c = tree.second;
+        int min_row = max(0, r - 1), max_row = min(height, r + 2 + 1);
+        int min_col = max(0, c - 2), max_col = min(width,  c + 2 + 1);
+
+        for (int i = min_row; i < max_row; i++) {
+            for (int j = min_col; j < max_col; j++) {
+                if (i == r && j == c) continue;
+                set_decoration(terrain[i][j], Decoration::BARRIER);
+            }
+        }
+    }
 
     return terrain;
 }
