@@ -53,6 +53,7 @@ class RenderSystem {
 		textures_path("weapons/default.png"),
 		textures_path("weapons/homing-missile.png"),
 		textures_path("weapons/shotgun.png"),
+		textures_path("weapons/sword.png"),
 		textures_path("healthbar/red.png"), 
 		textures_path("healthbar/player-health-inner.png"), 
 		textures_path("healthbar/player-health-outer.png"),
@@ -74,6 +75,10 @@ class RenderSystem {
 		textures_path("ui/green-btn-pressed.png"),
 		textures_path("ui/red-btn-active.png"),
 		textures_path("ui/red-btn-pressed.png"),
+		textures_path("ui/blue-btn-active.png"),
+		textures_path("ui/blue-btn-pressed.png"),
+		textures_path("ui/weapon-upgrade-btn.png"),
+		textures_path("ui/purple-button.png"),
 		map_path("biome_map.png"),
 		textures_path("text/text.png"), 
 		textures_path("slashes/1.png"), 
@@ -163,6 +168,8 @@ private:
 	void renderGamePlay();
 	void renderUpgradeUI();
 	void renderShipUI();
+	void renderWeaponUI();
+	void renderPlayerUI();
 
 	void renderEndScreen();
 	void drawDebugHitBoxes(const glm::mat3& projection);

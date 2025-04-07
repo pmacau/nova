@@ -642,6 +642,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	auto& screen = registry.get<ScreenState>(screen_entity);
+	auto& player_entity = registry.get<Player>(registry.view<Player>().front());
 
 	Shader v = shaders.at("vignette");
 
@@ -656,6 +657,7 @@ void RenderSystem::drawToScreen(bool vignette)
 	v.setFloat("time", vignette ? screen.time : (M_PI / 2 * 60.0));
 	v.setVec2("resolution", vec2(w, h));
 	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
+	v.setFloat("vision_radius", player_entity.vision_radius);
 		
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
@@ -749,12 +751,12 @@ void RenderSystem::renderGamePlay()
 
 
 	// render all the ship weapons/engine
-	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, PlayerUpgradeButton, WeaponButton, WeaponUIIcon, PlayerUIIcon>);
     shipEngineRenders.use<Motion>();
     for (auto entity : shipEngineRenders) {
         drawTexturedMesh(entity, projection_2D);
     }
-	auto shipWeaponRenders = registry.view<ShipWeapon, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
+	auto shipWeaponRenders = registry.view<ShipWeapon, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, PlayerUpgradeButton, WeaponButton, WeaponUIIcon, PlayerUIIcon>);
     shipWeaponRenders.use<Motion>();
     for (auto entity : shipWeaponRenders) {
         drawTexturedMesh(entity, projection_2D);
@@ -791,7 +793,7 @@ void RenderSystem::renderGamePlay()
 	}
 
 
-	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
+	for (auto entity : registry.view<UI, Motion, RenderRequest>(entt::exclude<UIShip, FixedUI, TextData, Title, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, PlayerUpgradeButton, WeaponButton, WeaponUIIcon, PlayerUIIcon>)) {
 		drawTexturedMesh(entity, projection_2D);
 	}
 
@@ -801,7 +803,7 @@ void RenderSystem::renderGamePlay()
 	
 	std::vector<std::tuple<std::string, vec2, float, vec3, mat3, bool>> textsToRender;
 	// Render static UI
-	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>)) {
+	for (auto entity: registry.view<FixedUI, Motion, RenderRequest>(entt::exclude<UIShip, Item, Title, HiddenInventory, Button, UIIcon, UIShipWeapon, UIShipEngine, ShipUpgradeButton, WeaponUpgradeButton, PlayerUpgradeButton, WeaponButton, WeaponUIIcon, PlayerUIIcon>)) {
 		if (registry.all_of<TextData>(entity)) {
 			auto& textData = registry.get<TextData>(entity);
 			if (textData.active) {
@@ -829,7 +831,7 @@ void RenderSystem::renderGamePlay()
 	}
 
 	// Render items on static UI
-	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory, Button, UIIcon>)) {
+	for (auto entity: registry.view<FixedUI, Motion, Item, RenderRequest>(entt::exclude<UIShip, TextData, Title, HiddenInventory, Button, UIIcon, WeaponUIIcon, PlayerUIIcon>)) {
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
@@ -1026,7 +1028,7 @@ void RenderSystem::renderUpgradeUI()
 	for (auto entity : registry.view<Button>()) {
 		auto& ui_option = registry.get<ButtonOption>(entity);
 		if (ui_option.hover && screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI) {
-			int textWidth = getTextWidth(ui_option.text, 4);
+			int textWidth = getTextWidth(ui_option.text, 4.0);
 			float centeredX = ui_option.position.x - textWidth / 2.0f;
 			float centeredY = ui_option.position.y + ui_option.size.y / 2.0f + 10.0f;
 			
@@ -1034,7 +1036,7 @@ void RenderSystem::renderUpgradeUI()
 				ui_option.text, 
 				centeredX, 
 				centeredY, 
-				4, 
+				4.0, 
 				glm::vec3(1.0f, 1.0f, 1.0f), 
 				ui_projection_2D
 			);
@@ -1048,9 +1050,9 @@ void RenderSystem::renderUpgradeUI()
 
 	renderText(
 		"UPGRADES",  
-		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 4)/2, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("UPGRADES", 6)/2, 
 		100.f,
-		4, 
+		6, 
 		glm::vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1089,7 +1091,7 @@ void RenderSystem::renderShipUI()
 
 	// render upgrade buttons
 	std::vector<entt::entity> buttonEntities;
-	for (auto entity : registry.view<UpgradeButton, Motion, RenderRequest>()) {
+	for (auto entity : registry.view<ShipUpgradeButton, Motion, RenderRequest>()) {
 		buttonEntities.push_back(entity);
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
@@ -1115,13 +1117,13 @@ void RenderSystem::renderShipUI()
 		drawTexturedMesh(entity, ui_projection_2D);
 	}
 
-	// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	drawToScreen(false);
+
 	renderText(
 		"SHIP UPGRADES", 
-		WINDOW_WIDTH_PX / 2 - 180, 
+		WINDOW_WIDTH_PX / 2 - getTextWidth("SHIP UPGRADES", 6)/2, 
 		100.f,
-		4, 
+		6, 
 		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
@@ -1165,9 +1167,6 @@ void RenderSystem::renderShipUI()
     for (int i = 0; i < upgradePoints.size(); i++) {
         drawLine(upgradePoints[i].second, labelPositions[i], vec3(0.49f, 0.43f, 0.63f), 2.0f, ui_projection_2D);
 		
-		// CHANGE -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        // mat3 flippedProjection = ui_projection_2D;
-        // flippedProjection[1][1] *= -1.0f;
         renderText(
 			upgradePoints[i].first, 
 			labelPositions[i].x - labelPositions[i].z + 20.0f, 
@@ -1178,12 +1177,9 @@ void RenderSystem::renderShipUI()
 		);
     }
 
-	// mat3 flippedProjection = projection_2D;
-	// flippedProjection[1][1] *= -1.0f; 
-
 	// display all the text for the buttons
 	for (auto& entity : buttonEntities) {
-		auto& button = registry.get<UpgradeButton>(entity);
+		auto& button = registry.get<ShipUpgradeButton>(entity);
 		auto& motion = registry.get<Motion>(entity);
 		renderText(
 			button.text, 
@@ -1191,8 +1187,8 @@ void RenderSystem::renderShipUI()
 			motion.position.y, 
 			2, 
 			glm::vec3(1.0f, 1.0f, 1.0f),
-			ui_projection_2D)
-		;
+			ui_projection_2D
+		);
 
 		if (button.missingResources) {
 			renderText(
@@ -1210,20 +1206,258 @@ void RenderSystem::renderShipUI()
 				motion.position.y + 35.0f, 
 				2, 
 				glm::vec3(0.0f, 1.0f, 0.0f), 
-				ui_projection_2D);
+				ui_projection_2D
+			);
 		}
 	}
-	
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
+}
+
+void RenderSystem::renderWeaponUI() 
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// dark purple background
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	auto buttons = registry.view<WeaponButton, Motion, RenderRequest>();
+
+	// render the buttons
+	for (auto entity : buttons) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	// render the icons for each button
+	for (auto entity : registry.view<WeaponUIIcon, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	// render upgrade buttons
+	std::vector<entt::entity> buttonEntities;
+	for (auto entity : registry.view<WeaponUpgradeButton, Motion, RenderRequest>()) {
+		buttonEntities.push_back(entity);
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	drawToScreen(false);
+
 	renderText(
-		"SHIP UPGRADES", 
-		-width/2*0.15f,
-		height/2*0.4f, 
-		1, 
-		glm::vec3(1.0f, 1.0f, 1.0f), 
+		"WEAPON UPGRADES", 
+		WINDOW_WIDTH_PX / 2 - 180, 
+		100.f,
+		4, 
+		vec3(1.0f, 1.0f, 1.0f), 
 		ui_projection_2D
 	);
 
+	// display all the text for the buttons
+	for (auto& entity : buttonEntities) {
+		auto& button = registry.get<WeaponUpgradeButton>(entity);
+		auto& motion = registry.get<Motion>(entity);
 
+		float button_x = motion.position.x - getTextWidth(button.text, 2)/2;
+		float missing_resources_x = motion.position.x - getTextWidth(button.missingResourcesText, 2)/2;
+		renderText(
+			button.text, 
+			// motion.position.x - 35.0f, 
+			button_x,
+			motion.position.y, 
+			2, 
+			glm::vec3(1.0f, 1.0f, 1.0f),
+			ui_projection_2D);
+
+		if (button.missingResources || button.maxUpgrade) {
+			renderText(
+				button.missingResourcesText, 
+				// motion.position.x - 65.0f,
+				missing_resources_x,
+				motion.position.y + 35.0f,
+				2, 
+				glm::vec3(1.0f, 0.0f, 0.0f), 
+				ui_projection_2D
+			);
+		} else {
+			renderText(
+				button.missingResourcesText, 
+				// motion.position.x - 65.0f, 
+				missing_resources_x,
+				motion.position.y + 35.0f, 
+				2, 
+				glm::vec3(0.0f, 1.0f, 0.0f), 
+				ui_projection_2D);
+		}
+	}
+
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
+
+	glfwSwapBuffers(window);
+    gl_has_errors();
+}
+
+void RenderSystem::renderPlayerUI() 
+{
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+        return;
+    }
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// dark purple background
+	glClearColor(0.2078f, 0.2078f, 0.2510f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+
+	// render upgrade buttons
+	std::vector<entt::entity> buttonEntities;
+	for (auto entity : registry.view<PlayerUpgradeButton, Motion, RenderRequest>()) {
+		buttonEntities.push_back(entity);
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	for (auto entity : registry.view<PlayerUIIcon, Motion, RenderRequest>()) {
+		drawTexturedMesh(entity, ui_projection_2D);
+	}
+
+	drawToScreen(false);
+
+	renderText(
+		"PLAYER UPGRADES", 
+		WINDOW_WIDTH_PX / 2 - 180, 
+		100.f,
+		4, 
+		vec3(1.0f, 1.0f, 1.0f), 
+		ui_projection_2D
+	);
+
+	int width = 2 * WINDOW_WIDTH_PX, height = 2 * WINDOW_HEIGHT_PX;
+
+	// Draw upgrade lines
+    // positions of upgradeable parts (start)
+    std::vector<std::pair<std::string, vec2>> upgradePoints = {
+		// health line
+        {"", vec2(width/4, height/4 + height/2*0.07f)},
+        {"Health", vec2(width/8 + width/2*0.12f, height/8 + height/2*0.09f)},
+        // vision line
+        {"", vec2(width/4 + width/2*0.03f, height/4 - height/2*0.05f)},
+        {"Night Vision", vec2(3*width/8 - width/2*0.09f, height/8 + height/2*0.03f)},
+        // speed line
+        {"", vec2(width/4 + width/2*0.03f, height/4 + height/2*0.22f)},
+        {"Speed", vec2(3*width/8 - width/2*0.09f, 3*height/8 + height/2*0.05f)},
+    };
+    
+    // where labels should be positioned (end)
+    std::vector<vec3> labelPositions = {
+		// health line
+        vec3(width/8 + width/2*0.12f, height/8 + height/2*0.09f, 0.0f),
+        vec3(width/8 + width/2*0.032f, height/8 + height/2*0.09f, width/2*0.11f),
+        // vision line
+        vec3(3*width/8 - width/2*0.09f, height/8 + height/2*0.03f, 0.0f),
+        vec3(3*width/8 - width/2*0.03f, height/8 + height/2*0.03f, 0.0f),
+        // speed line
+        vec3(3*width/8 - width/2*0.09f, 3*height/8 + height/2*0.05f, 0.0f),
+        vec3(3*width/8 - width/2*0.03f, 3*height/8 + height/2*0.05f, 0.0f),
+    };
+    
+    // draw lines pointing to upgradeable parts
+    for (int i = 0; i < upgradePoints.size(); i++) {
+        drawLine(upgradePoints[i].second, labelPositions[i], vec3(0.49f, 0.43f, 0.63f), 1.5f, ui_projection_2D);
+		
+        renderText(
+			upgradePoints[i].first, 
+			labelPositions[i].x - labelPositions[i].z + 20.0f, 
+			labelPositions[i].y - height/2*0.01 + 10.0f, 
+            4, 
+			vec3(1.0f, 1.0f, 1.0f), 
+			ui_projection_2D
+		);
+    }
+
+	// display all the text for the buttons (upgrades and missing resources text)
+	for (auto& entity : buttonEntities) {
+		auto& button = registry.get<PlayerUpgradeButton>(entity);
+		auto& motion = registry.get<Motion>(entity);
+
+		float button_x = motion.position.x - getTextWidth(button.text, 2)/2;
+		float missing_resources_x = motion.position.x - getTextWidth(button.missingResourcesText, 2)/2;
+		renderText(
+			button.text, 
+			// motion.position.x - 35.0f, 
+			button_x,
+			motion.position.y, 
+			2, 
+			glm::vec3(1.0f, 1.0f, 1.0f),
+			ui_projection_2D);
+
+		if (button.missingResources || button.maxUpgrade) {
+			renderText(
+				button.missingResourcesText, 
+				// motion.position.x - 65.0f,
+				missing_resources_x,
+				motion.position.y + 35.0f,
+				2, 
+				glm::vec3(1.0f, 0.0f, 0.0f), 
+				ui_projection_2D
+			);
+		} else {
+			renderText(
+				button.missingResourcesText, 
+				// motion.position.x - 65.0f, 
+				missing_resources_x,
+				motion.position.y + 35.0f, 
+				2, 
+				glm::vec3(0.0f, 1.0f, 0.0f), 
+				ui_projection_2D);
+		}
+	}
+
+	renderText(
+		"PLAYER UPGRADES", 
+		WINDOW_WIDTH_PX / 2 - 180, 
+		100.f,
+		4, 
+		vec3(1.0f, 1.0f, 1.0f), 
+		ui_projection_2D
+	);
+
+	auto& screen_state = registry.get<ScreenState>(screen_entity);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -1332,10 +1566,10 @@ void RenderSystem::draw()
 			renderShipUI();
 			break;
 		case ScreenState::ScreenType::PLAYER_UPGRADE_UI:
-			// renderPlayerUI
-			break;
+            renderPlayerUI();
+            break;
 		case ScreenState::ScreenType::WEAPON_UPGRADE_UI:
-			// renderWeaponUI
+		renderWeaponUI();
 			break;
 		case ScreenState::ScreenType::GAMEPLAY:
 			renderGamePlay();

@@ -8,7 +8,7 @@
 class UISystem {
 public:
 	static float equip_delay;
-	static void updatePlayerHealthBar(entt::registry& registry, int health);
+	static void updatePlayerHealthBar(entt::registry& registry, int currMaxHealth, int health);
 	static void updateMobHealthBar(entt::registry& registry, entt::entity& mob_entity, bool hit);
 	//static void renderItem(entt::registry& registry, entt::entity& mob_entity);
 	static void equipItem(entt::registry& registry, Motion& player_motion, FlagSystem& flag_system);
