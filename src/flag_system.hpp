@@ -222,6 +222,7 @@ public:
             );
             registry.emplace<tempText>(text);
             auto& textData = registry.get<TextData>(text);
+            textData.active = true;
         }
     }
 };

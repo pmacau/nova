@@ -128,25 +128,25 @@ const float MOUSE_POLL_RATE = 100;
 
 
 // Player Upgrade Constants
-const int PLAYER_HEALTH_UPGRADE_IRON = 5; //5
-const int PLAYER_HEALTH_UPGRADE_COPPER = 3; //3
+const int PLAYER_HEALTH_UPGRADE_IRON = 5; 
+const int PLAYER_HEALTH_UPGRADE_COPPER = 3; 
 
-const int PLAYER_VISION_UPGRADE_COPPER = 6; //6
+const int PLAYER_VISION_UPGRADE_COPPER = 6; 
 
-const int PLAYER_SPEED_UPGRADE_IRON = 3; //3
-const int PLAYER_SPEED_UPGRADE_COPPER = 6; //6
+const int PLAYER_SPEED_UPGRADE_IRON = 3; 
+const int PLAYER_SPEED_UPGRADE_COPPER = 6; 
 
 
 // Ship Upgrade Constants
-const int SHIP_HEALTH_UPGRADE_IRON = 0; // 7
+const int SHIP_HEALTH_UPGRADE_IRON = 7;
 
-const int SHIP_WEAPON_UPGRADE_IRON = 0; // 3
-const int SHIP_WEAPON_UPGRADE_COPPER = 0; // 3
+const int SHIP_WEAPON_UPGRADE_IRON = 3;
+const int SHIP_WEAPON_UPGRADE_COPPER = 3;
 
-const int SHIP_FIRERATE_UPGRADE_IRON = 0; // 2
-const int SHIP_FIRERATE_UPGRADE_COPPER = 0; // 4
+const int SHIP_FIRERATE_UPGRADE_IRON = 2;
+const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
 
-const int SHIP_RANGE_UPGRADE_IRON = 0; // 5
+const int SHIP_RANGE_UPGRADE_IRON = 5;
 
 
 // Weapon Upgrade Constants
