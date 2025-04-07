@@ -17,7 +17,7 @@
 class OrcRiderDefData : public CreatureDefinitionData {
 public:
 OrcRiderDefData() {
-        creatureID = CreatureID::GOBLIN_TORCH_BLUE;
+        creatureID = CreatureID::ORC_RIDER;
         creatureType = CreatureType::Mob;
         initialize();
     }
