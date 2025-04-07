@@ -1546,6 +1546,7 @@ void RenderSystem::draw()
 		float timeSinceUpgrade = (float)glfwGetTime() - shipUpgradeTime;
 		if (timeSinceUpgrade >= 5.0f) {
 			renderEndScreen();
+			std::cout << "rendering end screen" << std::endl;
 			endScreenTriggered = true;
 			screen_state.current_screen = ScreenState::ScreenType::END_SCREEN;
 		}
