@@ -97,7 +97,7 @@ void CollisionSystem::step(float elapsed_ms) {
 			if (registry.any_of<Mob>(entity)) {
 				for (BossSpawn& boss : spawnSystem.bossSpawnData) {
 					if (boss.entity == entity) {
-						if (boss.defeated = false) {
+						if (boss.defeated == false) {
 							flagSystem.bossDefeatedHelper(boss.creatureID);
 						}
 						boss.defeated = true;
