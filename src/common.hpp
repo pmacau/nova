@@ -62,7 +62,7 @@ const float SHIP_TIMER_UPGRADE = 0.15f;
 
 // Max ship stats
 const int SHIP_MAX_HEALTH = 1500;
-const int SHIP_MAX_RANGE = 1000;
+const int SHIP_MAX_RANGE = 650;
 
 // projectile damages
 const int PROJECTILE_DAMAGE = 20;
@@ -138,15 +138,15 @@ const int PLAYER_SPEED_UPGRADE_COPPER = 6; //6
 
 
 // Ship Upgrade Constants
-const int SHIP_HEALTH_UPGRADE_IRON = 7; // 7
+const int SHIP_HEALTH_UPGRADE_IRON = 0; // 7
 
-const int SHIP_WEAPON_UPGRADE_IRON = 3; // 3
-const int SHIP_WEAPON_UPGRADE_COPPER = 3; // 3
+const int SHIP_WEAPON_UPGRADE_IRON = 0; // 3
+const int SHIP_WEAPON_UPGRADE_COPPER = 0; // 3
 
-const int SHIP_FIRERATE_UPGRADE_IRON = 2; // 2
-const int SHIP_FIRERATE_UPGRADE_COPPER = 4; // 4
+const int SHIP_FIRERATE_UPGRADE_IRON = 0; // 2
+const int SHIP_FIRERATE_UPGRADE_COPPER = 0; // 4
 
-const int SHIP_RANGE_UPGRADE_IRON = 5; // 5
+const int SHIP_RANGE_UPGRADE_IRON = 0; // 5
 
 
 // Weapon Upgrade Constants
