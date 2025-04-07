@@ -47,8 +47,7 @@ int main()
 	entt::registry reg;
 
 
-	SpawnSystem::initialize(reg);
-	SpawnSystem& spawn_system = SpawnSystem::getInstance();
+	
 
 	// assets and constants
 	initializeAIStates(g_stateFactory);
@@ -60,7 +59,6 @@ int main()
 	WorldSystem   world_system(reg, physics_system, flag_system, quadTree);
 	RenderSystem  renderer_system(reg, quadTree);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system, physics_system, quadTree, spawn_system, flag_system);
 	CameraSystem camera_system(reg);
 
 	
@@ -68,6 +66,13 @@ int main()
 	AnimationSystem animationSystem(reg);
 	PlayerSystem playerSystem(reg);
 	
+
+	SpawnSystem::initialize(reg);
+	SpawnSystem& spawn_system = SpawnSystem::getInstance();
+
+
+	CollisionSystem collision_system(reg, world_system, physics_system, quadTree, spawn_system, flag_system);
+
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
 	if (!window) {
