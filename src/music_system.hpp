@@ -27,6 +27,7 @@ struct SoundTimer {
 
 enum SFX {
     SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP, MISSILE, SHOTGUN, MELEE, DASH,
+    BOW_RELEASE,
     SFX_COUNT
 };
 const int sfx_count = (int) SFX_COUNT;
@@ -103,7 +104,8 @@ private:
             {MISSILE,{"sfx/missile.wav", SDL_MIX_MAXVOLUME / 2}},
             {SHOTGUN,{"sfx/shotgun.wav", SDL_MIX_MAXVOLUME / 3}},
 			{MELEE, {"sfx/space-slash.wav", SDL_MIX_MAXVOLUME / 6}},
-			{DASH,   {"sfx/dash.wav", SDL_MIX_MAXVOLUME / 4}}
+			{DASH,   {"sfx/dash.wav", SDL_MIX_MAXVOLUME / 4}},
+            {BOW_RELEASE,{"sfx/bow_release.wav", SDL_MIX_MAXVOLUME}},
         };
         inline static std::unordered_map<Music, SoundData<Mix_Music>> music_map = {
             {FOREST,    {"music/forest.wav"}},
@@ -125,7 +127,8 @@ private:
             {MISSILE, {}},
             {SHOTGUN, {}}, 
 			{MELEE, {}},
-            {DASH, {}}
+            {DASH, {}},
+            {BOW_RELEASE, {}},
         };
 
         template <typename EnumT, typename SoundT>

@@ -46,7 +46,7 @@ void CreatureDefinitionData::initializeDropInfo() {
 }
 
 void CreatureDefinitionData::initializeAIInfo() {
-    aiInfo.aiConfig = AIConfig{};
+    aiInfo.aiConfig = std::make_shared<AIConfig>(AIConfig{});
     aiInfo.transitionTable = nullptr;
     aiInfo.initialState = "";
 }

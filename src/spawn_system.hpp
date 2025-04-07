@@ -24,6 +24,9 @@ static void initialize(entt::registry& registry) {
 
     void update(float deltaTime);
 
+    void setSpawnRate(float rate) { spawnTimeInterval = rate; }
+    void setSpawnCap(size_t cap) { spawnCap = cap; }
+
     void onRestartGame() {
         // Reset boss spawn data: if not defeated, set to not spawned.
         for (auto& spawnData : bossSpawnData) {
