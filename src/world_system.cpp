@@ -558,6 +558,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (cooldown == 0.f) {
 			cooldown = MELEE_COOLDOWN;
 			createSlash(registry);
+			MusicSystem::playSoundEffect(SFX::MELEE);
 		}
 	}
 
