@@ -140,7 +140,8 @@ void CollisionSystem::handle<Player, Mob>(
 	physics.knockback(play_ent, mob_ent, 300);
 	physics.suppress(play_ent, mob_ent);
 	
-	screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+	screen.darken_screen_factor = std::min((float) 1 - player.health / player.currMaxHealth, 1.0f);
+	// screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
 }
 
 template<>
