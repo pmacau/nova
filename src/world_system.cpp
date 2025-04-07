@@ -178,7 +178,8 @@ void WorldSystem::init() {
 
 	std::string tut_1 = 
 		std::string("great! let's see if the ship's interface is still working. ") + 
-		std::string("press {1'F'} near the ship to open and close the {1upgrade UI}");
+		std::string("press {1'F'} near the ship to open and close the {1upgrade UI}. ") +
+		std::string("to come home, you will have to {1upgrade the ship completely}! ");
     textBoxEntities[1] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_1, scale, vec3(1));
 
 	std::string tut_2 =
