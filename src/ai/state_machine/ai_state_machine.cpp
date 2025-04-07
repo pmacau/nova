@@ -2,8 +2,8 @@
 #include "state_factory.hpp"
 #include <ai/state_machine/transition.hpp>
 
-AIStateMachine::AIStateMachine(entt::registry &registry, entt::entity entity, const AIConfig &config, const TransitionTable &transitions)
-    : registry(registry), entity(entity), currentState(nullptr), config(config), transitions(transitions)
+AIStateMachine::AIStateMachine(entt::registry &registry, entt::entity entity, std::shared_ptr<AIConfig> cfg, const TransitionTable &transitions)
+    : registry(registry), entity(entity), currentState(nullptr), config(std::move(cfg)), transitions(transitions)
 {
 }
 
@@ -26,7 +26,7 @@ void AIStateMachine::update(float deltaTime)
         {
             for (const auto &transition : it->second)
             {
-                if (transition.condition(registry, entity, config, currentState))
+                if (transition.condition(registry, entity, *config, currentState))
                 {
 
                     // Use the StateFactory to create a new state instance

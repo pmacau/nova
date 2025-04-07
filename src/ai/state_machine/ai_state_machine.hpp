@@ -7,7 +7,7 @@
 class AIStateMachine {
 public:
     // Constructor: takes a reference to the registry and the entity owning this state machine.
-    AIStateMachine(entt::registry& registry, entt::entity entity, const AIConfig& config, const TransitionTable& transitions);
+    AIStateMachine(entt::registry& registry, entt::entity entity, std::shared_ptr<AIConfig> config, const TransitionTable& transitions);
 
     // Destructor.
     ~AIStateMachine();
@@ -21,14 +21,14 @@ public:
     // Get the current state.
     AIState* getCurrentState() const;
 
-    const AIConfig& getConfig() const { return config; }
+    const AIConfig& getConfig() const { return *config; }
 
 private:
     entt::registry& registry;
     entt::entity entity;
     AIState* currentState;
 
-    AIConfig config;
+    std::shared_ptr<AIConfig> config;
 
     TransitionTable transitions;
 };

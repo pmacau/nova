@@ -14,10 +14,8 @@
 #include <animation_system.hpp>
 
 
-static Pathfinder g_pathFinder;
-
 void ChaseState::regeneratePath(entt::registry& registry, ivec2 startTile, ivec2 targetTile) {
-    currentPath = g_pathFinder.findPath(startTile, targetTile);
+    currentPath = Pathfinder::findPath(startTile, targetTile);
     // remove the first tile since it is the current tile
     if (!currentPath.empty()) {
         currentPath.erase(currentPath.begin());
@@ -154,6 +152,8 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
 }
 
 void ChaseState::onExit(entt::registry& registry, entt::entity entity) {
+    debug_printf(DebugType::AI, "ChaseState: onExit\n");
+
     // Stop movement on exit
     auto& motion = registry.get<Motion>(entity);
     // std::cout << "v = 0 (4)" << std::endl;

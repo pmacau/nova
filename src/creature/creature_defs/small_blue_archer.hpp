@@ -10,18 +10,18 @@
 #include <unordered_map>
 #include <string>
 #include <iostream>
-#include <creature/creature_defs/ai_defs/basic_fighter.hpp>
+#include <creature/creature_defs/ai_defs/basic_ranger.hpp>
 #include <creature/creature_defs/ai_defs/ai_globin_def.hpp>
 #include <animation/animation_manager.hpp>
 
-class BlueTorchGoblinDefData : public CreatureDefinitionData {
+class SmallBlueArcher : public CreatureDefinitionData {
 public:
-    BlueTorchGoblinDefData() {
-        creatureID = CreatureID::GOBLIN_TORCH_BLUE;
+SmallBlueArcher() {
+        creatureID = CreatureID::SMALL_BLUE_ARCHER;
         creatureType = CreatureType::Mob;
         initialize();
     }
-    virtual ~BlueTorchGoblinDefData() = default;
+    virtual ~SmallBlueArcher() = default;
 
     // Explicit initialize method that calls all the initialization functions.
     virtual void initialize() override {
@@ -36,14 +36,14 @@ public:
         initializeUIInfo();
     }
 
-    static const BlueTorchGoblinDefData& getInstance() {
-        static BlueTorchGoblinDefData instance;
+    static const SmallBlueArcher& getInstance() {
+        static SmallBlueArcher instance;
         return instance;
     }
 
 protected:
     virtual void initializeSpawnInfo() override {
-        spawnInfo.spawnProbability = 0.6f;
+        spawnInfo.spawnProbability = 0.5f;
         spawnInfo.group = {1, 2};
         spawnInfo.biomes = {Biome::B_ICE, Biome::B_FOREST};
     }
@@ -51,15 +51,14 @@ protected:
     virtual void initializeStats() override {
         stats.minHealth = 50;
         stats.maxHealth = 70;
-        stats.damage = 10;
-        stats.speed = 1.2f;
-        creatureType = CreatureType::Mob; // Set the creature type.
+        stats.damage = 6;
+        stats.speed = 1.0f;
     }
 
     virtual void initializeRenderingInfo() override {
-        renderingInfo.scale = glm::vec2(1344.f / 7, 960.f / 5);
-        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::GOBLIN_TORCH_BLUE;
-        renderingInfo.spriteSheet.sheetDimensions = glm::vec2(1344.f, 960.f);
+        renderingInfo.scale = glm::vec2(1536.f / 8, 1344.f / 7);
+        renderingInfo.spriteSheet.textureAssetID = TEXTURE_ASSET_ID::SMALL_BLUE_ARCHER;
+        renderingInfo.spriteSheet.sheetDimensions = glm::vec2(1536.f, 1344.f);
     }
 
     virtual void initializePhysicsInfo() override {
@@ -100,8 +99,29 @@ protected:
     }
 
     virtual void initializeAIInfo() override {
-        aiInfo.aiConfig = std::make_shared<AIConfig>(getGoblinAIConfig());
-        aiInfo.transitionTable = &getBasicFighterTransitionTable();
+        aiInfo.aiConfig = std::make_shared<RangeAIConfig>();
+        RangeAIConfig* config = static_cast<RangeAIConfig*>(aiInfo.aiConfig.get());
+
+        config->detectionRange = 600.0f;
+        config->unchaseRange = 700.0f;
+        config->chaseSpeed = 80.0f;
+        config->attackRange = 500.0f;    
+        config->retreatRange = 250.0f; 
+        config->retreatDistance = 400.0f;
+
+        config->attackCooldown = 1500.0f; // Cooldown between attacks.
+
+        config->patrolRadius = 150.0f;
+        config->patrolSpeed = 30.0f;
+        config->patrolThreshold = 5.0f;
+        config->shotsNumberRange = {2, 4}; // Number of shots to fire.
+        config->shotCooldown = 300.0f;
+
+        config->projectileSpeed = 500.0f;
+        config->projectileType = TEXTURE_ASSET_ID::WOOD_ARROW;
+        config->projectileSize = { 50.f, 50.f };
+
+        aiInfo.transitionTable = &getBasicRangerTransitionTable();
         aiInfo.initialState = "patrol";
     }
 
@@ -118,7 +138,7 @@ protected:
         idle_right.frameWidth = frameWidth;
         idle_right.frameHeight = frameHeight;   
         idle_right.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 7; ++col) {
+        for (int col = 0; col < 6; ++col) {
             idle_right.frames.push_back({0, col});
             idle_right.frameDurations.push_back(150.f);
         }
@@ -144,8 +164,8 @@ protected:
         attack_right.frameWidth = frameWidth;
         attack_right.frameHeight = frameHeight;
         attack_right.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 6; ++col) {
-            attack_right.frames.push_back({2, col});
+        for (int col = 0; col < 8; ++col) {
+            attack_right.frames.push_back({4, col});
             attack_right.frameDurations.push_back(100.f);
         }
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::ATTACK, MotionDirection::RIGHT, attack_right);
@@ -156,8 +176,8 @@ protected:
         attack_down.frameWidth = frameWidth;
         attack_down.frameHeight = frameHeight;
         attack_down.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 6; ++col) {
-            attack_down.frames.push_back({3, col});
+        for (int col = 0; col < 8; ++col) {
+            attack_down.frames.push_back({6, col});
             attack_down.frameDurations.push_back(100.f);
         }
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::ATTACK, MotionDirection::DOWN, attack_down);
@@ -168,8 +188,8 @@ protected:
         attack_up.frameWidth = frameWidth;
         attack_up.frameHeight = frameHeight;
         attack_up.spriteSheet = renderingInfo.spriteSheet;
-        for (int col = 0; col < 6; ++col) {
-            attack_up.frames.push_back({4, col});
+        for (int col = 0; col < 8; ++col) {
+            attack_up.frames.push_back({2, col});
             attack_up.frameDurations.push_back(100.f);
         }
         AnimationManager::getInstance().registerCreatureAnimation(creatureID, MotionAction::ATTACK, MotionDirection::UP, attack_up);

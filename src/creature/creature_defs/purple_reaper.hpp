@@ -74,7 +74,7 @@ protected:
     }
 
     virtual void initializeAIInfo() override {
-        aiInfo.aiConfig = getBossAIConfig();
+        aiInfo.aiConfig = std::make_shared<AIConfig>(getBossAIConfig());
         aiInfo.transitionTable = &getBasicFighterTransitionTable();
         aiInfo.initialState = "patrol";
     }
