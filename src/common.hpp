@@ -88,7 +88,7 @@ const float MELEE_MAX_FORCE = 325.0f;
 
 // player/mob stats
 const int PLAYER_HEALTH = 100;
-const float PLAYER_SPEED = 125.0f;
+const float PLAYER_SPEED = 155.0f;
 
 const int MOB_HEALTH = 50; 
 const float MOB_SPEED = 135.0f; 
@@ -97,7 +97,7 @@ const int MOB_DAMAGE = 25;
 
 // player max stats
 const int PLAYER_MAX_HEALTH = 200;
-const float PLAYER_MAX_SPEED = 200.0f;
+const float PLAYER_MAX_SPEED = 305.0f;
 const float PLAYER_MAX_VISION_RADIUS = 0.7;
 
 

@@ -34,19 +34,19 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
    
 
     if (i.up) {
-        proposedVelocity.y = -PLAYER_SPEED;
+        proposedVelocity.y = -player.speed;
         player_direction.up = true;
     }
     else if (i.down){
-        proposedVelocity.y = PLAYER_SPEED;
+        proposedVelocity.y = player.speed;
         player_direction.down = true;
     }
     else if (i.right) {
-        proposedVelocity.x = PLAYER_SPEED; 
+        proposedVelocity.x = player.speed; 
         player_direction.right = true; 
     }
     else if (i.left) {
-        proposedVelocity.x = -PLAYER_SPEED;
+        proposedVelocity.x = -player.speed;
         player_direction.left = true;
     }
 
@@ -61,27 +61,27 @@ void PhysicsSystem::updatePlayerVelocity(InputState i) {
         player_direction.left = true;
     }
     else if (i.left && i.up) {
-        proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, -0.7071f);
+        proposedVelocity = player.speed * vec2(-0.7071f, -0.7071f);
         player_direction.left = true; 
         player_direction.up = true;
     }
     else if (i.left && i.down) {
-        proposedVelocity = PLAYER_SPEED * vec2(-0.7071f, 0.7071f);
+        proposedVelocity = player.speed * vec2(-0.7071f, 0.7071f);
         player_direction.left = true; 
         player_direction.down = true;
     }
     else if (i.right && i.up) {
-        proposedVelocity = PLAYER_SPEED * vec2(0.7071f, -0.7071f);
+        proposedVelocity = player.speed * vec2(0.7071f, -0.7071f);
         player_direction.right = true; 
         player_direction.up = true;
     }
     else if (i.right && i.down) {
-        proposedVelocity = PLAYER_SPEED * vec2(0.7071f, 0.7071f);
+        proposedVelocity = player.speed * vec2(0.7071f, 0.7071f);
         player_direction.right = true;
         player_direction.down = true;
     }
 
-    if (glm::length(proposedVelocity) <= PLAYER_SPEED) {
+    if (glm::length(proposedVelocity) <= player.speed) {
         motion.velocity = proposedVelocity;
     } 	
 }

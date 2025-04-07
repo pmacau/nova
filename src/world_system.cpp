@@ -1385,7 +1385,7 @@ void WorldSystem::left_mouse_click() {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
-					player_comp.speed += 15;
+					player_comp.speed += 30;
 
 					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE && 
