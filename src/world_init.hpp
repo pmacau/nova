@@ -27,7 +27,15 @@ entt::entity createUIShipEngine(entt::registry& registry, vec2 position, vec2 si
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
 // projectile
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, int timer, TEXTURE_ASSET_ID projectileType);
+entt::entity createProjectile(
+    entt::registry& registry, 
+    vec2 pos, 
+    vec2 size, 
+    vec2 velocity, 
+    int damage, 
+    int timer, 
+    TEXTURE_ASSET_ID projectileType,
+    std::vector<ColliderType> targetTypes = { ColliderType::CREATURE });
 
 entt::entity createSlash(entt::registry& registry); 
 

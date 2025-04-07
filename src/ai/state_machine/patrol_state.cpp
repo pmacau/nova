@@ -57,6 +57,8 @@ PatrolState::PatrolState()
 }
 
 void PatrolState::onEnter(entt::registry& registry, entt::entity entity) {
+    debug_printf(DebugType::AI, "PatrolState: onEnter\n");
+
     auto& motion = registry.get<Motion>(entity);
     auto& aiComp = registry.get<AIComponent>(entity);
     const AIConfig& config = aiComp.stateMachine->getConfig();
@@ -97,6 +99,8 @@ void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float 
 }
 
 void PatrolState::onExit(entt::registry& registry, entt::entity entity) {
+    debug_printf(DebugType::AI, "PatrolState: onExit\n");
+
     auto& motion = registry.get<Motion>(entity);
     motion.velocity = {0.f, 0.f};
 }

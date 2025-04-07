@@ -9,6 +9,14 @@
 #include <animation/animation_common.hpp>
 #include <map/tile.hpp>
 
+// enum for what kind of entity this is when collision occurs
+enum class ColliderType {
+	PLAYER,
+	CREATURE,
+	PROJECTILE,
+	OBSTACLE,
+}; 
+
 struct Glyph{};
 struct Tree{};
 struct Background{};
@@ -163,6 +171,7 @@ struct MarkedCollision {
 struct Projectile {
 	int damage;
 	int timer;
+	std::vector<ColliderType> targetTypes;
 };
 
 struct HomingMissile {
@@ -482,6 +491,7 @@ enum class TEXTURE_ASSET_ID {
 	RAILGUN_PROJECTILE,
 	SMG_PROJECTILE,
 	SHOTGUN_PROJECTILE,
+	WOOD_ARROW,
 	DEFAULT_WEAPON, 
 	HOMING_MISSILE, 
 	SHOTGUN,
@@ -500,6 +510,10 @@ enum class TEXTURE_ASSET_ID {
 	GOBLIN_TORCH_RED,
 	GOBLIN_TORCH_PURPLE,
 	GOBLIN_TORCH_YELLOW,
+	SMALL_BLUE_ARCHER,
+	SMALL_PURPLE_ARCHER,
+	SMALL_RED_ARCHER,
+	SMALL_YELLOW_ARCHER,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
 	SELECTION_BUTTON,

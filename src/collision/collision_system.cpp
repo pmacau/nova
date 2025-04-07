@@ -140,7 +140,8 @@ void CollisionSystem::handle<Player, Mob>(
 	physics.knockback(play_ent, mob_ent, 300);
 	physics.suppress(play_ent, mob_ent);
 	
-	screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+	screen.darken_screen_factor = std::min(1.f - ((float) player.health) / ((float) player.currMaxHealth), 1.0f);
+	// screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
 }
 
 template<>
@@ -148,6 +149,15 @@ void CollisionSystem::handle<Projectile, Mob>(
 	entt::entity proj_ent, entt::entity mob_ent, float elapsed_ms
 ) {
 	auto& projectile = registry.get<Projectile>(proj_ent);
+	// check if the projectile's targetTypes (a vector) contains Creature Type
+	bool isTarget = std::any_of(
+		projectile.targetTypes.begin(), projectile.targetTypes.end(),
+		[&](ColliderType type) { return type == ColliderType::CREATURE; }
+	);
+	if (!isTarget) {
+		return;
+	}
+
 	auto& mob = registry.get<Mob>(mob_ent);
 
 	debug_printf(DebugType::COLLISION, "Bullet-mob collision!\n");
@@ -168,6 +178,36 @@ void CollisionSystem::handle<Projectile, Mob>(
 		destroy_entities.insert(mob_ent);
 	}
 	destroy_entities.insert(proj_ent);
+}
+
+template<>
+void CollisionSystem::handle<Projectile, Player>(
+	entt::entity proj_ent, entt::entity play_ent, float elapsed_ms
+) {
+	auto& projectile = registry.get<Projectile>(proj_ent);
+	// check if the projectile's targetTypes (a vector) contains Player Type
+	bool isTarget = std::any_of(
+		projectile.targetTypes.begin(), projectile.targetTypes.end(),
+		[&](ColliderType type) { return type == ColliderType::PLAYER; }
+	);
+	if (!isTarget) {
+		return;
+	}
+
+	auto& player = registry.get<Player>(play_ent);
+	auto& screen = registry.get<ScreenState>(registry.view<ScreenState>().front());
+
+	debug_printf(DebugType::COLLISION, "Bullet-player collision!\n");
+	player.health -= projectile.damage;
+	MusicSystem::playSoundEffect(SFX::HIT);
+
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
+	physics.knockback(play_ent, proj_ent, 300);
+	
+	screen.darken_screen_factor = std::min(1.f - ((float) player.health) / ((float) player.currMaxHealth), 1.0f);
+
+	destroy_entities.insert(proj_ent);
+
 }
 
 // could've probably written the logic much clearer. 
@@ -250,6 +290,7 @@ void CollisionSystem::resolve(entt::entity e1, entt::entity e2, float elapsed_ms
 	if (collision_type<Player, Mob>(e1, e2))      handle<Player, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Mob>(e1, e2))  handle<Projectile, Mob>(e1, e2, elapsed_ms);
 	else if (collision_type<Projectile, Obstacle>(e1, e2)) handle<Projectile, Obstacle>(e1, e2, elapsed_ms);
+	else if (collision_type<Projectile, Player>(e1, e2)) handle<Projectile, Player>(e1, e2, elapsed_ms);
 	else if (collision_type<Slash, Mob>(e1, e2)) handle<Slash, Mob>(e1, e2, elapsed_ms); 
 	// TODO: when AI gets improved, make all mobs unable to walk into obstacles
 	else if (collision_type<Obstacle, Player>(e1, e2)) handle<Obstacle, Player>(e1, e2, elapsed_ms);

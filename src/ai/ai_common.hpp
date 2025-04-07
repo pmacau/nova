@@ -9,5 +9,8 @@ struct AIConfig {
     float patrolSpeed = 25.f;
     float patrolThreshold = 5.0f;
 
-    // assert for the values
+    float retreatRange = 0.0f; // 
+    float retreatDistance = 0.0f; // distance to retreat from the player
+
+    float attackCooldown = 0.0f; // cooldown between attacks
 };

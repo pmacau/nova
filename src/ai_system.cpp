@@ -20,6 +20,8 @@ void AISystem::step(float elapsed_ms)
 	auto view = registry.view<AIComponent>();
     for (auto entity : view) {
         auto& aiComp = view.get<AIComponent>(entity);
+		aiComp.attackCooldownTimer += elapsed_ms;
+
         if (aiComp.stateMachine) {
             aiComp.stateMachine->update(elapsed_ms);
         }
