@@ -96,12 +96,13 @@ void CollisionSystem::step(float elapsed_ms) {
 		if (registry.valid(entity)) {
 			if (registry.any_of<Mob>(entity)) {
 				for (BossSpawn& boss : spawnSystem.bossSpawnData) {
+					flagSystem.bossDefeatedHelper(boss.creatureID);
 					if (boss.entity == entity) {
 						boss.defeated = true;
 						boss.entity = entt::null;
 						break;
 					}
-					flagSystem.bossDefeatedHelper(boss.creatureID);
+					
 				}
 				registry.destroy(entity);
 			}

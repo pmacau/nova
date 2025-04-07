@@ -48,6 +48,12 @@ int main()
 
 
 	
+	// initialize the main systems
+	MapSystem::init(reg);
+
+	// spawn system needs to be initialized after the map system
+	SpawnSystem::initialize(reg);
+	SpawnSystem& spawn_system = SpawnSystem::getInstance();
 
 	// assets and constants
 	initializeAIStates(g_stateFactory);
@@ -67,8 +73,7 @@ int main()
 	PlayerSystem playerSystem(reg);
 	
 
-	SpawnSystem::initialize(reg);
-	SpawnSystem& spawn_system = SpawnSystem::getInstance();
+	
 
 
 	CollisionSystem collision_system(reg, world_system, physics_system, quadTree, spawn_system, flag_system);
@@ -85,12 +90,6 @@ int main()
 	if (!MusicSystem::init()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
-
-	// initialize the main systems
-	MapSystem::init(reg);
-
-	// spawn system needs to be initialized after the map system
-	
 
 	world_system.init();
 	renderer_system.init(window);
@@ -156,3 +155,5 @@ int main()
 
 	return EXIT_SUCCESS;
 }
+
+
