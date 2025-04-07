@@ -32,12 +32,14 @@ public:
 
     static Biome get_biome_by_indices(ivec2 tile_indices);
 
-    static std::vector<vec2>& getBossSpawnIndices();
+    static void initBossSpawnIndices();
+
+    static std::vector<ivec2>& getBossSpawnIndices();
 
 private:
     static inline GameMap game_map;
 
     static void loadMap();
 
-    static std::vector<vec2> bossSpawnIndices;
+    static std::vector<ivec2> bossSpawnIndices;
 };
