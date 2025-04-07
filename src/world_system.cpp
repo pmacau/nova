@@ -476,6 +476,7 @@ void WorldSystem::player_respawn() {
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
+	player_motion.position = player_spawn;
 	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 }
 
