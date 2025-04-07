@@ -4,6 +4,7 @@
 #include <entt.hpp>
 #include "tinyECS/components.hpp"
 #include "util/debug.hpp"
+#include "creature/boss_def.hpp"
 class FlagSystem {
 public:
     //moved, shot, mobkilled from listening to register, accessed in screenstate (ask Frank)? 
@@ -17,6 +18,10 @@ public:
         MobKilled,
         Done
     };
+    bool iceKilled; 
+    bool jungleKilled; 
+    bool savanaKilled; 
+	bool beachKilled;
     bool is_paused;
     float time_spent_s; 
 private:
@@ -44,8 +49,6 @@ public:
             for (auto entity : view) {
                 auto& screen_state = registry.get<ScreenState>(entity);
                 if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN ||
-                    screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI ||
-                    screen_state.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::TITLE) {
@@ -66,12 +69,9 @@ public:
             auto view = registry.view<ScreenState>();
             for (auto entity : view) { 
                 auto& screen = registry.get<ScreenState>(entity);
-                if (screen.current_screen == ScreenState::ScreenType::END_SCREEN ||
-                    screen.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::TITLE) { 
+                if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
+                    screen.current_screen == ScreenState::ScreenType::UPGRADE_UI
+                ) { 
                     is_paused = true; 
                     setAccessed(true);
                     break;
@@ -162,7 +162,30 @@ public:
 
     // resets everything
     void reset() {
+        iceKilled = false;
+        jungleKilled = false;
+        savanaKilled = false;
+        beachKilled = false;
         is_paused = false;
-        tutorial_step = TutorialStep::None;
+        //tutorial_step = TutorialStep::None;
+    }
+
+    void bossDefeatedHelper(CreatureID id) {
+        if (id == CreatureID::BOSS) {
+            iceKilled = true; 
+			std::cout << "Ice boss killed" << std::endl;
+        }
+        else if (id == CreatureID::BOSS_BEACH_RED) {
+			savanaKilled = true;
+			std::cout << "Savanna boss killed" << std::endl;
+		}
+		else if (id == CreatureID::BOSS_FOREST_PURPLE) {
+			jungleKilled = true;
+            std::cout << "Jungle boss killed" << std::endl;
+		}
+		else if (id == CreatureID::BOSS_JUNGLE_YELLOW) {
+			beachKilled = true;
+            std::cout << "Beach boss killed" << std::endl;
+		}
     }
 };
