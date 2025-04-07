@@ -188,7 +188,6 @@ public:
             beachKilled = true;
             //std::cout << "Beach boss killed" << std::endl;
         }
-
         vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
         int scale = 2;
 
@@ -207,7 +206,7 @@ public:
             message += ". Defeat all to {1upgrade} your ship!";
 
             auto text = createTextBox(registry,
-                vec2(0.f, 200.0f), size, message, scale, vec3(1)
+                vec2(0.f, -300.0f), size, message, scale, vec3(1)
             );
 
             registry.emplace<tempText>(text);
