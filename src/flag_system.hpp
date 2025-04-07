@@ -16,6 +16,10 @@ public:
         MobKilled,
         Done
     };
+    bool iceKilled; 
+    bool jungleKilled; 
+    bool savanaKilled; 
+	bool forestKilled;
     bool is_paused;
     float time_spent_s; 
 private:
@@ -176,7 +180,11 @@ public:
 
     // resets everything
     void reset() {
+        bool iceKilled = false;
+        bool jungleKilled = false;
+        bool savanaKilled = false;
+        bool forestKilled = false;
         is_paused = false;
-        tutorial_step = TutorialStep::None;
+        //tutorial_step = TutorialStep::None;
     }
 };

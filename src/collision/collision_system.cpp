@@ -87,6 +87,7 @@ void CollisionSystem::step(float elapsed_ms) {
 	
 	for (auto entity : destroy_entities) {
 		if (registry.valid(entity)) {
+			
 			registry.destroy(entity);
 		}
 	}

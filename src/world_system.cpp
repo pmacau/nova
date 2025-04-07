@@ -421,7 +421,7 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	debug_printf(DebugType::WORLD, "Restarting...\n");
-
+	flag_system.reset();
 	auto& screen_state = registry.get<ScreenState>(registry.view<ScreenState>().front());
 	screen_state.darken_screen_factor = 0;
 	screen_state.time = 0;
