@@ -1311,7 +1311,7 @@ void RenderSystem::renderWeaponUI()
 		}
 	}
 
-	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	// auto& screen_state = registry.get<ScreenState>(screen_entity);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -1457,7 +1457,7 @@ void RenderSystem::renderPlayerUI()
 		ui_projection_2D
 	);
 
-	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	// auto& screen_state = registry.get<ScreenState>(screen_entity);
 
 	glfwSwapBuffers(window);
     gl_has_errors();
@@ -1527,6 +1527,11 @@ void RenderSystem::renderEndScreen() {
 
 	renderText(end_8, end_8_x, height/4 - height/8 + 450.0f, 4.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
 
+	auto glyphs = registry.view<Glyph>();
+	if (glyphs.size() > 0) {
+		registry.destroy(glyphs.begin(), glyphs.end());
+	}
+
 	glfwSwapBuffers(window);
 	gl_has_errors();
 }
@@ -1574,6 +1579,8 @@ void RenderSystem::draw()
 			break;
 		case ScreenState::ScreenType::GAMEPLAY:
 			renderGamePlay();
+			break;
+		default:
 			break;
 	}
 
