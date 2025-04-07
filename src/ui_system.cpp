@@ -30,8 +30,7 @@ void UISystem::updateMobHealthBar(entt::registry& registry, entt::entity& mob_en
 				mobhealth_motion.scale = vec2({ mob.health * 40.f / healthbar.initial_health, 8.f });
 				healthbar.left_adjust += left_adjust - abs(mobhealth_motion.scale.x) / 2.f;
 			}
-			mobhealth_motion.position.x = mob_motion.position.x - healthbar.left_adjust;
-			mobhealth_motion.position.y = mob_motion.position.y - abs(mob_motion.scale.y) / 2.f - healthbar.y_adjust;
+			mobhealth_motion.position = computeHealthBarPosition(mob_motion, { healthbar.left_adjust, healthbar.y_adjust });
 			break;
 		}
 	}
@@ -421,7 +420,7 @@ void UISystem::removeActiveSlot(entt::registry& registry, entt::entity& inventor
 	}
 }
 
-void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity) {
+void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entity, FlagSystem& flag_system) {
 	if (log_inventory) {
 		std::cout << "Adding to inventory ";
 		logItem(registry, registry.get<Item>(item_entity));
@@ -448,6 +447,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 					pickup = true;
 					if (item.no == 0) {
 						MusicSystem::playSoundEffect(SFX::PICKUP);
+						flag_system.setMobKilled(true);
 						registry.destroy(item_entity);
 						if (log_inventory) {
 							std::cout << "New ";
@@ -489,6 +489,7 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 		}
 		if (pickup) {
 			MusicSystem::playSoundEffect(SFX::PICKUP);
+			flag_system.setMobKilled(true);
 		}
 	}
 	else {
@@ -558,12 +559,12 @@ void UISystem::clearInventoryAndDrop(entt::registry& registry, float x, float y)
 	render_request.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 }
 
-void UISystem::equipItem(entt::registry& registry, Motion& player_motion) {
+void UISystem::equipItem(entt::registry& registry, Motion& player_motion, FlagSystem& flag_system) {
 	if (equip_delay > 2.f) {
 		for (auto entity : registry.view<Motion, Item>()) {
 			auto& motion = registry.get<Motion>(entity);
 			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
-				addToInventory(registry, entity);
+				addToInventory(registry, entity, flag_system);
 			}
 		}
 	}
@@ -606,51 +607,23 @@ void UISystem::logInventory(entt::registry& registry) {
 	}
 }
 
-// TODO use external file with set probabilities instead
-void UISystem::dropForMob(entt::registry& registry, entt::entity& entity) {
+void UISystem::creatureDropForMob(entt::registry& registry, entt::entity& entity, DropInfo dropInfo) {
 	if (registry.any_of<Drop>(entity)) {
 		registry.remove<Drop>(entity);
 	}
-	float randomNo = uniform_dist(rng);
-	auto& mob = registry.get<Mob>(entity);
-	Item item;
-	if (registry.any_of<Boss>(entity)) {
-		auto& drop = registry.emplace<Drop>(entity);
-		randomNo = uniform_dist(rng);
-		if (randomNo < 0.5) {
-			item.type = Item::Type::IRON;
-		}
-		else {
-			item.type = Item::Type::COPPER;
-		}
-		randomNo = uniform_dist(rng);
-		item.no = 20 + (int)(randomNo * 11);
-		drop.items.push_back(item);
-		item.type = Item::Type::POTION;
-		randomNo = uniform_dist(rng);
-		item.no = 5 + (int)(randomNo * 6);
-		drop.items.push_back(item);
-	}
-	else {
-		randomNo = uniform_dist(rng);
-		if (randomNo < 0.5) {
-			auto& drop = registry.emplace<Drop>(entity);
-			item.type = Item::Type::POTION;
-			item.no = 1;
+	auto& drop = registry.emplace<Drop>(entity);
+	drop.items.clear();
+	for (auto dropItem: dropInfo.dropItems) {
+		// roll for item drop
+		float randomNo = uniform_dist(rng);
+		if (randomNo <= dropItem.probability) {
+			Item item;
+			item.type = dropItem.type;
+			
+			auto distribution = std::uniform_int_distribution<int>(dropItem.quantityRange.min, dropItem.quantityRange.max);
+			int randomQuantity = distribution(rng);
+			item.no = randomQuantity;
 			drop.items.push_back(item);
-			randomNo = uniform_dist(rng);
-			if (randomNo < 0.5) {
-				randomNo = uniform_dist(rng);
-				if (randomNo < 0.5) {
-					item.type = Item::Type::IRON;
-				}
-				else {
-					item.type = Item::Type::COPPER;
-				}
-				randomNo = uniform_dist(rng);
-				item.no = 1 + (int)(randomNo * 5);
-				drop.items.push_back(item);
-			}
 		}
 	}
 }

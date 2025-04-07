@@ -7,6 +7,8 @@
 #include <ai/ai_component.hpp>
 #include "attack_state.hpp"
 #include <map/map_system.hpp>
+#include <animation_system.hpp>
+
 
 // Helper: Attempt to find a valid patrol target given current position and patrol radius.
 // Returns a candidate world position that is in a walkable tile.
@@ -62,6 +64,13 @@ void PatrolState::onEnter(entt::registry& registry, entt::entity entity) {
     // find a valid patrol target
     vec2 footPos = motion.position + motion.offset_to_ground;
     patrolTarget = findValidPatrolTarget(footPos, config.patrolRadius, rng);
+
+    // animtion
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::IDLE);
+    }
+
 }
 
 void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float deltaTime) {

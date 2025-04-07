@@ -144,10 +144,11 @@ void SpawnSystem::processNaturalSpawning()
     }
 
     // Get all eligible spawn definitions for the given location
-    std::vector<const CreatureDefinition *> eligibleDefs = CreatureManager::getInstance().queryDefinitions(
-        [candidateBiome](const CreatureDefinition& def) {
-            bool inBiome = std::find(def.biomes.begin(), def.biomes.end(), candidateBiome) != def.biomes.end();
-            bool isMob = (def.creatureType == CreatureType::Mob);
+    std::vector<const CreatureDefinitionData *> eligibleDefs = CreatureManager::getInstance().queryDefinitions(
+        [candidateBiome](const CreatureDefinitionData& def) {
+            std::vector<Biome> defBiomes = def.getSpawnInfo().biomes;
+            bool inBiome = std::find(defBiomes.begin(), defBiomes.end(), candidateBiome) != defBiomes.end();
+            bool isMob = (def.getCreatureType() == CreatureType::Mob);
             return inBiome && isMob;
         });
 
@@ -161,16 +162,17 @@ void SpawnSystem::processNaturalSpawning()
     float totalWeight = 0.0f;
     for (const auto *def : eligibleDefs)
     {
-        totalWeight += def->spawnProbability;
+        totalWeight += def->getSpawnInfo().spawnProbability;
+        // totalWeight += def->spawnProbability;
     }
 
     // Perform weighted random selection.
     std::uniform_real_distribution<float> weightedDist(0.0f, totalWeight);
     float weightedRoll = weightedDist(rng);
-    const CreatureDefinition *chosenDef = nullptr;
+    const CreatureDefinitionData *chosenDef = nullptr;
     for (const auto *def : eligibleDefs)
     {
-        weightedRoll -= def->spawnProbability;
+        weightedRoll -= def->getSpawnInfo().spawnProbability;
         if (weightedRoll <= 0.0f)
         {
             chosenDef = def;
@@ -186,19 +188,19 @@ void SpawnSystem::processNaturalSpawning()
     size_t currentMobCount = registry.view<Mob>().size();
     int availableSlots = spawnCap - static_cast<int>(currentMobCount);
 
-    if (availableSlots < chosenDef->group.minSize) {
-        debug_printf(DebugType::SPAWN, "Not enough spawn slots available (%d available, need at least %d).\n", availableSlots, chosenDef->group.minSize);
+    if (availableSlots < chosenDef->getSpawnInfo().group.minSize) {
+        debug_printf(DebugType::SPAWN, "Not enough spawn slots available (%d available, need at least %d).\n", availableSlots, chosenDef->getSpawnInfo().group.minSize);
         return;
     }
 
-    int minGroup = chosenDef->group.minSize;
-    int maxGroup = std::min(chosenDef->group.maxSize, availableSlots);
+    int minGroup = chosenDef->getSpawnInfo().group.minSize;
+    int maxGroup = std::min(chosenDef->getSpawnInfo().group.maxSize, availableSlots);
 
     std::uniform_int_distribution<int> groupDist(minGroup, maxGroup);
     int groupSize = groupDist(rng);
 
     const char *creatureStr = "";
-    switch (chosenDef->creatureType)
+    switch (chosenDef->getCreatureType())
     {
     case CreatureType::Mob:
         creatureStr = "Mob";
@@ -216,7 +218,7 @@ void SpawnSystem::processNaturalSpawning()
 }
 
 
-void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinition &def, const ivec2 &tileIndices, int groupSize)
+void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinitionData &def, const ivec2 &tileIndices, int groupSize)
 {
     std::vector<vec2> validNeighborTiles;
 
@@ -267,20 +269,22 @@ void SpawnSystem::spawnCreaturesByTileIndices(const CreatureDefinition &def, con
         vec2 offset = {offsetWithinTile(rng), offsetWithinTile(rng)};
         vec2 spawnFootPos = baseSpawnPos + offset;
 
-        vec2 spawnPos = spawnFootPos - def.offset_to_ground;
+        vec2 spawnPos = spawnFootPos - def.getPhysicsInfo().offset_to_ground;
 
         // Spawn the creature based on its type
-        switch (def.creatureType)
+        switch (def.getCreatureType())
         {
         case CreatureType::Mob:
         case CreatureType::Mutual:
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnFootPos));
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
 
-            createMob2(registry, spawnPos, 50); 
+            createCreature(registry, spawnPos, def, def.getStats().minHealth);
+
+            // createMob2(registry, spawnPos, 50);
             break;
         case CreatureType::Boss:
-            createBoss(registry, spawnPos);
+            // createBoss(registry, spawnPos);
             break;
         default:
             break;
@@ -354,15 +358,18 @@ void SpawnSystem::checkAndSpawnBoss() {
         if (tileCenter.x >= spawnAreaMin.x && tileCenter.x <= spawnAreaMax.x &&
             tileCenter.y >= spawnAreaMin.y && tileCenter.y <= spawnAreaMax.y) {
 
-            const CreatureDefinition* def = CreatureManager::getInstance().getDefinition(spawnData.id);
+            const CreatureDefinitionData* def = CreatureManager::getInstance().getDefinition(spawnData.creatureID);
 
             // std::cout << "offset to ground: " << def->offset_to_ground.x << ", " << def->offset_to_ground.y << std::endl;
-            vec2 spawnPos = tileCenter - def->offset_to_ground;
+            vec2 spawnPos = tileCenter - def->getPhysicsInfo().offset_to_ground;
 
             // createDebugTile(registry, spawnData.spawnTile);
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
 
-            createBoss(registry, spawnPos);
+
+            createCreature(registry, spawnPos, *def, def->getStats().minHealth);
+
+
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
                          tileCenter.x, tileCenter.y, spawnData.spawnTile.x, spawnData.spawnTile.y);
 

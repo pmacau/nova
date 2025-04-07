@@ -26,13 +26,13 @@ struct SoundTimer {
 };
 
 enum SFX {
-    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP, MISSILE, SHOTGUN,
+    SHOOT, HIT, POTION, EQUIP, PICKUP, WOOD, SELECT, DROP, MISSILE, SHOTGUN, MELEE, DASH,
     SFX_COUNT
 };
 const int sfx_count = (int) SFX_COUNT;
 
 enum Music {
-    FOREST, BEACH, JUNGLE, OCEAN, SAVANNA, SNOWLANDS,
+    FOREST, BEACH, JUNGLE, NIGHT, SAVANNA, SNOWLANDS,
     MUSIC_COUNT
 };
 const int music_count = (int) MUSIC_COUNT;
@@ -64,10 +64,12 @@ public:
         }
 
 		static void playSoundEffect(SFX effect, int loops = 0, int channel = -1) {
+            std::cout << "doing check " << std::endl; 
             if (
                 sfx_map.find(effect) != sfx_map.end() &&
                 sfx_timers.find(effect) != sfx_timers.end()
             ) {
+				std::cout << "entered" << std::endl;
                 SoundTimer& timer = sfx_timers[effect];
                 SoundData<Mix_Chunk>& data = sfx_map[effect];
                 if (timer.curr >= timer.default_timer) {
@@ -80,7 +82,7 @@ public:
         static void playMusic(Music music, int loops = -1, int fade_time = 0) {
             if (music != currentTrack && music_map.find(music) != music_map.end()) {
                 std::thread(fade_to_track, music, loops, fade_time).detach();
-            };
+            }
         }
 
         static void updateSoundTimers(int elapsed_ms) {
@@ -99,13 +101,15 @@ private:
             {DROP,   {"sfx/drop.wav"}},
             {SELECT, {"sfx/select.wav"}},
             {MISSILE,{"sfx/missile.wav", SDL_MIX_MAXVOLUME / 2}},
-            {SHOTGUN,{"sfx/shotgun.wav", SDL_MIX_MAXVOLUME / 3}}
+            {SHOTGUN,{"sfx/shotgun.wav", SDL_MIX_MAXVOLUME / 3}},
+			{MELEE, {"sfx/space-slash.wav", SDL_MIX_MAXVOLUME / 6}},
+			{DASH,   {"sfx/dash.wav", SDL_MIX_MAXVOLUME / 4}}
         };
         inline static std::unordered_map<Music, SoundData<Mix_Music>> music_map = {
             {FOREST,    {"music/forest.wav"}},
             {BEACH,     {"music/beach.wav"}},
             {JUNGLE,    {"music/jungle.wav"}},
-            {OCEAN,     {"music/ocean.wav"}},
+            {NIGHT,     {"music/night.wav"}},
             {SAVANNA,   {"music/savanna.wav"}},
             {SNOWLANDS, {"music/snowlands.wav"}}
         };
@@ -119,7 +123,9 @@ private:
             {DROP,   {}},
             {SELECT, {}},
             {MISSILE, {}},
-            {SHOTGUN, {}}
+            {SHOTGUN, {}}, 
+			{MELEE, {}},
+            {DASH, {}}
         };
 
         template <typename EnumT, typename SoundT>
@@ -157,6 +163,8 @@ private:
 
         static void fade_to_track(Music music, int loops = -1, int fade_time = 0) {
             std::lock_guard<std::mutex> lock(musicMutex);
+
+            if (music == currentTrack) return;
 
             if (Mix_PlayingMusic()) {
                 Mix_FadeOutMusic(fade_time);

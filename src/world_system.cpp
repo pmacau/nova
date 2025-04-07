@@ -20,7 +20,8 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	flag_system(flag_system)
 {
 	for (auto i = 0; i < KeyboardState::NUM_STATES; i++) key_state[i] = false;
-	player_entity = createPlayer(registry, {0, 0});
+	player_spawn = {0, 0};
+	player_entity = createPlayer(registry, player_spawn);
 	ship_entity = createShip(registry, {0, 0});
 	main_camera_entity = createCamera(registry, player_entity);
 
@@ -34,7 +35,6 @@ WorldSystem::WorldSystem(entt::registry& reg, PhysicsSystem& physics_system, Fla
 	createInventory(registry);
 	createMinimap(registry);
 	createDefaultWeapon(registry);
-
 
 	// seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
@@ -157,7 +157,7 @@ void WorldSystem::init() {
 	createUpgradeButton(registry, vec2(w/4 + w/2*0.33f, h/4 + h/2*0.25f), vec2(w/2*0.05f, h/2*0.025f), ButtonOption::Option::SHIP_FIRERATE_UPGRADE, TEXTURE_ASSET_ID::RED_BUTTON_PRESSED);
 
 	// init all of the text boxes for the tutorial
-	textBoxEntities.resize(6);
+	textBoxEntities.resize(7);
     vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
 	int scale = 2;
 
@@ -165,12 +165,12 @@ void WorldSystem::init() {
 		std::string("... wait...? it looks like you survived the crash... holy s#%t! ") +
 		std::string("can you hear us astronaut? welcome to C#42A, AKA planet {1Nova}, the universe's biggest hellhole. ") +
 		std::string("it looks like the ship is pretty banged up. you're going to have to repair it to get out of here. ") +
-		std::string("can you walk? try using {1'W', 'A', 'S', 'D'} to move.");
+		std::string("can you walk? try using {1'W', 'A', 'S', 'D'} to move. {CEnter to continue...}");
     textBoxEntities[0] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_0, scale, vec3(1));
 
 	std::string tut_1 = 
 		std::string("great! let's see if the ship's interface is still working. ") + 
-		std::string("press {1'F'} to toggle the ship {1upgrade UI}");
+		std::string("press {1'F'} near the ship to open and close the {1upgrade UI}");
     textBoxEntities[1] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_1, scale, vec3(1));
 
 	std::string tut_2 =
@@ -180,19 +180,27 @@ void WorldSystem::init() {
     textBoxEntities[2] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_2, scale, vec3(1));
 
 	std::string tut_3 =
-		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
-		std::string("be careful though; our signals indicate the presence of a {1stronger alien} in each biome. ") +
-		std::string("taking those beasts down are sure to net you a hefty reward.");
-    textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
+		std::string("Nice, now if you want to {1melee} press {1V}, and you can dash by pressing {1space bar}! {CEnter to continue...}");
+	textBoxEntities[3] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_3, scale, vec3(1));
 
 	std::string tut_4 =
+		std::string("not too shabby, astronaut. Go explore the {Ssavanna}, {Isnow}, {Bbeach}, and {Jjungle} biomes. ") +
+		std::string("be careful though; our signals indicate the presence of a {1stronger alien} in each biome. ") +
+		std::string("taking those beasts down are sure to net you a hefty reward. {CEnter to continue...}");
+    textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_4, scale, vec3(1));
+
+	std::string tut_5 =
 		std::string("oh, and one more thing. on {1Nova}, each day is only {15 minutes}, so you're only going to ") +
 		std::string("get around {1150 seconds} of daylight. it gets really dark, so you'll probably want to camp out ") +
-		std::string("by the ship for protection. or don't; it's your funeral...");
-	textBoxEntities[4] = createTextBox(registry, vec2(0.f, 200.f), size, tut_4, scale, vec3(1));
+		std::string("by the ship for protection. or don't; it's your funeral... {CEnter to continue...}");
+	textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.f), size, tut_5, scale, vec3(1));
 
-    textBoxEntities[5] = createTextBox(registry, vec2(0.f, 200.0f), size, 
-        "You defeated an enemy! Keep exploring.", scale, vec3(1));
+	std::string tut_6 =
+		std::string("it looks like you found some resources, nice work astronaut! Open your inventory with {1Tab}. ") + 
+		std::string("In the inventory, you can pick up your items with {1Right Click} and place them with {1Left Click}. ") +
+		std::string("also, try using {1CTRL}, {1Shift}, and {1Alt} with {1Right Click} to pick up different quantities! ") +
+		std::string("Press {1Left Click} to interact with an item in the hotbar. {CEnter to continue...}");
+    textBoxEntities[6] = createTextBox(registry, vec2(0.f, 200.0f), size, tut_6, scale, vec3(1));
     
     // make them all inactive initially
     for (auto entity : textBoxEntities) {
@@ -206,20 +214,22 @@ void WorldSystem::init() {
 	
 	flag_system.reset();
 
-	// reset the timer for the last box
-	mobKilledTextTimer = 0.0;
 	//---------------------------------------
-
     restart_game();
 }
 
 // Update our game world
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
+	auto& ship = registry.get<Ship>(ship_entity);
+
 	MusicSystem::updateSoundTimers(elapsed_ms_since_last_update);
 
 	click_delay += elapsed_ms_since_last_update / 1000.f;
 	UISystem::equip_delay += elapsed_ms_since_last_update / 1000.f;
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
+	if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+		return true;
+	}
 	if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
 		return true;
 	}
@@ -244,8 +254,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		auto& motion = registry.get<Motion>(player_entity);
 		UISystem::clearInventoryAndDrop(registry, motion.position.x, motion.position.y);
-		restart_game();
+		player_respawn();
 	}
+
+
+	
 
 	InputState i; 
 	if (key_state[KeyboardState::UP]) i.up = true;
@@ -262,32 +275,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		mouse_click_poll = MOUSE_POLL_RATE;
 	}
 
-
-	// TODO: move direction system
-	float threshold = 5.f;
-	auto dir_view = registry.view<Motion, Sprite>();
-	for (auto& entity : dir_view) {
-		auto& motion = registry.get<Motion>(entity);
-		auto& sprite = registry.get<Sprite>(entity);
-
-		if (length(motion.velocity) > threshold) {
-			vec2 velo = motion.velocity;
-			float x_scale = abs(motion.scale.x);
-
-			if (abs(velo.y) > threshold) {
-				sprite.coord.row = (velo.y > threshold) ? sprite.down_row : sprite.up_row;
-				motion.scale.x = x_scale;
-			}
-
-			if (abs(velo.x) > threshold) {
-				sprite.coord.row = sprite.right_row;
-				motion.scale.x = (velo.x < threshold) ? -1.f * x_scale : x_scale;
-			}
-		}
-	}
-
 	// TODO: check if ENEMY is within the range of the ship, and have it shoot towards that direction
-	auto &ship = registry.get<Ship>(ship_entity);
+	// auto &ship = registry.get<Ship>(ship_entity);
 	auto mobs = registry.view<Mob>();
 
 	float elapsed_s = elapsed_ms_since_last_update / 1000;
@@ -334,10 +323,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+
+
 	// TODO: freeze everything if in ship_ui
 	
 	MapSystem::update_location(registry, player_entity);
-	MapSystem::update_background_music(registry, player_entity);
+	if (screen_state.time > (2.0 * M_PI * 60.0)) {
+		screen_state.time -= (2.0 * M_PI * 60.0);
+	}
+	MapSystem::update_weather(registry, player_entity);
+
+	if ((M_PI * 60.0) <= screen_state.time && screen_state.time <= (2.0 * M_PI * 60.0)) {
+		// It is night-time now
+		MusicSystem::playMusic(NIGHT, -1, 200);
+	} else {
+		MapSystem::update_background_music(registry, player_entity);
+	}
   
 	for (auto entity : registry.view<Projectile>()) {
 		auto& projectile = registry.get<Projectile>(entity);
@@ -360,6 +361,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		mob.hit_time -= elapsed_s;
 	}	
 
+	auto slashView = registry.view<Slash, RenderRequest>();
+	for (auto entity : slashView) {
+		auto& slash = registry.get<Slash>(entity);
+		auto& renderRequest = registry.get<RenderRequest>(entity);
+
+		// Update total elapsed time
+		slash.time_elapsed += elapsed_s;
+		slash.frame_time += elapsed_s;
+
+		// Calculate frame duration (total lifetime divided by number of frames)
+		float frame_duration = slash.total_lifetime / 10.f;
+
+		// Check if it's time to advance to the next frame
+		if (slash.frame_time >= frame_duration) {
+			slash.frame_time = 0.f; // Reset frame timer
+			slash.current_frame++; // Move to next frame
+
+			// Update texture to the next frame
+			if (slash.current_frame <= 10) {
+				// Convert current_frame to the corresponding TEXTURE_ASSET_ID
+				TEXTURE_ASSET_ID newTexture = static_cast<TEXTURE_ASSET_ID>(
+					static_cast<int>(TEXTURE_ASSET_ID::SLASH_1) + slash.current_frame - 1
+					);
+				renderRequest.used_texture = newTexture;
+			}
+		}
+
+		// Remove slash after total lifetime
+		if (slash.time_elapsed >= slash.total_lifetime) {
+			registry.destroy(entity);
+		}
+	}
+
+	
+	float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+	cooldown = max(cooldown - elapsed_s, 0.f);
+
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
 
@@ -369,29 +407,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 }
 
 void WorldSystem::player_respawn() {
+	auto& screen_state = registry.get<ScreenState>(registry.view<ScreenState>().front());
+	screen_state.darken_screen_factor = 0;
+
 	Player& player = registry.get<Player>(player_entity);
 	player.health = PLAYER_HEALTH;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.velocity = {0.f, 0.f};
 	player_motion.acceleration = {0.f, 0.f};
+	player_motion.position = player_spawn;
+
 	UISystem::updatePlayerHealthBar(registry, PLAYER_HEALTH);
 }
 
 void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
 	FlagSystem::TutorialStep currentStep = flag_system.getTutorialStep();
-    
-	// gets rid of the last text box after 15 seconds
-	// if (currentStep == FlagSystem::TutorialStep::Biome_Read) {
-	// 	mobKilledTextTimer += elapsed_ms_since_last_update / 1000.0f;
-	// 	if (mobKilledTextTimer > 15.0f) {
-	// 		for (auto entity : textBoxEntities) {
-	// 			auto& textData = registry.get<TextData>(entity);
-	// 			textData.active = false;
-	// 		}
-	// 		return;
-	// 	}
-	// }
 
     // make all text boxes inactive
     for (auto entity : textBoxEntities) {
@@ -414,11 +445,14 @@ void WorldSystem::handleTextBoxes(float elapsed_ms_since_last_update) {
         case FlagSystem::TutorialStep::Shot:
             activeIndex = 3;
             break;
-		case FlagSystem::TutorialStep::Biome_Read:
+		case FlagSystem::TutorialStep::Melee_Dash:
 			activeIndex = 4;
 			break;
+		case FlagSystem::TutorialStep::Biome_Read:
+			activeIndex = 5;
+			break;
         case FlagSystem::TutorialStep::MobKilled:
-            activeIndex = 5;
+            activeIndex = 6;
             break;
 		default:
 			activeIndex = -1;
@@ -451,8 +485,8 @@ void WorldSystem::restart_game() {
 	}
 	UISystem::clearInventory(registry);
 	// auto motions = registry.view<Motion>(entt::exclude<Player, Ship, Background, FixedUI, DeathItems, Grave, ShipWeapon>);
-	// registry.destroy(motions.begin(), motions.end());d
-	vec2& p_pos = registry.get<Motion>(player_entity).position;
+	// registry.destroy(motions.begin(), motions.end());
+	// vec2& p_pos = registry.get<Motion>(player_entity).position;
 	vec2& s_pos = registry.get<Motion>(ship_entity).position;
 
 	// reset ui ship to default ---> not sure if we wanna do this?
@@ -463,7 +497,7 @@ void WorldSystem::restart_game() {
 	// auto& ship_render = registry.get<RenderRequest>(ship_entity);
 	// ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_VERY_DAMAGE;
 
-	MapSystem::populate_ecs(registry, p_pos, s_pos);
+	MapSystem::populate_ecs(registry, player_spawn, s_pos);
 	
 	player_respawn();
 	/*createPlayerHealthBar(registry, p_pos);
@@ -479,7 +513,7 @@ bool WorldSystem::is_over() const {
 // on key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-
+	
 	// title screen
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		//close_window();
@@ -496,13 +530,22 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
+	
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
+		// int w = 2 * WINDOW_WIDTH_PX, h = 2 * WINDOW_HEIGHT_PX;
 		// glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_V) {
+		float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
+		if (cooldown == 0.f) {
+			cooldown = MELEE_COOLDOWN;
+			createSlash(registry);
+			MusicSystem::playSoundEffect(SFX::MELEE);
+		}
 	}
 
 	// TODO: refactor player movement logic. Also, could allow for rebinding keyboard mapping in
@@ -525,8 +568,19 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	if (key == GLFW_KEY_ENTER) {
-		flag_system.setDone(true);
+	if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE) {
+		physics_system.dash(); 
+	}
+
+	if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
+		FlagSystem::TutorialStep ts = flag_system.getTutorialStep();
+		if      (ts == FlagSystem::TutorialStep::None)       flag_system.setMoved(true);
+		else if (ts == FlagSystem::TutorialStep::Moved)      flag_system.setAccessed(true);
+		else if (ts == FlagSystem::TutorialStep::Accessed)   flag_system.setShot(true);
+		else if (ts == FlagSystem::TutorialStep::Shot)       flag_system.setMeleeDash(true);
+		else if (ts == FlagSystem::TutorialStep::Melee_Dash) flag_system.setBiomeRead(true);
+		else if (ts == FlagSystem::TutorialStep::Biome_Read) flag_system.setDone(true);
+		else if (ts == FlagSystem::TutorialStep::MobKilled)  flag_system.setDone(true);
 	}
 
 	if (key == GLFW_KEY_T && action == GLFW_RELEASE) {
@@ -554,7 +608,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			debug_printf(DebugType::USER_INPUT, "Closing Ship Upgrade UI\n");
             // screen_state.current_screen = ScreenState::ScreenType::GAMEPLAY;
 			screen_state.current_screen = ScreenState::ScreenType::UPGRADE_UI;
-        }
+        } else if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN) {
+			debug_printf(DebugType::USER_INPUT, "END SCREEN\n");
+			close_window();
+		}
     }
 
 	if (key == GLFW_KEY_TAB && action == GLFW_RELEASE) {
@@ -578,14 +635,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
-	//// TODO: testing sound system. remove this later
-	//if (key == GLFW_KEY_1) MusicSystem::playMusic(Music::FOREST, -1, 200);
-	//if (key == GLFW_KEY_2) MusicSystem::playMusic(Music::BEACH, -1, 200);
-	//if (key == GLFW_KEY_3) MusicSystem::playMusic(Music::SNOWLANDS, -1, 200);
-	//if (key == GLFW_KEY_4) MusicSystem::playMusic(Music::SAVANNA, -1, 200);
-	//if (key == GLFW_KEY_5) MusicSystem::playMusic(Music::OCEAN, -1, 200);
-	//if (key == GLFW_KEY_6) MusicSystem::playMusic(Music::JUNGLE, -1, 200);
 
 	if (key == GLFW_KEY_1 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 50.f, 50.f, Click::LEFT);
 	if (key == GLFW_KEY_2 && action == GLFW_RELEASE) UISystem::useItemFromInventory(registry, 95.f, 50.f, Click::LEFT);
@@ -758,6 +807,8 @@ void WorldSystem::left_mouse_click() {
 						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 							ship.health += SHIP_HEALTH_UPGRADE;
+
+							ship.maxHealth = true;
 						} else {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 						}
@@ -772,6 +823,7 @@ void WorldSystem::left_mouse_click() {
 						auto& ui_ship_weapon = registry.get<UIShipWeapon>(ui_ship_weapon_entity);
 						auto& ui_ship_render = registry.get<RenderRequest>(ui_ship_weapon_entity);
 						vec2& ship_pos = registry.get<Motion>(ship_entity).position;
+						auto& ship = registry.get<Ship>(ship_entity);
 
 						if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_RAILGUN_WEAPON) break;
 
@@ -880,6 +932,8 @@ void WorldSystem::left_mouse_click() {
 							
 							// change the bullet type
 							bulletType = BulletType::RAILGUN_PROJECTILE;
+
+							ship.maxWeapon = true;
 
 						} else if (!ui_ship_weapon.active) {
 							// create a new weapon (start as smg)
@@ -994,6 +1048,8 @@ void WorldSystem::left_mouse_click() {
 							createShipEngine(registry, vec2(ship_pos.x - 10.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 11);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
+
+							ship.maxFireRate = true;
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
 							if (registry.valid(ui_ship_engine_entity)) {
@@ -1018,16 +1074,18 @@ void WorldSystem::left_mouse_click() {
 					}
 				}
 
+				auto& ship = registry.get<Ship>(ship_entity);
 				// UPGRADE RANGE ---------------------------------------------------------------------------
-				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON) {
+				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 					
 					// update inventory
 					ship_upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
-
-					auto& ship = registry.get<Ship>(ship_entity);
+					
 					ship.range += SHIP_RANGE_UPGRADE;
+				} else if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ship.range >= SHIP_MAX_RANGE) {
+					ship.maxRange = true;
 				}
 				// upgrade_option.hover = false;
 			}
@@ -1054,6 +1112,7 @@ void WorldSystem::left_mouse_click() {
 		screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
 		click_delay > 0.3f) {
 		auto& weapon = registry.get<Item>(registry.get<InventorySlot>(*registry.view<ActiveSlot>().begin()).item);
+		flag_system.setShot(true);
 		if (weapon.type == Item::Type::DEFAULT_WEAPON) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, PROJECTILE_DAMAGE, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 			player_comp.weapon_cooldown = WEAPON_COOLDOWN;
@@ -1203,7 +1262,7 @@ void WorldSystem::update_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(SHIP_WEAPON_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_WEAPON_UPGRADE_COPPER) + " copper";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER && ui_ship_engine_render.used_texture != TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER && ui_ship_engine_render.used_texture != TEXTURE_ASSET_ID::SHIP_RAILGUN_ENGINE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_FIRERATE_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_FIRERATE_UPGRADE_COPPER) + " copper";

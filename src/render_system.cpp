@@ -18,6 +18,7 @@
 #include <cctype>
 
 
+
 RenderSystem::RenderSystem(entt::registry& reg, QuadTree& quadTree):
 	registry(reg), 
 	quadTree(quadTree)
@@ -196,13 +197,14 @@ entt::entity createGlyph(
 const std::unordered_map<char, vec3> color_codes = {
 	// Biome codes
 	{'I', {155.f/255.f, 226.f/255.f, 255.f/255.f}},
-	{'S', {120.f/255.f, 138.f/255.f, 50.f/255.f}},
+	{'S', {206.f/255.f, 250.f/255.f, 5.f/255.f}},
 	{'J', {17.f/255.f,  91.f/255.f,  40.f/255.f}},
 	{'B', {255.f/255.f, 220.f/255.f, 85.f/255.f}},
 	{'F', {62.f/255.f,  137.f/255.f, 72.f/255.f}},
 	{'W', {0.f/255.f,   149.f/255.f, 233.f/255.f}},
-
+	
 	{'0', {124.f/255.f, 109.f/255.f, 162.f/255.f}},
+	{'C', {200.f/255.f, 200.f/255.f, 200.f/255.f}},
 	{'1', {0, 0, 1}},
 	{'2', {1, 0, 0}},
 };
@@ -495,6 +497,10 @@ void RenderSystem::drawTexturedMesh(entt::entity entity,
 
 
 	vec2 centre_position = motion.position;
+	if (registry.any_of<Slash>(entity)) {
+		auto player = registry.view<Player>().front(); 
+		centre_position = registry.get<Motion>(player).position; 
+	}
 	Transform model_transform;
 	model_transform.translate(centre_position);
 	model_transform.rotate(radians(motion.angle));
@@ -636,19 +642,24 @@ void RenderSystem::drawToScreen(bool vignette)
 	gl_has_errors();
 
 	auto& screen = registry.get<ScreenState>(screen_entity);
+
+	Shader v = shaders.at("vignette");
+
+    if (vignette) {
+		if      (screen.curr_effect == EFFECT_ASSET_ID::E_FOG)  v = shaders.at("fog");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_SNOW) v = shaders.at("snow");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_HEAT) v = shaders.at("heat");
+		else if (screen.curr_effect == EFFECT_ASSET_ID::E_RAIN) v = shaders.at("rain");
+	}
 	
-
-	Shader& v = shaders.at("vignette");
 	v.use();
-	unsigned int program = v.ID;
-
-	v.setFloat("time", vignette ? screen.time : 0.f);
-	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
+	v.setFloat("time", vignette ? screen.time : (M_PI / 2 * 60.0));
 	v.setVec2("resolution", vec2(w, h));
+	v.setFloat("darken_screen_factor", vignette ? screen.darken_screen_factor : 0.f);
 		
 	// Set the vertex position and vertex texture coordinates (both stored in the
 	// same VBO)
-	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_position_loc = glGetAttribLocation(v.ID, "in_position");
 	glEnableVertexAttribArray(in_position_loc);
 	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void *)0);
 	gl_has_errors();
@@ -731,6 +742,11 @@ void RenderSystem::renderGamePlay()
 	for (auto projectile : projectiles) {
 		nearbyEntities.push_back(projectile);
 	}
+	auto slashes = registry.view<Slash>(); 
+	for (auto slash : slashes) {
+		nearbyEntities.push_back(slash); 
+	}
+
 
 	// render all the ship weapons/engine
 	auto shipEngineRenders = registry.view<ShipEngine, Motion, RenderRequest>(entt::exclude<UI, Background, TextData, DeathItems, Button, UIIcon, UIShipWeapon, UIShipEngine, UpgradeButton>);
@@ -893,6 +909,14 @@ void RenderSystem::renderGamePlay()
 	for (const auto& [content, position, scale, color, projection, wrap] : textsToRender) {
 		renderText(content, position.x, position.y, scale, color, projection, wrap);
 	}
+
+	float x_ratio = (playerMotion.position.x / 16.f) / 500.f;
+	float y_ratio = (playerMotion.position.y / 16.f) / 500.f;
+	vec2 scale = vec2(499.f) / 3.f;
+	vec2 offset = { WINDOW_WIDTH_PX - 175.f, 150.f };
+	vec2 marker_pos = vec2(scale.x * x_ratio, scale.y * y_ratio) + offset - scale / 2.f;
+
+	renderText("*", marker_pos.x, marker_pos.y, 2, vec3(0), ui_projection_2D);
 
 	// flicker-free display with a double buffer
 	glfwSwapBuffers(window);
@@ -1205,33 +1229,118 @@ void RenderSystem::renderShipUI()
     gl_has_errors();
 }
 
+void RenderSystem::renderEndScreen() {
+	int w, h;
+	glfwGetFramebufferSize(window, &w, &h); // Note, this will be 2x the resolution given to glfwCreateWindow on retina displays
+
+	// First render to the custom framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+	gl_has_errors();
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "ERROR: Framebuffer is not complete! Status: " << status << std::endl;
+		return;
+	}
+
+	// clear backbuffer
+	glViewport(0, 0, w, h);
+	glDepthRange(0.0, 10);
+
+	// black background
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	mat3 ui_projection_2D = createUIProjectionMatrix();
+	int width = 2 * WINDOW_WIDTH_PX, height = 2 * WINDOW_HEIGHT_PX;
+
+	drawToScreen(false);
+
+	std::string end_0 = std::string("... you did it. against all odds, you fully repaired the ship. ");
+	std::string end_1 = std::string("honestly? we didnt think you had it in you, but here we are. ");
+
+	std::string end_2 = std::string("systems are online, engines are humming. all thats left is to press {1'F'} one last time and launch. ");
+	std::string end_3 = std::string("say goodbye to planet {1Nova} and good riddance.");
+
+	std::string end_4 = std::string("whats waiting for you back home? maybe a cold beer. maybe a debrief with some grumpy admiral. ");
+	std::string end_5 = std::string("maybe just some damn peace and quiet for once.");
+
+	std::string end_6 = std::string("whatever it is... you earned it. ");
+	std::string end_7 = std::string("now get off this rock. and try not to crash the next one, yeah?");
+
+	std::string end_8 = std::string("press {1'F'} to leave planet");
+
+	float end_0_x = width/4 - getTextWidth(end_0, 2.0f)/2;
+	float end_1_x = width/4 - getTextWidth(end_1, 2.0f)/2;
+	float end_2_x = width/4 - getTextWidth(end_2, 2.0f)/2;
+	float end_3_x = width/4 - getTextWidth(end_3, 2.0f)/2;
+	float end_4_x = width/4 - getTextWidth(end_4, 2.0f)/2;
+	float end_5_x = width/4 - getTextWidth(end_5, 2.0f)/2;
+	float end_6_x = width/4 - getTextWidth(end_6, 2.0f)/2;
+	float end_7_x = width/4 - getTextWidth(end_7, 2.0f)/2;
+	float end_8_x = width/4 - getTextWidth(end_8, 4.0f)/2;
+
+	renderText(end_0, end_0_x, height/4 - height/8, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_1, end_1_x, height/4 - height/8 + 25.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_2, end_2_x, height/4 - height/8 + 50.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_3, end_3_x, height/4 - height/8 + 75.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_4, end_4_x, height/4 - height/8 + 100.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_5, end_5_x, height/4 - height/8 + 125.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_6, end_6_x, height/4 - height/8 + 150.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+	renderText(end_7, end_7_x, height/4 - height/8 + 175.0f, 2.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+
+	renderText(end_8, end_8_x, height/4 - height/8 + 450.0f, 4.0f, vec3(1.0f, 1.0f, 1.0f), ui_projection_2D);
+
+	glfwSwapBuffers(window);
+	gl_has_errors();
+}
+
 // Render our game world
 // http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/
 void RenderSystem::draw()
 {
 	auto& screen_state = registry.get<ScreenState>(screen_entity);
-	// auto& screen_state = registry.get<ScreenState>(screens.front());
+	auto& ship = registry.get<Ship>(registry.view<Ship>().front());
 
-    switch (screen_state.current_screen) {
+	if (ship.maxHealth && ship.maxFireRate && ship.maxRange && ship.maxWeapon) {
+		if (!shipFullyUpgraded) {
+			shipFullyUpgraded = true;
+			shipUpgradeTime = (float)glfwGetTime(); // mark the time of upgrade
+		}
+		float timeSinceUpgrade = (float)glfwGetTime() - shipUpgradeTime;
+		if (timeSinceUpgrade >= 5.0f) {
+			renderEndScreen();
+			endScreenTriggered = true;
+			screen_state.current_screen = ScreenState::ScreenType::END_SCREEN;
+		}
+	}
+
+	if (endScreenTriggered) {
+		return;
+	}
+
+	switch (screen_state.current_screen) {
 		case ScreenState::ScreenType::TITLE:
 			renderTitle();
 			break;
 		case ScreenState::ScreenType::UPGRADE_UI:
-            renderUpgradeUI();
-            break;
+			renderUpgradeUI();
+			break;
 		case ScreenState::ScreenType::SHIP_UPGRADE_UI:
-            renderShipUI();
-            break;
+			renderShipUI();
+			break;
 		case ScreenState::ScreenType::PLAYER_UPGRADE_UI:
-            // renderPlayerUI
-            break;
+			// renderPlayerUI
+			break;
 		case ScreenState::ScreenType::WEAPON_UPGRADE_UI:
-            // renderWeaponUI
-            break;
-        case ScreenState::ScreenType::GAMEPLAY:
-            renderGamePlay();
-            break;
-    }
+			// renderWeaponUI
+			break;
+		case ScreenState::ScreenType::GAMEPLAY:
+			renderGamePlay();
+			break;
+	}
 
 	auto glyphs = registry.view<Glyph>();
 

@@ -18,6 +18,7 @@ public:
 
     static void update_location(entt::registry& reg, entt::entity ent);
     static void update_background_music(entt::registry& reg, entt::entity ent);
+    static void update_weather(entt::registry& reg, entt::entity ent);
 
     inline static int map_width  = -1;
     inline static int map_height = -1;
@@ -26,6 +27,7 @@ public:
     static Tile get_tile_type_by_indices(int x, int y);
     static vec2 get_tile_indices(vec2 pos);
     static vec2 get_tile_center_pos(vec2 tile_indices);
+
     static bool walkable_tile(Tile tile);
 
     static Biome get_biome_by_indices(ivec2 tile_indices);
