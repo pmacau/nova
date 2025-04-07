@@ -193,18 +193,18 @@ public:
         int scale = 2;
 
         std::vector<std::string> remaining;
-        if (!iceKilled) remaining.push_back("{1Ice Titan{");
-        if (!jungleKilled) remaining.push_back("{1Jungle Behemoth}");
-        if (!savanaKilled) remaining.push_back("{1Savanna Colossus}");
-        if (!beachKilled) remaining.push_back("{1Siren of the Sands}");
+        if (!iceKilled) remaining.push_back("{IIce Titan}");
+        if (!jungleKilled) remaining.push_back("{JJungle Behemoth}");
+        if (!savanaKilled) remaining.push_back("{SSavanna Colossus}");
+        if (!beachKilled) remaining.push_back("{BSiren of the Sands}");
 
 
         if (!remaining.empty()) {
-            std::string message = "Remaining bosses:\n";
+            std::string message = "Remaining bosses";
             for (auto& boss : remaining) {
-                message += " - " + boss + "\n";
+                message += ", " + boss;
             }
-            message += "\nDefeat all to {1upgrade} your ship!";
+            message += ". Defeat all to {1upgrade} your ship!";
 
             auto text = createTextBox(registry,
                 vec2(0.f, 200.0f), size, message, scale, vec3(1)
@@ -216,7 +216,7 @@ public:
             textData.active = true;
         }
         else {
-            std::string message = "All bosses {1defeated}! {1Nothing} is holding you back from {1upgrading} the ship now!";
+            std::string message = "All bosses {1defeated}! Nothing is holding you back from {1upgrading} the ship now!";
             auto text = createTextBox(registry,
                 vec2(0.f, 200.0f), size, message, scale, vec3(1)
             );
