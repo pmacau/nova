@@ -4,6 +4,7 @@
 #include <entt.hpp>
 #include "tinyECS/components.hpp"
 #include "util/debug.hpp"
+#include "creature/boss_def.hpp"
 class FlagSystem {
 public:
     //moved, shot, mobkilled from listening to register, accessed in screenstate (ask Frank)? 
@@ -20,7 +21,7 @@ public:
     bool iceKilled; 
     bool jungleKilled; 
     bool savanaKilled; 
-	bool forestKilled;
+	bool beachKilled;
     bool is_paused;
     float time_spent_s; 
 private:
@@ -161,11 +162,30 @@ public:
 
     // resets everything
     void reset() {
-        bool iceKilled = false;
-        bool jungleKilled = false;
-        bool savanaKilled = false;
-        bool forestKilled = false;
+        iceKilled = false;
+        jungleKilled = false;
+        savanaKilled = false;
+        beachKilled = false;
         is_paused = false;
         //tutorial_step = TutorialStep::None;
+    }
+
+    void bossDefeatedHelper(CreatureID id) {
+        if (id == CreatureID::BOSS) {
+            iceKilled = true; 
+			std::cout << "Ice boss killed" << std::endl;
+        }
+        else if (id == CreatureID::BOSS_BEACH_RED) {
+			savanaKilled = true;
+			std::cout << "Savanna boss killed" << std::endl;
+		}
+		else if (id == CreatureID::BOSS_FOREST_PURPLE) {
+			jungleKilled = true;
+            std::cout << "Jungle boss killed" << std::endl;
+		}
+		else if (id == CreatureID::BOSS_JUNGLE_YELLOW) {
+			beachKilled = true;
+            std::cout << "Beach boss killed" << std::endl;
+		}
     }
 };

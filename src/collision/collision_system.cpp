@@ -5,11 +5,14 @@
 #include "music_system.hpp"
 #include "util/debug.hpp"
 
-CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, QuadTree& quadTree) :
+
+CollisionSystem::CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, QuadTree& quadTree, SpawnSystem& spawnSystem, FlagSystem& flagSystem) :
 	registry(reg),
 	physics(physics),
 	world(world),
-	quadTree(quadTree)
+	quadTree(quadTree),
+	spawnSystem(spawnSystem), 
+	flagSystem(flagSystem)
 {
 	
 	
@@ -91,13 +94,22 @@ void CollisionSystem::step(float elapsed_ms) {
 	
 	for (auto entity : destroy_entities) {
 		if (registry.valid(entity)) {
-			
-			registry.destroy(entity);
+			if (registry.any_of<Mob>(entity)) {
+				for (BossSpawn& boss : spawnSystem.bossSpawnData) {
+					if (boss.entity == entity) {
+						boss.defeated = true;
+						boss.entity = entt::null;
+						break;
+					}
+					flagSystem.bossDefeatedHelper(boss.creatureID);
+				}
+				registry.destroy(entity);
+			}
 		}
 	}
 	for (auto slash : slashes) {
 		if (!registry.valid(slash)) {
-			
+			continue; // Skip if the entity is not valid
 		}
 		Slash& s = registry.get<Slash>(slash); 
 		s.hit = true;
