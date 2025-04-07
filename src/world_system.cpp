@@ -454,12 +454,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 
-	for (auto tempText : registry.view<tempText>()) {
-		auto& text = registry.get<tempText>(tempText);
-		text.timer += elapsed_s;
-		if (text.timer >= 5.f) {
-			if (registry.valid(tempText)) {
-				registry.destroy(tempText);
+	for (auto temp : registry.view<tempText>()) {
+		std::cout << "OOOOOO " << std::endl; 
+		auto& text = registry.get<tempText>(temp);
+		auto& text1 = registry.get<TextData>(temp);
+		text.time_elapsed += elapsed_s;
+		std::cout << "temp text time elapsed: " << text.time_elapsed << std::endl;
+		if (text.time_elapsed >= 5.f) {
+			text1.active = false;
+			if (registry.valid(temp)) {
+				registry.destroy(temp);
 			}
 		}
 	}
