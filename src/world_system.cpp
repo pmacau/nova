@@ -1417,6 +1417,8 @@ void WorldSystem::left_mouse_click() {
 	if (screen_state.current_screen == ScreenState::ScreenType::GAMEPLAY && 
 		click_delay > 0.3f) {
 		auto& weapon = registry.get<Item>(registry.get<InventorySlot>(*registry.view<ActiveSlot>().begin()).item);
+		flag_system.setShot(true);
+
 		if (weapon.type == Item::Type::DEFAULT_WEAPON && player_comp.default_weapon_cooldown_dynamic <= 0) {
 			createProjectile(registry, player_motion.position, vec2(PROJECTILE_SIZE, PROJECTILE_SIZE), velocity, player_comp.default_weapon_damage, PROJECTILE_TIMER, TEXTURE_ASSET_ID::GOLD_PROJECTILE);
 			player_comp.default_weapon_cooldown_dynamic = player_comp.default_weapon_cooldown;
