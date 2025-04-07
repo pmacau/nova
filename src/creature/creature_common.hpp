@@ -16,6 +16,9 @@ enum class CreatureID {
 	GOBLIN_TORCH_YELLOW,
     SKELETON,
     BOSS,
+    BOSS_FOREST_PURPLE,
+    BOSS_BEACH_RED,
+    BOSS_JUNGLE_YELLOW,
 };
 
 

@@ -830,7 +830,7 @@ entt::entity createCreature(entt::registry& registry, vec2 position, const Creat
 
 	const AnimationDefinition* animation_def = AnimationManager::getInstance().getCreatureAnimation(
 		def.getCreatureID(), def.getRenderingInfo().initAction, def.getRenderingInfo().initDirection);
-
+	
 	auto& sprite = registry.emplace<Sprite>(entity);
 	sprite.dims = vec2(animation_def->frameWidth, animation_def->frameHeight);
 	sprite.sheet_dims = def.getRenderingInfo().spriteSheet.sheetDimensions;
