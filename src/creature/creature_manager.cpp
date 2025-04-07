@@ -59,5 +59,8 @@ void CreatureManager::loadDefinitions() {
     registerDefinition(&RedTorchGoblinDefData::getInstance());
     registerDefinition(&PurpleTorchGoblinDefData::getInstance());
     registerDefinition(&YellowTorchGoblinDefData::getInstance());
-    registerDefinition(&PurpleReaperData::getInstance());
+    registerDefinition(&ForestPurpleWizardData::getInstance());
+    registerDefinition(&BeachPurpleWizardData::getInstance());
+    registerDefinition(&JunglePurpleWizardData::getInstance());
+    registerDefinition(&DefaultWizardData::getInstance());
 }
