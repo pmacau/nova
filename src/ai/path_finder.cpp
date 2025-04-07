@@ -8,10 +8,14 @@
 
 static inline int heuristic(const ivec2& a, const ivec2& b) {
     // return std::abs(a.x - b.x) + std::abs(a.y - b.y);
+    // return glm::distance((vec2) a,  (vec2) b) * 10.0f; // to match the dir cost
+    // int dx = std::abs(a.x - b.x);
+    // int dy = std::abs(a.y - b.y);
+    // return 10 * (dx + dy) + (4 * std::min(dx, dy));
     return glm::distance((vec2) a,  (vec2) b) * 10.0f; // to match the dir cost
 }
 
-std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
+std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal, bool limitIterations) {
     std::vector<ivec2> path;
     
     PriorityQueue<Node, int> openSet;
@@ -36,8 +40,15 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
         { ivec2(-1, 1), 14 },   // down-left
         { ivec2(-1, -1), 14 }   // up-left
     };
+
+    int iterations = 0;
+    const int maxIterations = 10000;
+
+    Node bestNode(start, start, 0, fScore[start]);
+    int bestScore = fScore[start];
     
-    while (!openSet.empty()) {
+    while (!openSet.empty() && (!limitIterations || iterations < maxIterations)) {
+        iterations++;
         Node current = openSet.get();
         
         if (current.position == goal) {
@@ -50,6 +61,12 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
             path.push_back(start);
             std::reverse(path.begin(), path.end());
             return path;
+        }
+
+        // Update the best node if current has a lower f-score.
+        if (current.getScore() < bestScore) {
+            bestScore = current.getScore();
+            bestNode = current;
         }
         
         // For each neighbor.
@@ -76,6 +93,14 @@ std::vector<ivec2> Pathfinder::findPath(const ivec2& start, const ivec2& goal) {
         }
     }
     
-    // no path was found.
+    // we exceeded maxIterations or no path found
+    // Reconstruct path from the best node encountered
+    ivec2 curPos = bestNode.position;
+    while (curPos != start) {
+        path.push_back(curPos);
+        curPos = cameFrom[curPos];
+    }
+    path.push_back(start);
+    std::reverse(path.begin(), path.end());
     return path;
 }

@@ -8,6 +8,7 @@
 #include <world_init.hpp>
 
 #include "music_system.hpp"
+#include <util/debug.hpp>
 
 void RangeAttackState::onEnter(entt::registry &registry, entt::entity entity)
 {
@@ -24,7 +25,7 @@ void RangeAttackState::onEnter(entt::registry &registry, entt::entity entity)
     // randomly select the number of shots to fire
     ivec2 shotsRange = config.shotsNumberRange;
 
-    std::cout << "RangeAttackState: shotsRange: " << shotsRange.x << ", " << shotsRange.y << "\n";
+    // std::cout << "RangeAttackState: shotsRange: " << shotsRange.x << ", " << shotsRange.y << "\n";
 
     // picks a random number between shotsRange.x and shotsRange.y
     rng.seed(std::random_device()());
@@ -33,7 +34,8 @@ void RangeAttackState::onEnter(entt::registry &registry, entt::entity entity)
 
     shotTimer = 0.0f;
     stateComplete = false;
-    std::cout << "Entering RangeAttackState, num shots: " << shotsRemaining << "\n";
+
+    debug_printf(DebugType::AI, "Entering RangeAttackState\n");
 }
 
 void RangeAttackState::onUpdate(entt::registry &registry, entt::entity entity, float deltaTime)
@@ -55,7 +57,7 @@ void RangeAttackState::onUpdate(entt::registry &registry, entt::entity entity, f
         shootProjectile(registry, entity, config);
         
         shotsRemaining--;
-        std::cout << "RangeAttackState: Shot fired, remaining: " << shotsRemaining << "\n";
+        // std::cout << "RangeAttackState: Shot fired, remaining: " << shotsRemaining << "\n";
     }
 
     // Instead of directly calling changeState, we set a flag when done.
@@ -72,6 +74,8 @@ void RangeAttackState::onExit(entt::registry &registry, entt::entity entity)
         auto& aiComp = registry.get<AIComponent>(entity);
         aiComp.attackCooldownTimer = 0.0f;
     }
+
+    debug_printf(DebugType::AI, "Exiting RangeAttackState\n");
 }
 
 void RangeAttackState::shootProjectile(entt::registry &registry, entt::entity entity, const RangeAIConfig &config)

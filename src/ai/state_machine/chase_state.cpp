@@ -152,6 +152,8 @@ void ChaseState::onUpdate(entt::registry& registry, entt::entity entity, float d
 }
 
 void ChaseState::onExit(entt::registry& registry, entt::entity entity) {
+    debug_printf(DebugType::AI, "ChaseState: onExit\n");
+
     // Stop movement on exit
     auto& motion = registry.get<Motion>(entity);
     // std::cout << "v = 0 (4)" << std::endl;

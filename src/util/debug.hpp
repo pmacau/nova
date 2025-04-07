@@ -41,6 +41,7 @@ inline std::unordered_map<DebugType, DebugData> debug_options = {
      {DebugType::FLAG,  {true, 38, "[FLAG]"}},
     // Fine-grain debug types
     {DebugType::USER_INPUT, {true, 36, "[INPUT]"}},
+    {DebugType::AI,  {true, 39, "[AI]"}},
     {DebugType::TIME, {false, 30, "[TIME]"}},
 };
 

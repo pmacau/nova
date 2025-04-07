@@ -121,20 +121,6 @@ inline const TransitionTable& getBasicRangerTransitionTable() {
         });
 
         // Transition from "attack" to "chase" if the attack sequence is complete and the player is no longer in attack range.
-        
-
-        rangedTransitions["range_attack"].push_back({
-            "patrol",
-            [](entt::registry& reg, entt::entity entity, const AIConfig& config, AIState* currState) -> bool {
-                auto playerView = reg.view<Player, Motion>();
-                if (playerView.size_hint() == 0) return false;
-                auto playerEntity = *playerView.begin();
-                auto& playerMotion = reg.get<Motion>(playerEntity);
-                auto& motion = reg.get<Motion>(entity);
-                vec2 diff = playerMotion.position - motion.position;
-                return currState->isStateComplete() && shouldTransitionToPatrol(length(diff), config);
-            }
-        });
 
         rangedTransitions["retreat"].push_back({
             "range_attack",
@@ -147,7 +133,7 @@ inline const TransitionTable& getBasicRangerTransitionTable() {
                 float dist = length(playerMotion.position - motion.position);
                 auto& aiComp = reg.get<AIComponent>(entity);
                 const RangeAIConfig& rangeConfig = static_cast<const RangeAIConfig&>(config);
-                return shouldTransitionToAttack(dist, rangeConfig, aiComp.attackCooldownTimer);
+                return currState->isStateComplete() && shouldTransitionToAttack(dist, rangeConfig, aiComp.attackCooldownTimer);
             }
         });
 
@@ -160,7 +146,7 @@ inline const TransitionTable& getBasicRangerTransitionTable() {
                 auto& playerMotion = reg.get<Motion>(playerEntity);
                 auto& motion = reg.get<Motion>(entity);
                 float dist = length(playerMotion.position - motion.position);
-                return shouldTransitionToChase(dist, config);
+                return currState->isStateComplete() && shouldTransitionToChase(dist, config);
             }
         });
 
@@ -182,6 +168,19 @@ inline const TransitionTable& getBasicRangerTransitionTable() {
         // });
 
         rangedTransitions["range_attack"].push_back({
+            "patrol",
+            [](entt::registry& reg, entt::entity entity, const AIConfig& config, AIState* currState) -> bool {
+                auto playerView = reg.view<Player, Motion>();
+                if (playerView.size_hint() == 0) return false;
+                auto playerEntity = *playerView.begin();
+                auto& playerMotion = reg.get<Motion>(playerEntity);
+                auto& motion = reg.get<Motion>(entity);
+                vec2 diff = playerMotion.position - motion.position;
+                return currState->isStateComplete() && shouldTransitionToPatrol(length(diff), config);
+            }
+        });
+
+        rangedTransitions["range_attack"].push_back({
             "chase",
             [](entt::registry& reg, entt::entity entity, const AIConfig& config, AIState* currState) -> bool {
                 auto playerView = reg.view<Player, Motion>();
@@ -189,7 +188,33 @@ inline const TransitionTable& getBasicRangerTransitionTable() {
                 auto playerEntity = *playerView.begin();
                 auto& playerMotion = reg.get<Motion>(playerEntity);
                 auto& motion = reg.get<Motion>(entity);
+                vec2 diff = playerMotion.position - motion.position;
+                return currState->isStateComplete() && shouldTransitionToChase(length(diff), config);
+            }
+        });
+
+        rangedTransitions["range_attack"].push_back({
+            "retreat",
+            [](entt::registry& reg, entt::entity entity, const AIConfig& config, AIState* currState) -> bool {
+                auto playerView = reg.view<Player, Motion>();
+                if (playerView.size_hint() == 0) return false;
+                auto playerEntity = *playerView.begin();
+                auto& playerMotion = reg.get<Motion>(playerEntity);
+                auto& motion = reg.get<Motion>(entity);
                 float dist = length(playerMotion.position - motion.position);
+                return currState->isStateComplete() && shouldTransitionToRetreat(dist, config);
+            }
+        });
+
+        rangedTransitions["range_attack"].push_back({
+            "patrol",
+            [](entt::registry& reg, entt::entity entity, const AIConfig& config, AIState* currState) -> bool {
+                auto playerView = reg.view<Player, Motion>();
+                if (playerView.size_hint() == 0) return false;
+                auto playerEntity = *playerView.begin();
+                auto& playerMotion = reg.get<Motion>(playerEntity);
+                auto& motion = reg.get<Motion>(entity);
+                // float dist = length(playerMotion.position - motion.position);
                 return currState->isStateComplete();
             }
         });
