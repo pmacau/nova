@@ -31,6 +31,12 @@ struct Slash {
 	bool hit = false;
 };
 
+
+// this is me being lazy sorry. 
+struct tempText {
+	float time_elapsed = 0.0f;
+};
+
 struct InputState {
 	bool up = false;
 	bool down = false;

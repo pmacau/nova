@@ -453,6 +453,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+
+	for (auto tempText : registry.view<tempText>()) {
+		auto& text = registry.get<tempText>(tempText);
+		text.timer += elapsed_s;
+		if (text.timer >= 5.f) {
+			if (registry.valid(tempText)) {
+				registry.destroy(tempText);
+			}
+		}
+	}
 	
 	float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
 	cooldown = max(cooldown - elapsed_s, 0.f);

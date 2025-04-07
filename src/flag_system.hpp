@@ -5,6 +5,7 @@
 #include "tinyECS/components.hpp"
 #include "util/debug.hpp"
 #include "creature/boss_def.hpp"
+#include "world_init.hpp"
 class FlagSystem {
 public:
     //moved, shot, mobkilled from listening to register, accessed in screenstate (ask Frank)? 
@@ -173,19 +174,53 @@ public:
     void bossDefeatedHelper(CreatureID id) {
         if (id == CreatureID::BOSS) {
             iceKilled = true; 
-			std::cout << "Ice boss killed" << std::endl;
+			//std::cout << "Ice boss killed" << std::endl;
         }
         else if (id == CreatureID::BOSS_BEACH_RED) {
 			savanaKilled = true;
-			std::cout << "Savanna boss killed" << std::endl;
+			//std::cout << "Savanna boss killed" << std::endl;
 		}
 		else if (id == CreatureID::BOSS_FOREST_PURPLE) {
 			jungleKilled = true;
-            std::cout << "Jungle boss killed" << std::endl;
+            //std::cout << "Jungle boss killed" << std::endl;
 		}
 		else if (id == CreatureID::BOSS_JUNGLE_YELLOW) {
 			beachKilled = true;
-            std::cout << "Beach boss killed" << std::endl;
+            //std::cout << "Beach boss killed" << std::endl;
 		}
+
+        vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
+        int scale = 2;
+
+        std::vector<std::string> remaining;
+        if (!iceKilled) remaining.push_back("{1Ice Titan{");
+        if (!jungleKilled) remaining.push_back("{1Jungle Behemoth}");
+        if (!savanaKilled) remaining.push_back("{1Savanna Colossus}");
+        if (!beachKilled) remaining.push_back("{1Siren of the Sands}");
+
+        
+        if (!remaining.empty()) {
+            std::string message = "Remaining bosses:\n";
+            for (auto& boss : remaining) {
+                message += " - " + boss + "\n";
+            }
+            message += "\nDefeat all to {1upgrade} your ship!";
+
+            auto text = createTextBox(registry,
+                vec2(0.f, 200.0f), size, message, scale, vec3(1)
+            );
+
+            registry.emplace<tempText>(text); 
+
+            auto& textData = registry.get<TextData>(text);
+			textData.active = true;
+		}
+		else {
+			std::string message = "All bosses {1defeated}! {1Nothing} is holding you back from {1upgrading} the ship now!";
+			auto text = createTextBox(registry,
+				vec2(0.f, 200.0f), size, message, scale, vec3(1)
+			);
+			registry.emplace<tempText>(text);
+			auto& textData = registry.get<TextData>(text);
     }
 };
