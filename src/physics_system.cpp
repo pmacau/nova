@@ -98,7 +98,7 @@ void PhysicsSystem::dash() {
     else if (dash.cooldown < 0) {
         dash.inUse = true;
         dash.remainingDuration = 0.15f;
-
+        MusicSystem::playSoundEffect(SFX::DASH);
         auto& motion = registry.get<Motion>(player);
         if (glm::length(motion.velocity) < 1.f) {
             if (player_direction.down) {
@@ -113,7 +113,6 @@ void PhysicsSystem::dash() {
             else if (player_direction.right) {
                 motion.velocity = { 1200.f, 0.f };
             }
-
         }
         else {
             motion.acceleration = { 0, 0 };

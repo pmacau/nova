@@ -11,9 +11,40 @@
 #include <creature/creature_common.hpp>
 #include <creature/creature_manager.hpp>
 
+SpawnSystem* SpawnSystem::instance = nullptr;
+
+void SpawnSystem::loadBossSpawnData() {
+    bossSpawnData.clear();
+    auto& bossIndices = MapSystem::getBossSpawnIndices();
+
+    std::cout << "MapSystem boss indices count: " << bossIndices.size() << std::endl;
+     
+    for (auto& bossIndex : bossIndices) {
+
+		if (MapSystem::get_biome_by_indices(bossIndex) == Biome::B_ICE) {
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS }); 
+			//std::cout << "1Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
+		}
+		else if (MapSystem::get_biome_by_indices(bossIndex) == Biome::B_SAVANNA) {
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_BEACH_RED }); 
+			//std::cout << "2Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
+		}
+		else if (MapSystem::get_biome_by_indices(bossIndex) == Biome::B_JUNGLE) {
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_FOREST_PURPLE }); 
+			//std::cout << "3Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
+
+		}
+		else {
+			bossSpawnData.push_back({ bossIndex, false, false, CreatureID::BOSS_JUNGLE_YELLOW });
+			//std::cout << "4Boss spawn: " << bossIndex.x << ", " << bossIndex.y << std::endl;
+		}
+    }
+}
+
 SpawnSystem::SpawnSystem(entt::registry &registry)
     : registry(registry)
 {
+    loadBossSpawnData();
     debug_printf(DebugType::SPAWN, "SpawnSystem initialized.\n");
 
     // random seed.
@@ -36,7 +67,7 @@ void SpawnSystem::update(float deltaTime)
     {
         // std::cout << "Spawn cap reached (" << currentMobCount << " mobs). Skipping spawn." << std::endl;
     }
-    else if (spawnTimer >= spawnRate)
+    else if (spawnTimer >= spawnTimeInterval)
     {
         spawnTimer = 0.0f;
         processNaturalSpawning();
@@ -319,7 +350,18 @@ void SpawnSystem::processDespawning()
             mobPos.y < despawnAreaMin.y || mobPos.y > despawnAreaMax.y)
         {
             debug_printf(DebugType::SPAWN, "Destroying entity at (%f, %f) (outside despawn zone)\n", mobPos.x, mobPos.y);
+
+            // check if the entity is a boss
+            for (auto& spawnData : bossSpawnData) {
+                if (spawnData.entity == entity) {
+                    spawnData.spawned = false;
+                    spawnData.entity = entt::null;
+                    break;
+                }
+            }
+
             destroy_creature(registry, entity);
+
         }
     }
 }
@@ -348,8 +390,8 @@ void SpawnSystem::checkAndSpawnBoss() {
     vec2 spawnAreaMin = playerPos - halfSpawnZone;
     vec2 spawnAreaMax = playerPos + halfSpawnZone;
 
-    
-    for (auto& spawnData : CreatureManager::getInstance().bossSpawnData) {
+    // std::cout << "Length of bossSpawnData: " << bossSpawnData.size() << std::endl;
+    for (auto& spawnData : bossSpawnData) {
         if (spawnData.spawned) {
             continue;
         }
@@ -367,13 +409,14 @@ void SpawnSystem::checkAndSpawnBoss() {
             // createDebugTile(registry, MapSystem::get_tile_indices(spawnPos));
 
 
-            createCreature(registry, spawnPos, *def, def->getStats().minHealth);
+            auto entity = createCreature(registry, spawnPos, *def, def->getStats().minHealth);
 
 
             debug_printf(DebugType::SPAWN, "Boss spawned at (%f, %f) from tile indices (%f, %f)\n", 
                          tileCenter.x, tileCenter.y, spawnData.spawnTile.x, spawnData.spawnTile.y);
 
             spawnData.spawned = true;
+            spawnData.entity = entity;
             break;
         }
     }
