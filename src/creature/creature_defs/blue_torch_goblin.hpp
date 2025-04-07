@@ -100,7 +100,7 @@ protected:
     }
 
     virtual void initializeAIInfo() override {
-        aiInfo.aiConfig = getGoblinAIConfig();
+        aiInfo.aiConfig = std::make_shared<AIConfig>(getGoblinAIConfig());
         aiInfo.transitionTable = &getBasicFighterTransitionTable();
         aiInfo.initialState = "patrol";
     }

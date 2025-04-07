@@ -13,6 +13,7 @@ constexpr int EPSILON = 10;
 struct Hitbox {
     float depth = EPSILON;
     std::vector<vec2> pts;
+    ColliderType type;
 };
 
 vec2 edge_normal(const vec2& edge);

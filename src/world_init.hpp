@@ -27,7 +27,15 @@ entt::entity createUIShipEngine(entt::registry& registry, vec2 position, vec2 si
 entt::entity createMobHealthBar(entt::registry& registry, entt::entity& mob_entity, float y_adjust);
 
 // projectile
-entt::entity createProjectile(entt::registry& registry, vec2 pos, vec2 size, vec2 velocity, int damage, int timer, TEXTURE_ASSET_ID projectileType);
+entt::entity createProjectile(
+    entt::registry& registry, 
+    vec2 pos, 
+    vec2 size, 
+    vec2 velocity, 
+    int damage, 
+    int timer, 
+    TEXTURE_ASSET_ID projectileType,
+    std::vector<ColliderType> targetTypes = { ColliderType::CREATURE });
 
 entt::entity createSlash(entt::registry& registry); 
 
@@ -36,9 +44,9 @@ entt::entity createTree(entt::registry& registry, vec2 pos, Biome biome, Terrain
 entt::entity createHouse(entt::registry& registry, vec2 pos, Biome biome);
 
 entt::entity createTextBox(entt::registry& registry, vec2 position, vec2 size, std::string text, float scale, vec3 textColor);
-entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text);
-entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID);
-entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, int iconNum, vec2 sprite_dims, vec2 sprite_sheet_dims);
+entt::entity createButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, std::string text, TEXTURE_ASSET_ID buttonID, ScreenState::ScreenType screenType);
+entt::entity createUpgradeButton(entt::registry& registry, vec2 position, vec2 size, ButtonOption::Option option, TEXTURE_ASSET_ID buttonID, ScreenState::ScreenType screenType, std::string text);
+entt::entity createIcon(entt::registry& registry, vec2 position, vec2 scale, TEXTURE_ASSET_ID icon, vec2 sprite_dims, vec2 sprite_sheet_dims, ScreenState::ScreenType screenType);
 
 
 // terrain
@@ -61,6 +69,8 @@ entt::entity createMinimap(entt::registry & registry);
 
 entt::entity createDebugTile(entt::registry& registry, ivec2 tile_indices);
 
-void createDefaultWeapon(entt::registry& registry);
+entt::entity createDefaultWeapon(entt::registry& registry);
+entt::entity createHomingMissleWeapon(entt::registry& registry);
+entt::entity createShotgunWeapon(entt::registry& registry);
 
 void findNearestTarget(entt::registry& registry, entt::entity& entity, float x, float y);

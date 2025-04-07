@@ -58,7 +58,7 @@ void MapSystem::initBossSpawnIndices() {
 
     for (int i = 0; i < map_height; i++) {
         for (int j = 0; j < map_width; j++) {
-            vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
+            // vec2 map_pos = float(TILE_SIZE) * vec2(j, i);
 
             if (get_decoration(game_map[i][j]) == Decoration::BOSS) {
                 bossSpawnIndices.push_back(ivec2(j, i));

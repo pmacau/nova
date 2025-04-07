@@ -59,24 +59,52 @@ const int SHIP_RANGE_UPGRADE = 100;
 const int SHIP_DAMAGE_UPGRADE = 10;
 const float SHIP_TIMER_UPGRADE = 0.15f;
 
+
 // Max ship stats
 const int SHIP_MAX_HEALTH = 1500;
-const int SHIP_MAX_RANGE = 1000;
+const int SHIP_MAX_RANGE = 650;
 
+// projectile damages
 const int PROJECTILE_DAMAGE = 20;
 const int SMG_PROJ_DAMAGE = 25;
 const int MISSLE_PROJ_DAMAGE = 30;
 const int BLASTER_PROJ_DAMAGE = 40;
 const int RAILGUN_PROJ_DAMAGE = 50;
 
+
+// Max Weapon stast
+const int PISTOL_MAX_DAMAGE = 34;
+const float PISTOL_MAX_COOLDOWN = 0.2;
+
+const int HOMING_MISSLE_MAX_DAMAGE = 69;
+const float HOMING_MISSLE_MAX_COOLDOWN = 0.8;
+
+const int SHOTGUN_MAX_DAMAGE = 34;
+const float SHOTGUN_MAX_COOLDOWN = 0.4;
+
+const float MELEE_MAX_DAMAGE = 20.0f;
+const float MELEE_MAX_FORCE = 325.0f;
+
+
+// player/mob stats
 const int PLAYER_HEALTH = 100;
+const float PLAYER_SPEED = 155.0f;
+
 const int MOB_HEALTH = 50; 
-const float PLAYER_SPEED = 200.0f;
-const float MOB_SPEED = 100.0f; 
+const float MOB_SPEED = 135.0f; 
+const int MOB_DAMAGE = 25; 
+
+
+// player max stats
+const int PLAYER_MAX_HEALTH = 200;
+const float PLAYER_MAX_SPEED = 305.0f;
+const float PLAYER_MAX_VISION_RADIUS = 0.7;
+
 
 const float GAME_SCALE = 2.f;
 
-const int MOB_DAMAGE = 25; 
+
+// projectile stats
 const float PROJECTILE_SPEED = 500.0f;
 const float SMG_PROJ_SPEED = 600.0f;
 const float MISSLE_PROJ_SPEED = 700.0f;
@@ -86,23 +114,60 @@ const float RAILGUN_PROJ_SPEED = 1000.0f;
 const float PROJECTILE_SIZE = 20.0f;
 const int PROJECTILE_TIMER = 5000;
 
+
 const int MAX_INVENTORY_SLOTS = 5;
 
 
+// melee stats
+const float MELEE_DAMAGE = 5.0f;
+const float MELEE_FORCE = 250.0f;
 const float MELEE_COOLDOWN = 0.80;
+
 const float WEAPON_COOLDOWN = 0.5;
 const float MOUSE_POLL_RATE = 100;
 
+
+// Player Upgrade Constants
+const int PLAYER_HEALTH_UPGRADE_IRON = 5; 
+const int PLAYER_HEALTH_UPGRADE_COPPER = 3; 
+
+const int PLAYER_VISION_UPGRADE_COPPER = 6; 
+
+const int PLAYER_SPEED_UPGRADE_IRON = 3; 
+const int PLAYER_SPEED_UPGRADE_COPPER = 6; 
+
+
 // Ship Upgrade Constants
-const int SHIP_HEALTH_UPGRADE_IRON = 0; // 7
+const int SHIP_HEALTH_UPGRADE_IRON = 7;
 
-const int SHIP_WEAPON_UPGRADE_IRON = 0; // 3
-const int SHIP_WEAPON_UPGRADE_COPPER = 0; // 3
+const int SHIP_WEAPON_UPGRADE_IRON = 3;
+const int SHIP_WEAPON_UPGRADE_COPPER = 3;
 
-const int SHIP_FIRERATE_UPGRADE_IRON = 0; // 2
-const int SHIP_FIRERATE_UPGRADE_COPPER = 0; // 4
+const int SHIP_FIRERATE_UPGRADE_IRON = 2;
+const int SHIP_FIRERATE_UPGRADE_COPPER = 4;
 
-const int SHIP_RANGE_UPGRADE_IRON = 0; // 5
+const int SHIP_RANGE_UPGRADE_IRON = 5;
+
+
+// Weapon Upgrade Constants
+const int PISTOL_UPGRADE_IRON = 5; //5
+
+const int HOMING_MISSLE_UPGRADE_IRON = 7; //7
+const int HOMING_MISSLE_UPGRADE_COPPER = 2; //2
+
+const int SHOTGUN_UPGRADE_IRON = 6; //6
+const int SHOTGUN_UPGRADE_COPPER = 3; //3
+
+const int MELEE_UPGRADE_IRON = 5; //5
+
+
+// Weapon Unlock Constants
+const int HOMING_MISSLE_UNLOCK_IRON = 8;
+const int HOMING_MISSLE_UNLOCK_COPPER = 4;
+
+const int SHOTGUN_UNLOCK_IRON = 10;
+const int SHOTGUN_UNLOCK_COPPER = 5;
+
 
 // Weather
 const bool ENABLE_WEATHER = true;

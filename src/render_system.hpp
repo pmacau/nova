@@ -50,9 +50,11 @@ class RenderSystem {
 		textures_path("projectiles/ship/railgun-projectile.png"),
 		textures_path("projectiles/ship/smg-projectile.png"),
 		textures_path("projectiles/shotgun_projectile.png"),
+		textures_path("projectiles/wood_arrow.png"),
 		textures_path("weapons/default.png"),
 		textures_path("weapons/homing-missile.png"),
 		textures_path("weapons/shotgun.png"),
+		textures_path("weapons/sword.png"),
 		textures_path("healthbar/red.png"), 
 		textures_path("healthbar/player-health-inner.png"), 
 		textures_path("healthbar/player-health-outer.png"),
@@ -67,6 +69,10 @@ class RenderSystem {
 		textures_path("mob/goblin_torch_red.png"), 
 		textures_path("mob/goblin_torch_purple.png"), 
 		textures_path("mob/goblin_torch_yellow.png"), 
+		textures_path("mob/range/small_archer/Archer_Blue.png"), 
+		textures_path("mob/range/small_archer/Archer_Purple.png"), 
+		textures_path("mob/range/small_archer/Archer_Red.png"), 
+		textures_path("mob/range/small_archer/Archer_Yellow.png"), 
 		textures_path("title/screen.png"), 
 		textures_path("textBackground/textbox.png"),
 		textures_path("ui/selection_button.png"),
@@ -74,6 +80,10 @@ class RenderSystem {
 		textures_path("ui/green-btn-pressed.png"),
 		textures_path("ui/red-btn-active.png"),
 		textures_path("ui/red-btn-pressed.png"),
+		textures_path("ui/blue-btn-active.png"),
+		textures_path("ui/blue-btn-pressed.png"),
+		textures_path("ui/weapon-upgrade-btn.png"),
+		textures_path("ui/purple-button.png"),
 		map_path("biome_map.png"),
 		textures_path("text/text.png"), 
 		textures_path("slashes/1.png"), 
@@ -163,6 +173,8 @@ private:
 	void renderGamePlay();
 	void renderUpgradeUI();
 	void renderShipUI();
+	void renderWeaponUI();
+	void renderPlayerUI();
 
 	void renderEndScreen();
 	void drawDebugHitBoxes(const glm::mat3& projection);

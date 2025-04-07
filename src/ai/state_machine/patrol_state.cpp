@@ -21,7 +21,7 @@ static glm::vec2 findValidPatrolTarget(const glm::vec2& currentPos, float patrol
         glm::vec2 direction = { std::cos(angle), std::sin(angle) };
 
         // Determine the maximum valid distance along that direction
-        const ivec2 currentPosTileIndices = MapSystem::get_tile_indices(currentPos);
+        // const ivec2 currentPosTileIndices = MapSystem::get_tile_indices(currentPos);
         const float stepSize = TILE_SIZE / 2.f; // TODO: make this a parameter?
         float maxValidDistance = 0.0f;
         for (float d = 0.0f; d <= patrolRadius; d += stepSize) {
@@ -57,6 +57,8 @@ PatrolState::PatrolState()
 }
 
 void PatrolState::onEnter(entt::registry& registry, entt::entity entity) {
+    debug_printf(DebugType::AI, "PatrolState: onEnter\n");
+
     auto& motion = registry.get<Motion>(entity);
     auto& aiComp = registry.get<AIComponent>(entity);
     const AIConfig& config = aiComp.stateMachine->getConfig();
@@ -97,6 +99,8 @@ void PatrolState::onUpdate(entt::registry& registry, entt::entity entity, float 
 }
 
 void PatrolState::onExit(entt::registry& registry, entt::entity entity) {
+    debug_printf(DebugType::AI, "PatrolState: onExit\n");
+
     auto& motion = registry.get<Motion>(entity);
     motion.velocity = {0.f, 0.f};
 }

@@ -4,6 +4,8 @@
 #include <entt.hpp>
 #include "tinyECS/components.hpp"
 #include "util/debug.hpp"
+#include "creature/boss_def.hpp"
+#include "world_init.hpp"
 class FlagSystem {
 public:
     //moved, shot, mobkilled from listening to register, accessed in screenstate (ask Frank)? 
@@ -17,6 +19,10 @@ public:
         MobKilled,
         Done
     };
+    bool iceKilled; 
+    bool jungleKilled; 
+    bool savanaKilled; 
+	bool beachKilled;
     bool is_paused;
     float time_spent_s; 
 private:
@@ -46,6 +52,8 @@ public:
                 if (screen_state.current_screen == ScreenState::ScreenType::END_SCREEN ||
                     screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
+                    screen_state.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI ||
+                    screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI ||
                     screen_state.current_screen == ScreenState::ScreenType::TITLE) {
                     is_paused = true;
                     return;
@@ -65,7 +73,9 @@ public:
             for (auto entity : view) { 
                 auto& screen = registry.get<ScreenState>(entity);
                 if (screen.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI ||
-                    screen.current_screen == ScreenState::ScreenType::UPGRADE_UI
+                    screen.current_screen == ScreenState::ScreenType::UPGRADE_UI ||
+                    screen.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI ||
+                    screen.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI
                 ) { 
                     is_paused = true; 
                     setAccessed(true);
@@ -157,7 +167,65 @@ public:
 
     // resets everything
     void reset() {
+        iceKilled = false;
+        jungleKilled = false;
+        savanaKilled = false;
+        beachKilled = false;
         is_paused = false;
-        tutorial_step = TutorialStep::None;
+        //tutorial_step = TutorialStep::None;
+    }
+
+    void bossDefeatedHelper(CreatureID id) {
+        if (id == CreatureID::BOSS) {
+            iceKilled = true;
+            //std::cout << "Ice boss killed" << std::endl;
+        }
+        else if (id == CreatureID::BOSS_BEACH_RED) {
+            savanaKilled = true;
+            //std::cout << "Savanna boss killed" << std::endl;
+        }
+        else if (id == CreatureID::BOSS_FOREST_PURPLE) {
+            jungleKilled = true;
+            //std::cout << "Jungle boss killed" << std::endl;
+        }
+        else if (id == CreatureID::BOSS_JUNGLE_YELLOW) {
+            beachKilled = true;
+            //std::cout << "Beach boss killed" << std::endl;
+        }
+        vec2 size = vec2(2 * WINDOW_WIDTH_PX / 3, 200);
+        int scale = 2;
+
+        std::vector<std::string> remaining;
+        if (!iceKilled) remaining.push_back("{IIce Titan}");
+        if (!jungleKilled) remaining.push_back("{JJungle Behemoth}");
+        if (!savanaKilled) remaining.push_back("{SSavanna Colossus}");
+        if (!beachKilled) remaining.push_back("{BSiren of the Sands}");
+
+
+        if (!remaining.empty()) {
+            std::string message = "Remaining bosses";
+            for (auto& boss : remaining) {
+                message += ", " + boss;
+            }
+            message += ". Defeat all to {1upgrade} your ship!";
+
+            auto text = createTextBox(registry,
+                vec2(0.f, -300.0f), size, message, scale, vec3(1)
+            );
+
+            registry.emplace<tempText>(text);
+
+            auto& textData = registry.get<TextData>(text);
+            textData.active = true;
+        }
+        else {
+            std::string message = "All bosses {1defeated}! Nothing is holding you back from {1upgrading} the ship now!";
+            auto text = createTextBox(registry,
+                vec2(0.f, 200.0f), size, message, scale, vec3(1)
+            );
+            registry.emplace<tempText>(text);
+            auto& textData = registry.get<TextData>(text);
+            textData.active = true;
+        }
     }
 };

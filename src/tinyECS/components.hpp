@@ -9,6 +9,14 @@
 #include <animation/animation_common.hpp>
 #include <map/tile.hpp>
 
+// enum for what kind of entity this is when collision occurs
+enum class ColliderType {
+	PLAYER,
+	CREATURE,
+	PROJECTILE,
+	OBSTACLE,
+}; 
+
 struct Glyph{};
 struct Tree{};
 struct Background{};
@@ -21,14 +29,20 @@ struct Boss{
 
 // TODO: Tweak values
 struct Slash {
-	float damage = 5.f;
-	float force = 250.f;
+	float damage = MELEE_DAMAGE;
+	float force = MELEE_FORCE;
 	float time_elapsed = 0.0f;
 	float total_lifetime = 0.35f; 
 	glm::vec2 render_position; 
 	int current_frame = 1; 
 	float frame_time = 0.0f; 
 	bool hit = false;
+};
+
+
+// this is me being lazy sorry. 
+struct tempText {
+	float time_elapsed = 0.0f;
 };
 
 struct InputState {
@@ -53,9 +67,32 @@ struct Obstacle {
 struct Player
 {
 	int health;
+	int currMaxHealth;
+	int maxHealth;
+	float speed;
+	float vision_radius;
+
+	float default_weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
+	float default_weapon_cooldown_dynamic = WEAPON_COOLDOWN; 
+	float homing_missle_weapon_cooldown = WEAPON_COOLDOWN * 4;
+	float homing_missle_weapon_cooldown_dynamic = WEAPON_COOLDOWN * 4;
+	float shotgun_weapon_cooldown = WEAPON_COOLDOWN * 2;
+	float shotgun_weapon_cooldown_dynamic = WEAPON_COOLDOWN * 2;
+
+	float default_weapon_damage = PROJECTILE_DAMAGE;
+	float homing_missle_weapon_damage = PROJECTILE_DAMAGE * 2;
+	float shotgun_weapon_damage = PROJECTILE_DAMAGE;
+
+	bool unlock_homing_missle_weapon = false;
+	bool unlock_shotgun_weapon = false;
+
+	int shotgun_stage = 0;
+
 	float weapon_cooldown = WEAPON_COOLDOWN; // half a second weapon cooldown
 	InputState direction; 
 	float melee_cooldown = MELEE_COOLDOWN; 
+	float melee_damage = MELEE_DAMAGE;
+	float melee_force = MELEE_FORCE;
 };
 
 // Ship component
@@ -140,6 +177,7 @@ struct MarkedCollision {
 struct Projectile {
 	int damage;
 	int timer;
+	std::vector<ColliderType> targetTypes;
 };
 
 struct HomingMissile {
@@ -179,6 +217,16 @@ struct UIIcon
 
 };
 
+struct WeaponUIIcon
+{
+
+};
+
+struct PlayerUIIcon
+{
+
+};
+
 struct PlayerHealthBar
 {
 };
@@ -188,11 +236,32 @@ struct Button
 
 };
 
-struct UpgradeButton
+struct WeaponButton
+{
+
+};
+
+struct ShipUpgradeButton
 {
 	std::string text;
 	bool missingResources = false;
 	std::string missingResourcesText;
+};
+
+struct WeaponUpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
+	bool maxUpgrade = false;
+};
+
+struct PlayerUpgradeButton
+{
+	std::string text;
+	bool missingResources = false;
+	std::string missingResourcesText;
+	bool maxUpgrade = false;
 };
 
 struct MobHealthBar
@@ -271,6 +340,21 @@ struct ButtonOption
 		SHIP_BLASTER_UPGRADE,
 		SHIP_RANGE_UPGRADE,
 		SHIP_FIRERATE_UPGRADE,
+
+		// for weapon upgrade screen
+		PISTOL_UPGRADE,
+		PISTOL_UNLOCK,
+		HOMING_MISSLE_UPGRADE,
+		HOMING_MISSLE_UNLOCK,
+		SHOTGUN_UPGRADE,
+		SHOTGUN_UNLOCK,
+		MELEE_UPGRADE,
+		MELEE_UNLOCK,
+
+		// for player upgrade screen
+		PLAYER_HEALTH_UPGRADE,
+		PLAYER_VISION_UPGRADE,
+		PLAYER_SPEED_UPGRADE
 	};
 	Option type;
 	std::string text;
@@ -413,9 +497,11 @@ enum class TEXTURE_ASSET_ID {
 	RAILGUN_PROJECTILE,
 	SMG_PROJECTILE,
 	SHOTGUN_PROJECTILE,
+	WOOD_ARROW,
 	DEFAULT_WEAPON, 
 	HOMING_MISSILE, 
 	SHOTGUN,
+	SWORD,
 	HEALTHBAR_RED,
 	PLAYER_HEALTH_INNER, 
 	PLAYER_HEALTH_OUTER,
@@ -430,6 +516,10 @@ enum class TEXTURE_ASSET_ID {
 	GOBLIN_TORCH_RED,
 	GOBLIN_TORCH_PURPLE,
 	GOBLIN_TORCH_YELLOW,
+	SMALL_BLUE_ARCHER,
+	SMALL_PURPLE_ARCHER,
+	SMALL_RED_ARCHER,
+	SMALL_YELLOW_ARCHER,
 	TITLE, 
 	TEXTBOX_BACKGROUND,
 	SELECTION_BUTTON,
@@ -437,6 +527,10 @@ enum class TEXTURE_ASSET_ID {
 	GREEN_BUTTON_PRESSED,
 	RED_BUTTON_ACTIVE,
 	RED_BUTTON_PRESSED,
+	BLUE_BUTTON_ACTIVE,
+	BLUE_BUTTON_PRESSED,
+	WEAPON_UPGRADE_BUTTON,
+	PURPLE_BUTTON,
 	MINIMAP,
 	TEXT,
 	SLASH_1, 

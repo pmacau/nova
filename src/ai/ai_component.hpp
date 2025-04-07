@@ -5,4 +5,5 @@
 
 struct AIComponent {
     std::unique_ptr<AIStateMachine> stateMachine;
+    float attackCooldownTimer = 0.0f;
 };

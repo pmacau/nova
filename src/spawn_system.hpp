@@ -24,6 +24,9 @@ static void initialize(entt::registry& registry) {
 
     void update(float deltaTime);
 
+    void setSpawnRate(float rate) { spawnTimeInterval = rate; }
+    void setSpawnCap(size_t cap) { spawnCap = cap; }
+
     void onRestartGame() {
         // Reset boss spawn data: if not defeated, set to not spawned.
         for (auto& spawnData : bossSpawnData) {
@@ -35,6 +38,7 @@ static void initialize(entt::registry& registry) {
 
     SpawnSystem(const SpawnSystem&) = delete;
     SpawnSystem& operator=(const SpawnSystem&) = delete;
+    std::vector<BossSpawn> bossSpawnData;
 
 private:
     entt::registry& registry;
@@ -44,7 +48,7 @@ private:
     float spawnTimeInterval = 5000.0f;
     size_t spawnCap = 10;       // max mobs
 
-    std::vector<BossSpawn> bossSpawnData;
+    
 
     SpawnSystem(entt::registry& registry);
     ~SpawnSystem();

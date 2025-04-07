@@ -4,11 +4,14 @@ uniform sampler2D screen_texture;
 uniform float time;
 uniform float darken_screen_factor;
 uniform vec2 resolution;
+uniform float vision_radius;
 
 in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
+// this shader took inspiration from: https://www.shadertoy.com/view/7ldGWf
+// and this for (fast) noise generation: https://www.shadertoy.com/view/lsf3WH
 
 float hash(ivec2 p) { 
     int n = p.x*3 + p.y*113;
@@ -86,7 +89,7 @@ vec4 day_night_mix(vec4 in_color, float k) {
     vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
     float dist = distance((texcoord - center) * aspect, vec2(0.0));
 
-    float radius = 0.1;
+    float radius = vision_radius;
 
     float darkness = clamp(0.5 * (1.0 + tanh(k * cos(t - (3.0 * pi / 2.0)))), 0.0, 0.95);
     float light_strength = smoothstep(0, radius, dist);

@@ -14,6 +14,10 @@ enum class CreatureID {
     GOBLIN_TORCH_RED,
 	GOBLIN_TORCH_PURPLE,
 	GOBLIN_TORCH_YELLOW,
+    SMALL_BLUE_ARCHER,
+    SMALL_PURPLE_ARCHER,
+    SMALL_RED_ARCHER,
+    SMALL_YELLOW_ARCHER,
     SKELETON,
     BOSS,
     BOSS_FOREST_PURPLE,
@@ -80,7 +84,7 @@ struct PhysicsInfo {
 };
 
 struct AIInfo {
-    AIConfig aiConfig;
+    std::shared_ptr<AIConfig> aiConfig;
     const TransitionTable* transitionTable = nullptr;
     std::string initialState;
 };
