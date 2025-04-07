@@ -44,7 +44,7 @@ _All of the below actions from previous milestones and..._
 
 - **UI**
   - Use your collected resources to upgrade the ship, the player's stats, and the player's weapons
-  - Completely upgrade the ship to see the end-dialogue, and finish the game!
+  - Completely upgrade the ship (requires killing all bosses as well) to see the end-dialogue, and finish the game!
 
 
 # Milestone 3
