@@ -904,13 +904,6 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	exit_option.position = { 95.5 * WINDOW_WIDTH_PX / 120.F, 58 * WINDOW_HEIGHT_PX / 68.f };
 	exit_option.size = { 9.0 * WINDOW_WIDTH_PX / 120.f, 12.0f * WINDOW_HEIGHT_PX / 68.f };
 
-	auto save = registry.create();
-	auto& save_option = registry.emplace<TitleOption>(save);
-	save_option.type = TitleOption::Option::SAVE;
-	save_option.text = "Save";
-	save_option.position = { 48.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
-	save_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
-
 	auto load = registry.create();
 	auto& restart_option = registry.emplace<TitleOption>(load);
 	restart_option.type = TitleOption::Option::RESTART;
@@ -918,12 +911,6 @@ entt::entity createTitleScreen(entt::registry& registry) {
 	restart_option.position = { 109.5 * WINDOW_WIDTH_PX / 120.F, 57.f * WINDOW_HEIGHT_PX / 68.f };
 	restart_option.size = { 9.f * WINDOW_WIDTH_PX / 120.f, 10.f * WINDOW_HEIGHT_PX / 68.f };
 
-	auto restart = registry.create();
-	auto& load_option = registry.emplace<TitleOption>(restart);
-	load_option.type = TitleOption::Option::LOAD;
-	load_option.text = "Load";
-	load_option.position = { 66.5 * WINDOW_WIDTH_PX / 120.F, 59.f * WINDOW_HEIGHT_PX / 68.f };
-	load_option.size = { 5.0 * WINDOW_WIDTH_PX / 120.f, 8.0f * WINDOW_HEIGHT_PX / 68.f };
 	return entity;
 }
 

@@ -398,7 +398,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// Remove slash after total lifetime
 		if (slash.time_elapsed >= slash.total_lifetime) {
-			registry.destroy(entity);
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
 		}
 	}
 

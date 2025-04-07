@@ -55,7 +55,9 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 		if (item.no == 1) {
 			item.no = 0;
 			inventory_slot.hasItem = false;
-			registry.destroy(entity);
+			if (registry.valid(entity)) {
+				registry.destroy(entity);
+			}
 		}
 		else {
 			item.no -= 1;
@@ -172,7 +174,9 @@ void UISystem::dropItem(entt::registry& registry) {
 		auto& player_entity = *registry.view<Player>().begin();
 		auto& motion = registry.get<Motion>(player_entity);
 		renderItemAtPos(registry, drag_entity, motion.position.x, motion.position.y, false, false);
-		registry.destroy(drag_entity);
+		if (registry.valid(drag_entity)) {
+			registry.destroy(drag_entity);
+		}
 		MusicSystem::playSoundEffect(SFX::DROP);
 	}
 }
@@ -213,7 +217,9 @@ void UISystem::resetDragItem(entt::registry& registry) {
 			inventory_item.no = registry.get<Item>(drag_entity).no;
 		}
 	}
-	registry.destroy(drag_entity);
+	if (registry.valid(drag_entity)) {
+		registry.destroy(drag_entity);
+	}
 }
 
 void UISystem::updateDragItem(entt::registry& registry, float mouse_pos_x, float mouse_pos_y) {
@@ -251,7 +257,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							}
 							else {
 								inventory_item.no += drag_item.no;
-								registry.destroy(drag_entity);
+								if (registry.valid(drag_entity)) {
+									registry.destroy(drag_entity);
+								}
 							}
 						}
 						// replace the drag item
@@ -271,14 +279,18 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							}
 							else {
 								inventory_item.no = drag_item.no;
-								registry.destroy(drag_entity);
+								if (registry.valid(drag_entity)) {
+									registry.destroy(drag_entity);
+								}
 							}
 							auto item_entity_on_mouse = renderItemAtPos(registry, previous_item_entity, mouse_pos_x, mouse_pos_y, true, false);
 							auto& drag = registry.emplace<Drag>(item_entity_on_mouse);
 							drag.noSlot = true;
 							auto& item_on_mouse = registry.get<Item>(item_entity_on_mouse);
 							item_on_mouse.no = previous_item.no;
-							registry.destroy(previous_item_entity);
+							if (registry.valid(previous_item_entity)) {
+								registry.destroy(previous_item_entity);
+							}
 						}
 					}
 				}
@@ -340,7 +352,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 						inventory_slot.hasItem = false;
 						removeActiveSlot(registry, inventory_entity);
 						debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-						registry.destroy(inventory_slot.item);
+						if (registry.valid(inventory_slot.item)) {
+							registry.destroy(inventory_slot.item);
+						}
 					}
 					else if (click == Click::SHIFTRIGHT) {
 						if (inventory_item.no == 1) {
@@ -348,7 +362,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_slot.hasItem = false;
 							removeActiveSlot(registry, inventory_entity);
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
+							if (registry.valid(inventory_slot.item)) {
+								registry.destroy(inventory_slot.item);
+							}
 						}
 						else {
 							inventory_item.no -= std::max(1, inventory_item.no / 2);
@@ -360,7 +376,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_slot.hasItem = false;
 							removeActiveSlot(registry, inventory_entity);
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
+							if (registry.valid(inventory_slot.item)) {
+								registry.destroy(inventory_slot.item);
+							}
 						}
 						else {
 							inventory_item.no -= std::min(inventory_item.no, 5);
@@ -372,7 +390,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 							inventory_slot.hasItem = false;
 							removeActiveSlot(registry, inventory_entity);
 							debug_printf(DebugType::PHYSICS, "Destroying entity (ui sys)\n");
-							registry.destroy(inventory_slot.item);
+							if (registry.valid(inventory_slot.item)) {
+								registry.destroy(inventory_slot.item);
+							}
 						}
 						else {
 							inventory_item.no -= 1;
@@ -395,7 +415,9 @@ bool UISystem::useItemFromInventory(entt::registry& registry, float mouse_pos_x,
 					}
 					else {
 						inventory_item.no = drag_item.no;
-						registry.destroy(drag_entity);
+						if (registry.valid(drag_entity)) {
+							registry.destroy(drag_entity);
+						}
 					}
 				}
 			}
@@ -435,7 +457,9 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 					if (item.no == 0) {
 						MusicSystem::playSoundEffect(SFX::PICKUP);
 						flag_system.setMobKilled(true);
-						registry.destroy(item_entity);
+						if (registry.valid(item_entity)) {
+							registry.destroy(item_entity);
+						}
 						return;
 					}
 				}
@@ -476,7 +500,9 @@ void UISystem::addToInventory(entt::registry& registry, entt::entity& item_entit
 		}
 	}
 	else {
-		registry.destroy(item_entity);
+		if (registry.valid(item_entity)) {
+			registry.destroy(item_entity);
+		}
 	}
 }
 
