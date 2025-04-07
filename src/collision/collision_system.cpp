@@ -140,7 +140,7 @@ void CollisionSystem::handle<Player, Mob>(
 	physics.knockback(play_ent, mob_ent, 300);
 	physics.suppress(play_ent, mob_ent);
 	
-	screen.darken_screen_factor = std::min((float) 1 - player.health / player.currMaxHealth, 1.0f);
+	screen.darken_screen_factor = std::min(1.f - ((float) player.health) / ((float) player.currMaxHealth), 1.0f);
 	// screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
 }
 
@@ -204,7 +204,7 @@ void CollisionSystem::handle<Projectile, Player>(
 	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 	physics.knockback(play_ent, proj_ent, 300);
 	
-	screen.darken_screen_factor = std::min((float) 1 - player.health / player.currMaxHealth, 1.0f);
+	screen.darken_screen_factor = std::min(1.f - ((float) player.health) / ((float) player.currMaxHealth), 1.0f);
 
 	destroy_entities.insert(proj_ent);
 

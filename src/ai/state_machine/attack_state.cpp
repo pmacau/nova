@@ -65,6 +65,5 @@ void AttackState::onExit(entt::registry& registry, entt::entity entity) {
         aiComp.attackCooldownTimer = 0.0f;
     }
 
-    auto& aiComp = registry.get<AIComponent>(entity);
-
+    //auto& aiComp = registry.get<AIComponent>(entity);
 }
