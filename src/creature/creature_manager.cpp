@@ -17,7 +17,6 @@ CreatureManager& CreatureManager::getInstance() {
 
 CreatureManager::CreatureManager() {
     // loadDefinitions();
-    loadBossSpawnData();
     loadDefinitions();
 }
 
@@ -35,11 +34,6 @@ const CreatureDefinitionData* CreatureManager::getDefinition(const CreatureID& i
     return nullptr;
 }
 
-
-void CreatureManager::loadBossSpawnData() {
-    bossSpawnData.clear();
-    initBossSpawnData(bossSpawnData);
-}
 
 
 std::vector<const CreatureDefinitionData*> CreatureManager::queryDefinitions(

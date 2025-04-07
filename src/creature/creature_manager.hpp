@@ -19,15 +19,11 @@ public:
     std::vector<const CreatureDefinitionData*> queryDefinitions(
         const std::function<bool(const CreatureDefinitionData&)>& predicate) const;
 
-    // TODO: hide this in future and provide a getter and setter
-    std::vector<BossSpawn> bossSpawnData;
 
 private:
     CreatureManager();
     CreatureManager(const CreatureManager&) = delete;
     CreatureManager& operator=(const CreatureManager&) = delete;
-
-    void loadBossSpawnData();
 
     std::unordered_map<CreatureID, const CreatureDefinitionData*> definitions;
 };
