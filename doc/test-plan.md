@@ -24,6 +24,29 @@ With each milestone, we will add additional controls as necessary
   - Press "esc" to pause the game and view the title screeen
   - Press "enter" to skip through tutorial dialogue
 
+# Milestone 4
+
+## Actions
+
+_All of the below actions from previous milestones and..._
+
+- **Traverse the island**:
+
+  - Explore the 5 unique biomes. See their differences in weather, and explore the variance in the trees within a biome.
+  - Find house and castle tower structures.
+  - Notice that enemies now try to avoid obstacles like trees and houses or towers.
+
+- **Fight the enemies**:
+
+  - Find the far corners of the island to view the new boss sprites.
+  - Fight the new ranged enemies that will strategically keep distance from the player.
+  - Collect many copper and iron items for upgrades.
+
+- **UI**
+  - Use your collected resources to upgrade the ship, the player's stats, and the player's weapons
+  - Completely upgrade the ship to see the end-dialogue, and finish the game!
+
+
 # Milestone 3
 
 ## Actions
