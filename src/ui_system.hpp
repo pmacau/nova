@@ -20,6 +20,7 @@ public:
 	static void resetDragItem(entt::registry& registry);
 	static void dropItem(entt::registry& registry);
 	static void clearInventoryAndDrop(entt::registry& registry, float x, float y);
+	static void clearInventory(entt::registry& registry);
 	static void mobDrop(entt::registry& registry, entt::entity& mob_entity);
 
 	static vec2 computeHealthBarPosition(Motion mob_motion, vec2 adjust) {
@@ -30,7 +31,10 @@ public:
 
 	static void creatureDropForMob(entt::registry& registry, entt::entity& entity, DropInfo dropInfo);
 private:
+	static bool log_inventory;
 	static std::mt19937 rng;
 	static std::uniform_real_distribution<float> uniform_dist;
 	static void removeActiveSlot(entt::registry& registry, entt::entity& inventory_slot_entity);
+	static void logItem(entt::registry& registry, Item item);
+	static void logInventory(entt::registry& registry);
 };
