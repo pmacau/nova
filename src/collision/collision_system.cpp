@@ -200,10 +200,10 @@ void CollisionSystem::handle<Projectile, Player>(
 	player.health -= projectile.damage;
 	MusicSystem::playSoundEffect(SFX::HIT);
 
-	UISystem::updatePlayerHealthBar(registry, player.health);
+	UISystem::updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
 	physics.knockback(play_ent, proj_ent, 300);
 	
-	screen.darken_screen_factor = std::min(screen.darken_screen_factor + 0.33f, 1.0f);
+	screen.darken_screen_factor = std::min((float) 1 - player.health / player.currMaxHealth, 1.0f);
 
 	destroy_entities.insert(proj_ent);
 

@@ -97,7 +97,7 @@ void RangeAttackState::shootProjectile(entt::registry &registry, entt::entity en
             motion.position,
             config.projectileSize,
             direction * config.projectileSpeed,
-            1,
+            config.projectileDamage,
             PROJECTILE_TIMER,
             config.projectileType,
             {ColliderType::PLAYER});

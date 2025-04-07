@@ -10,4 +10,5 @@ struct RangeAIConfig : public AIConfig {
 
     TEXTURE_ASSET_ID projectileType = TEXTURE_ASSET_ID::WOOD_ARROW;
     vec2 projectileSize = { 64.f, 64.f };
+    float projectileDamage = 10.0f;
 };
