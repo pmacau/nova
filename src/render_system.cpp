@@ -1193,7 +1193,7 @@ void RenderSystem::renderShipUI()
 		if (button.missingResources) {
 			renderText(
 				button.missingResourcesText, 
-				motion.position.x - 65.0f,
+				motion.position.x - getTextWidth(button.missingResourcesText, 2)/2,
 				motion.position.y + 35.0f,
 				2, 
 				glm::vec3(1.0f, 0.0f, 0.0f), 
@@ -1202,7 +1202,7 @@ void RenderSystem::renderShipUI()
 		} else {
 			renderText(
 				button.missingResourcesText, 
-				motion.position.x - 65.0f, 
+				motion.position.x - getTextWidth(button.missingResourcesText, 2)/2,
 				motion.position.y + 35.0f, 
 				2, 
 				glm::vec3(0.0f, 1.0f, 0.0f), 
@@ -1551,6 +1551,7 @@ void RenderSystem::draw()
 		float timeSinceUpgrade = (float)glfwGetTime() - shipUpgradeTime;
 		if (timeSinceUpgrade >= 5.0f) {
 			renderEndScreen();
+			std::cout << "rendering end screen" << std::endl;
 			endScreenTriggered = true;
 			screen_state.current_screen = ScreenState::ScreenType::END_SCREEN;
 		}

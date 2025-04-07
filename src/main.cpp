@@ -46,6 +46,15 @@ int main()
 
 	entt::registry reg;
 
+
+	
+	// initialize the main systems
+	MapSystem::init(reg);
+
+	// spawn system needs to be initialized after the map system
+	SpawnSystem::initialize(reg);
+	SpawnSystem& spawn_system = SpawnSystem::getInstance();
+
 	// assets and constants
 	initializeAIStates(g_stateFactory);
 	// QuadTree
@@ -56,7 +65,6 @@ int main()
 	WorldSystem   world_system(reg, physics_system, flag_system, quadTree);
 	RenderSystem  renderer_system(reg, quadTree);
 	AISystem ai_system(reg);
-	CollisionSystem collision_system(reg, world_system, physics_system, quadTree);
 	CameraSystem camera_system(reg);
 
 	
@@ -64,6 +72,12 @@ int main()
 	AnimationSystem animationSystem(reg);
 	PlayerSystem playerSystem(reg);
 	
+
+	
+
+
+	CollisionSystem collision_system(reg, world_system, physics_system, quadTree, spawn_system, flag_system);
+
 	// initialize window
 	GLFWwindow* window = world_system.create_window();
 	if (!window) {
@@ -76,13 +90,6 @@ int main()
 	if (!MusicSystem::init()) {
 		std::cerr << "ERROR: Failed to start or load sounds." << std::endl;
 	}
-
-	// initialize the main systems
-	MapSystem::init(reg);
-
-	// spawn system needs to be initialized after the map system
-	SpawnSystem::initialize(reg);
-	SpawnSystem& spawn_system = SpawnSystem::getInstance();
 
 	world_system.init();
 	renderer_system.init(window);
@@ -148,3 +155,5 @@ int main()
 
 	return EXIT_SUCCESS;
 }
+
+

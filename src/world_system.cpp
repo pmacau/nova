@@ -464,6 +464,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+
+	for (auto temp : registry.view<tempText>()) {
+		std::cout << "OOOOOO " << std::endl; 
+		auto& text = registry.get<tempText>(temp);
+		auto& text1 = registry.get<TextData>(temp);
+		text.time_elapsed += elapsed_s;
+		std::cout << "temp text time elapsed: " << text.time_elapsed << std::endl;
+		if (text.time_elapsed >= 5.f) {
+			text1.active = false;
+			if (registry.valid(temp)) {
+				registry.destroy(temp);
+			}
+		}
+	}
 	
 	float& cooldown = registry.get<Player>(player_entity).melee_cooldown;
 	cooldown = max(cooldown - elapsed_s, 0.f);
@@ -891,7 +905,7 @@ void WorldSystem::left_mouse_click() {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_DAMAGE;
 						} else if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_DAMAGE) {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE;
-						} else if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE) {
+						} else if (ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE && flag_system.savanaKilled) {
 							ui_ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 						}
 					}
@@ -905,13 +919,11 @@ void WorldSystem::left_mouse_click() {
 						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_DAMAGE) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE;
 							ship.health += SHIP_HEALTH_UPGRADE;
-						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE) {
+						} else if (ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE && flag_system.savanaKilled) {
 							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 							ship.health += SHIP_HEALTH_UPGRADE;
 
 							ship.maxHealth = true;
-						} else {
-							ship_render.used_texture = TEXTURE_ASSET_ID::SHIP_FULL_HP;
 						}
 					}
 				}
@@ -1001,7 +1013,7 @@ void WorldSystem::left_mouse_click() {
 							// change the bullet type
 							bulletType = BulletType::BLASTER_PROJECTILE;
 
-						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_WEAPON) {
+						} else if (ui_ship_weapon.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_WEAPON  && flag_system.iceKilled) {
 							// change to railgun
 
 							if (registry.valid(ui_ship_weapon_entity)) {
@@ -1129,7 +1141,7 @@ void WorldSystem::left_mouse_click() {
 							createShipEngine(registry, vec2(ship_pos.x - 13.0f, ship_pos.y) , vec2(240.0f - 125.0f, 137.5f - 35.0f), 9);
 
 							ship.timer += SHIP_TIMER_UPGRADE;
-						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE) {
+						} else if (ui_ship_engine.active && ui_ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE && flag_system.jungleKilled) {
 							// change to railgun engine
 							if (registry.valid(ui_ship_engine_entity)) {
 								registry.destroy(ui_ship_engine_entity);
@@ -1177,7 +1189,7 @@ void WorldSystem::left_mouse_click() {
 
 				auto& ship = registry.get<Ship>(ship_entity);
 				// UPGRADE RANGE ---------------------------------------------------------------------------
-				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
+				if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < (SHIP_MAX_RANGE - SHIP_RANGE_UPGRADE)) {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 					
@@ -1186,8 +1198,23 @@ void WorldSystem::left_mouse_click() {
 
 					auto& ship = registry.get<Ship>(ship_entity);
 					ship.range += SHIP_RANGE_UPGRADE;
+				} else if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range == (SHIP_MAX_RANGE - SHIP_RANGE_UPGRADE) && flag_system.beachKilled) {
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					MusicSystem::playSoundEffect(SFX::SELECT);
+					
+					// update inventory
+					upgrade_inventory(SHIP_RANGE_UPGRADE_IRON, 0);
+
+					auto& ship = registry.get<Ship>(ship_entity);
+					ship.range += SHIP_RANGE_UPGRADE;
+					
+					if (ship.range >= SHIP_MAX_RANGE) {
+						ship.maxRange = true;
+					}
 				} else if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ship.range >= SHIP_MAX_RANGE) {
 					ship.maxRange = true;
+				} else {
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				}
 				// upgrade_option.hover = false;
 			}
@@ -1616,7 +1643,11 @@ void WorldSystem::update_ship_upgrade_buttons() {
 		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
 		auto& upgradeButton = registry.get<ShipUpgradeButton>(entity);
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON && ship_render.used_texture != TEXTURE_ASSET_ID::SHIP_FULL_HP) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON && ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE && !flag_system.savanaKilled) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(SHIP_HEALTH_UPGRADE_IRON) + " iron, kill Savana boss";
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON && ship_render.used_texture != TEXTURE_ASSET_ID::SHIP_FULL_HP) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_HEALTH_UPGRADE_IRON) + " iron";
@@ -1626,7 +1657,11 @@ void WorldSystem::update_ship_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(SHIP_HEALTH_UPGRADE_IRON) + " iron";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER && ui_ship_weapon_render.used_texture != TEXTURE_ASSET_ID::SHIP_RAILGUN_WEAPON) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER && ui_ship_weapon_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_WEAPON && !flag_system.iceKilled) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(SHIP_WEAPON_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_WEAPON_UPGRADE_COPPER) + " copper, kill Ice boss";
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_BLASTER_UPGRADE && ironCount >= SHIP_WEAPON_UPGRADE_IRON && copperCount >= SHIP_WEAPON_UPGRADE_COPPER && ui_ship_weapon_render.used_texture != TEXTURE_ASSET_ID::SHIP_RAILGUN_WEAPON) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_WEAPON_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_WEAPON_UPGRADE_COPPER) + " copper";
@@ -1636,7 +1671,11 @@ void WorldSystem::update_ship_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(SHIP_WEAPON_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_WEAPON_UPGRADE_COPPER) + " copper";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER && ui_ship_engine_render.used_texture != TEXTURE_ASSET_ID::SHIP_RAILGUN_ENGINE) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER && ui_ship_engine_render.used_texture == TEXTURE_ASSET_ID::SHIP_BLASTER_ENGINE && !flag_system.jungleKilled) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(SHIP_FIRERATE_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_FIRERATE_UPGRADE_COPPER) + " copper, kill Mushroom boss";
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_FIRERATE_UPGRADE && ironCount >= SHIP_FIRERATE_UPGRADE_IRON && copperCount >= SHIP_FIRERATE_UPGRADE_COPPER && ui_ship_engine_render.used_texture != TEXTURE_ASSET_ID::SHIP_RAILGUN_ENGINE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_FIRERATE_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_FIRERATE_UPGRADE_COPPER) + " copper";
@@ -1646,7 +1685,11 @@ void WorldSystem::update_ship_upgrade_buttons() {
 			upgradeButton.missingResourcesText = std::to_string(SHIP_FIRERATE_UPGRADE_IRON) + " iron, " + std::to_string(SHIP_FIRERATE_UPGRADE_COPPER) + " copper";
 		}
 		
-		if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
+		if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range == (SHIP_MAX_RANGE - SHIP_RANGE_UPGRADE) && !flag_system.beachKilled) {
+			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+			upgradeButton.missingResources = true;
+			upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron, kill Beach boss";
+		} else if (buttonOption.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ironCount >= SHIP_RANGE_UPGRADE_IRON && ship.range < SHIP_MAX_RANGE) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
 			upgradeButton.missingResources = false;
 			upgradeButton.missingResourcesText = std::to_string(SHIP_RANGE_UPGRADE_IRON) + " iron";

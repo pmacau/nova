@@ -38,6 +38,7 @@ static void initialize(entt::registry& registry) {
 
     SpawnSystem(const SpawnSystem&) = delete;
     SpawnSystem& operator=(const SpawnSystem&) = delete;
+    std::vector<BossSpawn> bossSpawnData;
 
 private:
     entt::registry& registry;
@@ -47,7 +48,7 @@ private:
     float spawnTimeInterval = 5000.0f;
     size_t spawnCap = 10;       // max mobs
 
-    std::vector<BossSpawn> bossSpawnData;
+    
 
     SpawnSystem(entt::registry& registry);
     ~SpawnSystem();

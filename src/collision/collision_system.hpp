@@ -9,10 +9,11 @@
 #include "physics_system.hpp"
 #include "collision/hitbox.hpp"
 #include "quadtree/quadtree.hpp"
-
+#include "spawn_system.hpp"
+#include "flag_system.hpp"
 class CollisionSystem {
 public:
-    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, QuadTree& quadTree);
+    CollisionSystem(entt::registry& reg, WorldSystem& world, PhysicsSystem& physics, QuadTree& quadTree, SpawnSystem& spawnSystem, FlagSystem& flagSystem);
     void step(float elapsed_ms);
 
     ~CollisionSystem() {
@@ -28,6 +29,8 @@ private:
     PhysicsSystem& physics; 
     WorldSystem& world;
     QuadTree& quadTree;
+	SpawnSystem& spawnSystem;
+    FlagSystem& flagSystem;
 
     std::unordered_set<entt::entity> destroy_entities;
     std::unordered_set<entt::entity> processed;
