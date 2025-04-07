@@ -10,6 +10,8 @@ in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
+// this shader is inspired by: https://www.shadertoy.com/view/fdGfRV
+
 // https://www.pcg-random.org/
 uint pcg(uint v)
 {

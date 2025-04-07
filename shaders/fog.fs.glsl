@@ -10,6 +10,8 @@ in vec2 texcoord;
 
 layout(location = 0) out vec4 color;
 
+// this shader took inspiration from: https://www.shadertoy.com/view/7ldGWf
+// and this for (fast) noise generation: https://www.shadertoy.com/view/lsf3WH
 
 float hash(ivec2 p) { 
     int n = p.x*3 + p.y*113;
