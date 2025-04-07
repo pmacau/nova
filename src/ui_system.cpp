@@ -73,7 +73,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 		registry.emplace<ActiveSlot>(inventory_slot_entity);
 		auto& render_request = registry.get<RenderRequest>(inventory_slot_entity);
 		render_request.used_texture = TEXTURE_ASSET_ID::INVENTORY_SLOT_ACTIVE;
-		auto& player = registry.get<Player>(*registry.view<Player>().begin());
+		// auto& player = registry.get<Player>(*registry.view<Player>().begin());
 	}
 }
 
