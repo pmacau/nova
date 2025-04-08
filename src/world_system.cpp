@@ -1282,7 +1282,7 @@ void WorldSystem::left_mouse_click() {
 					}
 
 					upgrade_inventory(PISTOL_UPGRADE_IRON, 0);
-				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE) {
+				} else if (upgrade_option.type == ButtonOption::Option::PISTOL_UPGRADE && upgrade_button.maxUpgrade) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
@@ -1374,7 +1374,6 @@ void WorldSystem::left_mouse_click() {
 					std::cout << MELEE_MAX_DAMAGE << std::endl;
 					std::cout << MELEE_MAX_FORCE << std::endl;
 
-					const float EPSILON = 0.0001f;
 					if (player_comp.melee_damage >= MELEE_MAX_DAMAGE && player_comp.melee_force >= MELEE_MAX_FORCE) {
 						upgrade_button.maxUpgrade = true;
 						upgrade_button.missingResourcesText = "MAX";
@@ -1382,7 +1381,7 @@ void WorldSystem::left_mouse_click() {
 					}
 					
 					upgrade_inventory(MELEE_UPGRADE_IRON, 0);
-				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE) {
+				} else if (upgrade_option.type == ButtonOption::Option::MELEE_UPGRADE && upgrade_button.maxUpgrade) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
