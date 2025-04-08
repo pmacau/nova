@@ -45,7 +45,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 		auto& potion = registry.get<Potion>(entity);
 		auto& player = registry.get<Player>(*registry.view<Player>().begin());
 		std::cout << "player health before: " << player.health << "\n";
-		player.health = min(player.health + potion.heal, PLAYER_HEALTH);
+		player.health = min(player.health + potion.heal, player.currMaxHealth);
 		std::cout << "player health after: " << player.health << "\n";
 		MusicSystem::playSoundEffect(SFX::POTION);
 		updatePlayerHealthBar(registry, player.currMaxHealth, player.health);
@@ -597,7 +597,11 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion, FlagSy
 	if (equip_delay > 2.f) {
 		for (auto entity : registry.view<Motion, Item>()) {
 			auto& motion = registry.get<Motion>(entity);
-			if (abs(player_motion.position.x - motion.position.x) <= 20 && abs(player_motion.position.y - motion.position.y) <= 20) {
+			int pickup_range = 32;
+			if (
+				abs(player_motion.position.x - motion.position.x) <= pickup_range &&
+				abs(player_motion.position.y - motion.position.y) <= pickup_range
+			) {
 				addToInventory(registry, entity, flag_system);
 			}
 		}

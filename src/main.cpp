@@ -130,6 +130,8 @@ int main()
 			num_frames = 0;
 			num_s = 0.f;
 		}
+
+		
 		
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
@@ -146,6 +148,7 @@ int main()
 			time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
 			
 		}
+		world_system.step_buttons(elapsed_ms);
 
 		time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});
 		time_exe<int>("REND", [&](){renderer_system.draw(); return 0;});
