@@ -1190,7 +1190,7 @@ void RenderSystem::renderShipUI()
 			ui_projection_2D
 		);
 
-		if (button.missingResources) {
+		if (button.missingResources || button.maxUpgrade) {
 			renderText(
 				button.missingResourcesText, 
 				motion.position.x - getTextWidth(button.missingResourcesText, 2)/2,

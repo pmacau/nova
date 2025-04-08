@@ -34,7 +34,7 @@ int main()
 {
 	// TOGGLE this if you don't want a new map every time...
 	int mapWidth = 500, mapHeight = 500; 
-	if (true) {
+	if (false) {
 		auto generated_map = create_map(mapWidth, mapHeight);
 		create_background(generated_map);
 		create_biome_map(generated_map);
@@ -131,7 +131,7 @@ int main()
 			num_s = 0.f;
 		}
 
-		world_system.step_buttons(elapsed_ms);
+		
 		
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set
@@ -148,6 +148,7 @@ int main()
 			time_exe<int>("CAME", [&](){camera_system.step(elapsed_ms); return 0;});
 			
 		}
+		world_system.step_buttons(elapsed_ms);
 
 		time_exe<int>("FLAG", [&](){flag_system.step(elapsed_ms); return 0;});
 		time_exe<int>("REND", [&](){renderer_system.draw(); return 0;});

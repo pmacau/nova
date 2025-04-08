@@ -246,6 +246,8 @@ struct ShipUpgradeButton
 	std::string text;
 	bool missingResources = false;
 	std::string missingResourcesText;
+	bool maxUpgrade = false;
+	bool pressed = false;
 };
 
 struct WeaponUpgradeButton
@@ -254,6 +256,7 @@ struct WeaponUpgradeButton
 	bool missingResources = false;
 	std::string missingResourcesText;
 	bool maxUpgrade = false;
+	bool pressed = false;
 };
 
 struct PlayerUpgradeButton
@@ -262,6 +265,7 @@ struct PlayerUpgradeButton
 	bool missingResources = false;
 	std::string missingResourcesText;
 	bool maxUpgrade = false;
+	bool pressed = false;
 };
 
 struct MobHealthBar

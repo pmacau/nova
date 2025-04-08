@@ -887,6 +887,7 @@ void WorldSystem::left_mouse_click() {
 		for (auto entity : registry.view<ShipUpgradeButton>()) {
 			auto& upgrade_option = registry.get<ButtonOption>(entity);
 			auto& upgrade_render = registry.get<RenderRequest>(entity);
+			auto& upgrade_button = registry.get<ShipUpgradeButton>(entity);
 
 			if (upgrade_option.hover) {
 				// UPGRADE HEALTH ---------------------------------------------------------------------------
@@ -926,6 +927,10 @@ void WorldSystem::left_mouse_click() {
 							ship.health += SHIP_HEALTH_UPGRADE;
 
 							ship.maxHealth = true;
+							
+							upgrade_button.maxUpgrade = true;
+							upgrade_button.missingResourcesText = "MAX";
+							upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 						}
 					}
 				}
@@ -1050,6 +1055,10 @@ void WorldSystem::left_mouse_click() {
 
 							ship.maxWeapon = true;
 
+							upgrade_button.maxUpgrade = true;
+							upgrade_button.missingResourcesText = "MAX";
+							upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+
 						} else if (!ui_ship_weapon.active) {
 							// create a new weapon (start as smg)
 							if (registry.valid(ui_ship_weapon_entity)) {
@@ -1165,6 +1174,10 @@ void WorldSystem::left_mouse_click() {
 							ship.timer += SHIP_TIMER_UPGRADE;
 
 							ship.maxFireRate = true;
+
+							upgrade_button.maxUpgrade = true;
+							upgrade_button.missingResourcesText = "MAX";
+							upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 						} else if (!ui_ship_engine.active) {
 							// create a new weapon (start as smg engine)
 							if (registry.valid(ui_ship_engine_entity)) {
@@ -1212,9 +1225,15 @@ void WorldSystem::left_mouse_click() {
 					
 					if (ship.range >= SHIP_MAX_RANGE) {
 						ship.maxRange = true;
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 					}
 				} else if (upgrade_option.type == ButtonOption::Option::SHIP_RANGE_UPGRADE && ship.range >= SHIP_MAX_RANGE) {
 					ship.maxRange = true;
+					upgrade_button.maxUpgrade = true;
+					upgrade_button.missingResourcesText = "MAX";
+					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				} else {
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
 				}
@@ -1437,10 +1456,15 @@ void WorldSystem::left_mouse_click() {
 
 					player_comp.health += 20;
 					player_comp.currMaxHealth += 20;
+					if (player_comp.currMaxHealth >= PLAYER_MAX_HEALTH) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
 
 					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_HEALTH_UPGRADE && 
-					player_comp.health >= PLAYER_MAX_HEALTH) {
+					player_comp.currMaxHealth >= PLAYER_MAX_HEALTH) {
 					upgrade_button.maxUpgrade = true;
 					upgrade_button.missingResourcesText = "MAX";
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
@@ -1452,9 +1476,16 @@ void WorldSystem::left_mouse_click() {
 					!upgrade_button.maxUpgrade) {
 					
 					upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED;
+					std::cout << "green button pressed" << std::endl;
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					player_comp.vision_radius += 0.2;
+
+					if (player_comp.vision_radius >= PLAYER_MAX_VISION_RADIUS) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
 
 					upgrade_inventory(0, PLAYER_VISION_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_VISION_UPGRADE && 
@@ -1474,6 +1505,12 @@ void WorldSystem::left_mouse_click() {
 					MusicSystem::playSoundEffect(SFX::SELECT);
 
 					player_comp.speed += 30;
+
+					if (player_comp.speed >= PLAYER_MAX_SPEED) {
+						upgrade_button.maxUpgrade = true;
+						upgrade_button.missingResourcesText = "MAX";
+						upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
+					}
 
 					upgrade_inventory(PLAYER_HEALTH_UPGRADE_IRON, PLAYER_HEALTH_UPGRADE_COPPER);
 				} else if (upgrade_option.type == ButtonOption::Option::PLAYER_SPEED_UPGRADE && 
@@ -1580,26 +1617,14 @@ void WorldSystem::left_mouse_release() {
 
     if (screen_state.current_screen == ScreenState::ScreenType::SHIP_UPGRADE_UI) {
         for (auto entity : registry.view<ShipUpgradeButton>()) {
-            auto& upgrade_render = registry.get<RenderRequest>(entity);
-			// if (upgrade_render.used_texture != TEXTURE_ASSET_ID::RED_BUTTON_PRESSED) {
-			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::GREEN_BUTTON_ACTIVE;
-			// }
 			update_ship_upgrade_buttons();
         }
     } else if (screen_state.current_screen == ScreenState::ScreenType::WEAPON_UPGRADE_UI) {
         for (auto entity : registry.view<WeaponUpgradeButton>()) {
-            auto& upgrade_render = registry.get<RenderRequest>(entity);
-			// if (upgrade_render.used_texture == TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED) {
-			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE;
-			// }
 			update_weapon_upgrade_buttons();
         }
     } else if (screen_state.current_screen == ScreenState::ScreenType::PLAYER_UPGRADE_UI) {
         for (auto entity : registry.view<PlayerUpgradeButton>()) {
-            auto& upgrade_render = registry.get<RenderRequest>(entity);
-			// if (upgrade_render.used_texture == TEXTURE_ASSET_ID::GREEN_BUTTON_PRESSED) {
-			// 	upgrade_render.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_ACTIVE;
-			// }
 			update_player_upgrade_buttons();
         }
     }
@@ -1692,6 +1717,8 @@ void WorldSystem::update_ship_upgrade_buttons() {
 		auto& buttonOption = registry.get<ButtonOption>(entity);
 		auto& buttonRenderRequest = registry.get<RenderRequest>(entity);
 		auto& upgradeButton = registry.get<ShipUpgradeButton>(entity);
+
+		if (upgradeButton.maxUpgrade) continue;
 		
 		if (buttonOption.type == ButtonOption::Option::SHIP_HEALTH_UPGRADE && ironCount >= SHIP_HEALTH_UPGRADE_IRON && ship_render.used_texture == TEXTURE_ASSET_ID::SHIP_SLIGHT_DAMAGE && !flag_system.savanaKilled) {
 			buttonRenderRequest.used_texture = TEXTURE_ASSET_ID::RED_BUTTON_PRESSED;
@@ -1850,8 +1877,6 @@ void WorldSystem::update_player_upgrade_buttons() {
 		if (item.type == Item::Type::COPPER) copperCount += item.no;
 		if (item.type == Item::Type::IRON) ironCount += item.no;
 	}
-
-	auto& player_comp = registry.get<Player>(player_entity);
 
 	// if have enough resources, change the buttons in the UI to green (upgradeable)
 	auto upgradeButtons = registry.view<PlayerUpgradeButton, ButtonOption>();
