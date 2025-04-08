@@ -298,7 +298,7 @@ void CollisionSystem::handle<Slash, Mob>(
 	}
 	else {
 		auto player_ent = registry.view<Player>().front();
-		physics.knockback(mob_ent, player_ent, slash.force); 
+		//physics.knockback(mob_ent, player_ent, slash.force); 
 	}
 }
 
