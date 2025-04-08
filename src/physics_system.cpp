@@ -146,6 +146,13 @@ void PhysicsSystem::updatePlayerState(float elapsed_s) {
 		dash.cooldown = 1.5f;
 	}
 
+    // check prolly should not do here but whatever
+	auto player_entity = registry.view<Player>().front();
+    auto& motion = registry.get<Motion>(player_entity); 
+    if (glm::length(motion.acceleration) > 450.f) {
+		motion.acceleration = glm::normalize(motion.acceleration) * 450.f;
+    }
+
 }
 
 // always bring it back to 0, maybe change the way it reverts to 0. 
