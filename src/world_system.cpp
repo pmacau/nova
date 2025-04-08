@@ -497,7 +497,7 @@ void WorldSystem::player_respawn() {
 	screen_state.darken_screen_factor = 0;
 
 	Player& player = registry.get<Player>(player_entity);
-	player.health = PLAYER_HEALTH;
+	player.health = player.currMaxHealth;
 
 	Motion& player_motion = registry.get<Motion>(player_entity);
 	player_motion.velocity = {0.f, 0.f};
