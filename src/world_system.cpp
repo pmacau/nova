@@ -484,12 +484,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// handle the text boxes for tutorial
 	handleTextBoxes(elapsed_ms_since_last_update);
+	
+	return true;
+}
 
+void WorldSystem::step_buttons(float elapsed_ms_since_last_update) {
 	update_ship_upgrade_buttons();
 	update_weapon_upgrade_buttons();
 	update_player_upgrade_buttons();
-	
-	return true;
 }
 
 void WorldSystem::player_respawn() {

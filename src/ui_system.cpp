@@ -45,7 +45,7 @@ void UISystem::useItem(entt::registry& registry, entt::entity& inventory_slot_en
 		auto& potion = registry.get<Potion>(entity);
 		auto& player = registry.get<Player>(*registry.view<Player>().begin());
 		std::cout << "player health before: " << player.health << "\n";
-		player.health = min(player.health + potion.heal, PLAYER_HEALTH);
+		player.health = min(player.health + potion.heal, player.currMaxHealth);
 		std::cout << "player health after: " << player.health << "\n";
 		MusicSystem::playSoundEffect(SFX::POTION);
 		updatePlayerHealthBar(registry, player.currMaxHealth, player.health);

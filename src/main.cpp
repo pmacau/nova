@@ -130,6 +130,8 @@ int main()
 			num_frames = 0;
 			num_s = 0.f;
 		}
+
+		world_system.step_buttons(elapsed_ms);
 		
 
 		// Make sure collision_system is called before collision is after physics will mark impossible movements in a set

@@ -36,6 +36,7 @@ public:
 
 	// steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
+	void step_buttons(float elapsed_ms);
 
 	// should the game be over ?
 	bool is_over() const;
