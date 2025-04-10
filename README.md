@@ -1,6 +1,6 @@
 # 5 People (Team 12) - Milestone 4
 
-**Note:** We used one grace day for this final submission.
+**Note:** We used three grace day for this final submission.
 
 _Follow the hyperlinks to see the code location_
 
