@@ -57,6 +57,16 @@ void AIStateMachine::changeState(AIState *newState)
     }
 }
 
+void AIStateMachine::changeStateByStateId(const std::string &stateId)
+{
+    // Use the StateFactory to create a new state instance
+    std::unique_ptr<AIState> newState = g_stateFactory.createState(stateId);
+    if (newState)
+    {
+        changeState(newState.release());
+    }
+}
+
 AIState *AIStateMachine::getCurrentState() const
 {
     return currentState;

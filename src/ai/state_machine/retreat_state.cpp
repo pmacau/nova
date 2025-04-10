@@ -54,17 +54,42 @@ ivec2 RetreatState::computeRetreatDestination(entt::registry& registry, entt::en
 }
 
 void RetreatState::regenerateRetreatPath(entt::registry& registry, entt::entity entity, ivec2 startTile, ivec2 targetTile) {
+
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::IDLE);
+    }
+
     retreatPath = Pathfinder::findPath(startTile, targetTile, true);
     if (!retreatPath.empty()) {
         // Optionally remove the first tile if it is the enemy's current tile.
         retreatPath.erase(retreatPath.begin());
     }
+
+    auto& aiComp = registry.get<AIComponent>(entity);
+
+    if (retreatPath.empty()) {
+        debug_printf(DebugType::AI, "Retreat path is empty, transitioning to range_attack state.\n");
+        aiComp.stateMachine->changeStateByStateId("range_attack");
+        return;
+    }
+
     currentWaypointIndex = 0;
     pathRecalcTimer = 0.0f;
+
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::WALK);
+    }
 }
 
 void RetreatState::onEnter(entt::registry& registry, entt::entity entity) {
     debug_printf(DebugType::AI, "Entering RetreatState\n");
+
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::WALK);
+    }
 
     stateComplete = false;
     // Get the RangeAIConfig.
@@ -82,10 +107,6 @@ void RetreatState::onEnter(entt::registry& registry, entt::entity entity) {
     // Regenerate path from enemy tile to retreat tile.
     regenerateRetreatPath(registry, entity, enemyTile, retreatTile);
 
-    if (registry.any_of<AnimationComponent>(entity)) {
-        auto& animComp = registry.get<AnimationComponent>(entity);
-        AnimationSystem::setAnimationAction(animComp, MotionAction::WALK);
-    }
 
 }
 
@@ -143,4 +164,10 @@ void RetreatState::onExit(entt::registry& registry, entt::entity entity) {
     retreatPath.clear();
     currentWaypointIndex = 0;
     pathRecalcTimer = 0.0f;
+
+    
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::IDLE);
+    }
 }

@@ -43,7 +43,7 @@ SmallBlueArcher() {
 
 protected:
     virtual void initializeSpawnInfo() override {
-        spawnInfo.spawnProbability = 0.5f;
+        spawnInfo.spawnProbability = 0.4f;
         spawnInfo.group = {1, 2};
         spawnInfo.biomes = {Biome::B_ICE, Biome::B_FOREST};
     }
@@ -114,7 +114,7 @@ protected:
         config->patrolRadius = 150.0f;
         config->patrolSpeed = 30.0f;
         config->patrolThreshold = 5.0f;
-        config->shotsNumberRange = {2, 4}; // Number of shots to fire.
+        config->shotsNumberRange = {1, 2}; // Number of shots to fire.
         config->shotCooldown = 300.0f;
 
         config->projectileSpeed = 500.0f;

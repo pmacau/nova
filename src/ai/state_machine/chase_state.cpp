@@ -162,4 +162,9 @@ void ChaseState::onExit(entt::registry& registry, entt::entity entity) {
     currentPath.clear();
     currentWaypointIndex = 0;
     pathRecalcTimer = 0.0f;
+
+    if (registry.any_of<AnimationComponent>(entity)) {
+        auto& animComp = registry.get<AnimationComponent>(entity);
+        AnimationSystem::setAnimationAction(animComp, MotionAction::IDLE);
+    }
 }

@@ -18,6 +18,8 @@ public:
     // Change the current state.
     void changeState(AIState* newState);
 
+    void changeStateByStateId(const std::string &stateId);
+
     // Get the current state.
     AIState* getCurrentState() const;
 

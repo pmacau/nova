@@ -61,6 +61,6 @@ protected:
 
         RangeAIConfig* config = static_cast<RangeAIConfig*>(aiInfo.aiConfig.get());
 
-        config->shotsNumberRange = {2, 4}; // Number of shots to fire.
+        config->shotsNumberRange = {1, 3}; // Number of shots to fire.
     }
 };
