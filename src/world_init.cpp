@@ -134,7 +134,7 @@ entt::entity createSlash(entt::registry& registry) {
 //    float w = motion.scale.x;
 //    float h = motion.scale.y;
 
-   float radius = motion.scale.x / 2.5f;
+   float radius = motion.scale.x / 1.8f;
    float offset = 40.f;
    motion.angle = 0.f;
    

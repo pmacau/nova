@@ -597,11 +597,7 @@ void UISystem::equipItem(entt::registry& registry, Motion& player_motion, FlagSy
 	if (equip_delay > 2.f) {
 		for (auto entity : registry.view<Motion, Item>()) {
 			auto& motion = registry.get<Motion>(entity);
-			int pickup_range = 32;
-			if (
-				abs(player_motion.position.x - motion.position.x) <= pickup_range &&
-				abs(player_motion.position.y - motion.position.y) <= pickup_range
-			) {
+			if (abs(player_motion.position.x - motion.position.x) <= 32 && abs(player_motion.position.y - motion.position.y) <= 32) {
 				addToInventory(registry, entity, flag_system);
 			}
 		}
